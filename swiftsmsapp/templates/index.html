@@ -1,0 +1,392 @@
+{% extends 'guest.html' %}
+{% load static %}
+{% block title %}
+BULK SMS
+{% endblock %}
+{% block content %}
+    <!-- Navigation -->
+    <nav id="navbarExample" class="navbar navbar-expand-lg fixed-top navbar-light" aria-label="Main navigation">
+        <div class="container">
+
+            <!-- Image Logo -->
+            <a class="" href=""><img src="{% static 'images/logo.svg' %}" alt="logo" width="80" height="80" style="border-radius:100%"></a>
+
+            <!-- Text Logo - Use this if you don't have a graphic logo -->
+
+
+            <button class="navbar-toggler p-0 border-0" type="button" id="navbarSideCollapse" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav ms-auto navbar-nav-scroll">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#header">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#projects">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#services">Services</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-expanded="false">Account</a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdown01">
+                            <li><a class="dropdown-item" href="{% url 'login' %}">Login</a></li>
+                            <li><div class="dropdown-divider"></div></li>
+                            <li><a class="dropdown-item" href="{% url 'register' %}">Sign up</a></li>
+                            <li><div class="dropdown-divider"></div></li>
+
+                        </ul>
+                    </li>
+                </ul>
+                <span class="nav-item">
+                    <a class="btn-solid-sm" href="#contact">Get quote</a>
+                </span>
+            </div> <!-- end of navbar-collapse -->
+        </div> <!-- end of container -->
+    </nav> <!-- end of navbar -->
+    <!-- end of navigation -->
+
+
+    <!-- Header -->
+    <header id="header" class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 col-xl-5">
+                    <div class="text-container">
+                        <div class="section-title">Welcome to SWIFT-SMS</div>
+                        <h1 class="h1-large">Reach, Connect, Impact: Unleash the Power of Bulk SMS!</h1>
+                        <p class="p-large">Send Bulk SMS Messages Instantly to MTN, Airtel, and Zamtel Users with ease.</p>
+                        <a class="btn-solid-lg" href="#services">Offered services</a>
+                        <a class="quote" href="#contact"><i class="fas fa-paper-plane"></i>Get quote</a>
+                    </div> <!-- end of text-container -->
+                </div> <!-- end of col -->
+                <div class="col-lg-6 col-xl-7">
+                    <div class="image-container">
+                        <img class="img-fluid" src="{% static 'images/header-illustration.svg'%}" alt="alternative">
+                    </div> <!-- end of image-container -->
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+        </div> <!-- end of container -->
+    </header> <!-- end of header -->
+    <!-- end of header -->
+
+
+    <!-- Services -->
+    <div id="services" class="cards-1">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-icon blue">
+                            <span class="far fa-file-alt"></span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Multi-network support</h5>
+                            <p>Send Bulk SMS Messages Instantly to MTN, Airtel, and Zamtel Users.</p>
+                            <ul class="list-unstyled li-space-lg">
+<!--                                <li class="d-flex">-->
+<!--                                    <i class="fas fa-check"></i>-->
+<!--                                    <div class="flex-grow-1">Multi-network support</div>-->
+<!--                                </li>-->
+                                <!-- <li class="d-flex">
+                                    <i class="fas fa-check"></i>
+                                    <div class="flex-grow-1">Phasellus vitae metus in felis</div>
+                                </li>
+                                <li class="d-flex">
+                                    <i class="fas fa-check"></i>
+                                    <div class="flex-grow-1">Fusce pulvinar eu mi ac molestie</div>
+                                </li>
+                                <li class="d-flex">
+                                    <i class="fas fa-check"></i>
+                                    <div class="flex-grow-1">Curabitur consequat nisl eget</div>
+                                </li> -->
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-icon yellow">
+                            <span class="fas fa-solar-panel"></span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Easy-to-use interface</h5>
+                            <p>Our platform is designed to be intuitive and user-friendly</p>
+                            <ul class="list-unstyled li-space-lg">
+                                <!-- <li class="d-flex">
+                                    <i class="fas fa-check"></i>
+                                    <div class="flex-grow-1">Vivaus dignissim sit amet nisi</div>
+                                </li>
+                                <li class="d-flex">
+                                    <i class="fas fa-check"></i>
+                                    <div class="flex-grow-1">Aliqam a tristique nibh in pretium</div>
+                                </li>
+                                <li class="d-flex">
+                                    <i class="fas fa-check"></i>
+                                    <div class="flex-grow-1">Nunc commodo magna quis blah</div>
+                                </li>
+                                <li class="d-flex">
+                                    <i class="fas fa-check"></i>
+                                    <div class="flex-grow-1">Lacus fermentum tincidunt</div>
+                                </li> -->
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-icon red">
+                            <span class="fas fa-gift"></span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">API support</h5>
+                            <p>Integrate our platform with your existing systems using API's.</p>
+
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+        </div> <!-- end of container -->
+    </div> <!-- end of cards-1 -->
+    <!-- end of services -->
+
+
+
+    <!-- Pricing -->
+    <div id="pricing" class="cards-2">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h2 class="h2-heading"><span>Choose the package</span><br> that fits your budget and project</h2>
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+            <div class="row">
+                <div class="col-lg-12">
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>0 - 1000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg'%}" alt="alternative">
+                            </div>
+
+                            <div class="price">ZK 300</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>1,001 - 2000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg'%}" alt="alternative">
+                            </div>
+
+                            <div class="price">ZK 650</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>2,001 - 3000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg' %}" alt="alternative">
+                            </div>
+                            <div class="price">ZK 1000</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+
+
+
+
+            <div class="row">
+                <div class="col-lg-12">
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>3,001 - 4000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg'%}" alt="alternative">
+                            </div>
+
+                            <div class="price">ZK 1,350</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>4,001 - 5000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg'%}" alt="alternative">
+                            </div>
+
+                            <div class="price">ZK 1,450</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>5,001 - 6000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg' %}" alt="alternative">
+                            </div>
+                            <div class="price">ZK 1,750</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+
+
+
+
+
+
+
+
+            <div class="row">
+                <div class="col-lg-12">
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>6,001 - 7000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg'%}" alt="alternative">
+                            </div>
+
+                            <div class="price">ZK 2000</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>7,001 - 8000 SMS's</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg'%}" alt="alternative">
+                            </div>
+
+                            <div class="price">ZK 2,200</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <img class="decoration-lines" src="{% static 'images/decoration-lines.svg'%}" alt="alternative"><span>8,001 - 9,000</span><img class="decoration-lines flipped" src="{% static 'images/decoration-lines.svg' %}" alt="alternative">
+                            </div>
+                            <div class="price">ZK 2,500</div>
+                            <a href="#contact" class="btn-outline-reg">Get Started</a>
+                        </div>
+                    </div>
+                    <!-- end of card -->
+
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+
+
+
+
+
+
+
+
+        </div> <!-- end of container -->
+    </div> <!-- end of cards-2 -->
+    <!-- end of pricing -->
+
+
+    <!-- Invitation -->
+    <div class="basic-2">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="text-container">
+                        <h4>Our platform is designed to be intuitive and user-friendly</h4>
+                        <p class="p-large">We would love to hear your thoughts, suggestions, concerns or problems with anything so we can improve!</p>
+                    </div> <!-- end of text-container -->
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+        </div> <!-- end of container -->
+    </div> <!-- end of basic-2 -->
+    <!-- end of invitation -->
+
+
+    <!-- Contact -->
+    <div id="contact" class="form-1">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h2 class="h2-heading"><span>Use the following form to</span><br> request a quote for your project</h2>
+                    <p class="p-heading">We would love to hear your thoughts, suggestions, concerns or problems with anything so we can improve!</p>
+                    <ul class="list-unstyled li-space-lg">
+                        <li><i class="fas fa-map-marker-alt"></i> &nbsp;28 Buchi road, Lusaka</li>
+                        <li><i class="fas fa-phone"></i> &nbsp;<a href="tel:00817202212">+282992992</a></li>
+                        <li><i class="fas fa-envelope"></i> &nbsp;<a href="mailto:lorem@ipsum.com">info@swift-sms.net</a></li>
+                    </ul>
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1">
+
+                    <!-- Contact Form -->
+                    <form>
+                        <div class="form-group">
+                            <input type="text" class="form-control-input" placeholder="Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-control-input" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control-select" required>
+                                <option class="select-option" value="" disabled selected>Project type</option>
+                                <option class="select-option" value="Company Website">Company Website</option>
+                                <option class="select-option" value="Landing Page">Landing Page</option>
+                                <option class="select-option" value="Online Shop">Online Shop</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea class="form-control-textarea" placeholder="Message" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="form-control-submit-button">Submit</button>
+                        </div>
+                    </form>
+                    <!-- end of contact form -->
+
+                </div> <!-- end of col -->
+            </div> <!-- end of row -->
+        </div> <!-- end of container -->
+    </div> <!-- end of form-1 -->
+    <!-- end of contact -->
+{% endblock %}
