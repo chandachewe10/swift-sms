@@ -51,6 +51,7 @@
 
 
 <div class="shadow p-3 mb-5 bg-white rounded w-50 mt-4">
+<!-- Show tags messages-->
 {% if messages %}
 
     {% for message in messages %}
@@ -62,6 +63,11 @@
 </div>
 {% endfor %}
 {% endif %}
+
+
+    <!-- --------------------------------->
+
+
 {% block content %}
 
 {% endblock%}
@@ -72,6 +78,14 @@
 
 
     <!-- Scripts -->
+<script>
+    //Function to automatically dismiss alerts after 5 seconds
+    window.setTimeout(function() {
+        $(".alert").fadeTo(300, 0).slideUp(300, function(){
+            $(this).remove();
+        });
+    }, 3000);
+</script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script> <!-- Bootstrap framework -->
     <script src="{% static 'js/swiper.min.js' %}"></script> <!-- Swiper for image and text sliders -->
     <script src="{% static 'js/purecounter.min.js' %}"></script> <!-- Purecounter counter for statistics numbers -->
