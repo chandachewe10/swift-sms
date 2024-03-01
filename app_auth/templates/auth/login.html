@@ -9,7 +9,8 @@
 {%block content%}
 
 <form method="post" class="my-class">
-   {% csrf_token %}
+
+     {% csrf_token %}
    {{ form|crispy}}
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>

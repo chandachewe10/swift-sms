@@ -52,6 +52,6 @@ def login(request):
 			messages.success(request, f' welcome {username} !!')
 			return redirect('login')
 		else:
-			messages.info(request, f'account done not exit plz sign in')
+			messages.warning(request, f'these credentials do not match our records')
 	form = AuthenticationForm()
 	return render(request, 'auth/login.html', {'form':form, 'title':'Sign In'})

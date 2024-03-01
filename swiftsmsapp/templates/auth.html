@@ -7,7 +7,10 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="Bulk SMS - Send customized messages to a large audience quickly and efficiently. Enhance customer engagement, increase brand awareness, and drive conversions">
     <meta name="author" content="Chanda Chewe">
-
+    <!--Font awesome-->
+    <link href="{% static 'css/fontawesome-all.min.css' %}" rel="stylesheet">
+    <!--Jquery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <!-- OG Meta Tags to improve the way the post looks when you share the page on Facebook, Twitter, LinkedIn -->
 	<meta property="og:site_name" content="swift-sms" /> <!-- website name -->
 	<meta property="og:site" content="https://swift-sms.net" /> <!-- website link -->
@@ -30,19 +33,7 @@
 	<!-- Favicon  -->
     <link rel="icon" href="{% static 'images/favicon.png' %}">
 
-    <!-- message here -->
 
-  {% if messages %}
-  {% for message in messages %}
-
-  <script>
-    alert("{{ message }}");
-  </script>
-
-  {% endfor %}
-  {% endif %}
-
-  <!--_______________________________________________-->
 </head>
 
 
@@ -60,6 +51,17 @@
 
 
 <div class="shadow p-3 mb-5 bg-white rounded w-50 mt-4">
+{% if messages %}
+
+    {% for message in messages %}
+<div class="">
+<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+  <strong>{{ message.tags }}!</strong> {{message}}
+
+</div>
+</div>
+{% endfor %}
+{% endif %}
 {% block content %}
 
 {% endblock%}
