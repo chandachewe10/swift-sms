@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     "swiftsmsapp",
     "app_auth",
+    "admindashboard",
     "crispy_forms",
     "crispy_bootstrap4",
     "django.contrib.admin",
