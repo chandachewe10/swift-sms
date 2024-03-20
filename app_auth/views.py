@@ -33,7 +33,7 @@ def register(request):
 			# msg.send()
 			##################################################################
 			messages.success(request, f'Your account has been created ! You are now able to log in')
-			return redirect('login')
+			return redirect('dashboard')
 	else:
 		form = UserRegisterForm()
 	return render(request, 'auth/register.html', {'form': form, 'title':'Register'})
@@ -50,7 +50,7 @@ def login(request):
 		if user is not None:
 			login_user(request, user)
 			messages.success(request, f' welcome {username} !!')
-			return redirect('login')
+			return redirect('dashboard')
 		else:
 			messages.warning(request, f'these credentials do not match our records')
 	form = AuthenticationForm()
