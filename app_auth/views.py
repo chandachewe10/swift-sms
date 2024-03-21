@@ -8,6 +8,7 @@ from django.core.mail import send_mail
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.template import Context
+from django.contrib.auth import logout
 
 
 #################### index#######################################
@@ -55,3 +56,8 @@ def login(request):
 			messages.warning(request, f'these credentials do not match our records')
 	form = AuthenticationForm()
 	return render(request, 'auth/login.html', {'form':form, 'title':'Sign In'})
+
+def logout_view(request):
+	logout(request)
+	return redirect('login')
+
