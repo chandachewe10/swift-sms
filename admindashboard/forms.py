@@ -72,3 +72,5 @@ class ContactsForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={'placeholder': 'Customer'})
     )
+
+
