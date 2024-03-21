@@ -21,5 +21,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('swiftsmsapp.urls')),
     path('auth/', include('app_auth.urls')),
-    path('dashboard', include('admindashboard.urls')),
+    path('dashboard/', include('admindashboard.urls')),
 ]
