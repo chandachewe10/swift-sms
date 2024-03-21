@@ -1,6 +1,6 @@
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column
+from crispy_forms.layout import Layout, Row, Column, Submit
 
 class ContactsForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -28,6 +28,7 @@ class ContactsForm(forms.Form):
                 Column('tag', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
+            Submit('submit', u'Add Contact', css_class='btn btn-success'),
         )
 
     firstname = forms.CharField(

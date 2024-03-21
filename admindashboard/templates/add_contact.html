@@ -41,11 +41,9 @@
 
 
                <!-- Add Contacts -->
-<form method="post" class="my-class">
+<form method="post">
     {% csrf_token %}
     {% crispy contact_form %}
-    <br>
-    <button type="submit" class="btn btn-primary">Add Contact</button>
 </form>
 <!-- End Contacts -->
 
