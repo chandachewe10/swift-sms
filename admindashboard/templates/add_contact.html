@@ -13,35 +13,49 @@
 
 
 
- <!-- Content -->
+<!-- Content -->
 
 
 {%block content%}
+<!-- Content -->
 
-<div class="shadow p-3 mb-5 bg-white rounded w-50 mt-4">
-<!-- Show tags messages-->
-{% if messages %}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="">
+            <div class="shadow p-3 mb-5 bg-white rounded">
 
-    {% for message in messages %}
 
-<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-  <strong>{{ message.tags }}!</strong> {{message}}
+                <!-- Show tags messages-->
+                {% if messages %}
 
-</div>
+                {% for message in messages %}
 
-{% endfor %}
-{% endif %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <strong>{{ message.tags }}!</strong> {{message}}
 
+                </div>
+
+                {% endfor %}
+                {% endif %}
+                <!--End showing Messages-->
+
+
+               <!-- Add Contacts -->
 <form method="post" class="my-class">
-
-     {% csrf_token %}
-   {{ contact_form|crispy}}
-    <button type="submit" class="btn btn-primary">Submit</button>
+    {% csrf_token %}
+    {% crispy contact_form %}
+    <br>
+    <button type="submit" class="btn btn-primary">Add Contact</button>
 </form>
-{%endblock%}
-</div>
+<!-- End Contacts -->
 
- <!-- / Content -->
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- / Content -->
+{% endblock %}
 
 
 
