@@ -156,13 +156,13 @@
                     <h6 class="mb-0">Address</h6>
                   </div>
                   <div class="col-sm-9 text-secondary">
-                    {{contact.adddress}}
+                    c
                   </div>
                 </div>
                 <hr>
                 <div class="row">
                   <div class="col-sm-12">
-                    <a class="btn btn-info " target="__blank" href="">Edit</a>
+                    <a class="btn btn-info " target="__blank" href="{% url 'edit_contact' contact.id %}">Edit</a>
                   </div>
                 </div>
               </div>

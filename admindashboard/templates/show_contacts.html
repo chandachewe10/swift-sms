@@ -43,6 +43,22 @@
 
     <button class="btn btn-primary"><a href="{% url 'contacts' %}" style="color:white">Add Contact</a> </button>
 <hr>
+
+    <!-- Show tags messages-->
+                {% if messages %}
+
+                {% for message in messages %}
+
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <strong>{{ message.tags }}!</strong> {{message}}
+
+                </div>
+
+                {% endfor %}
+                {% endif %}
+                <!--End showing Messages-->
+
+
 <!--Data -->
 <table id="contacts" class="display">
     <thead>
@@ -70,7 +86,7 @@
             <td>{{ contact.tag }}</td>
            <td>
               <button class="btn btn-info btn-sm"><a href="{% url 'show_contact' contact.id %}" style="color:white">Show</a> </button>
-                <button class="btn btn-success btn-sm"><a href="" style="color:white">Edit</a> </button>
+                <button class="btn btn-success btn-sm"><a href="{% url 'edit_contact' contact.id %}" style="color:white">Edit</a> </button>
                 <button class="btn btn-danger btn-sm"><a href="" style="color:white">Delete</a> </button>
             </td>
         </tr>

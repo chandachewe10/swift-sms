@@ -18,8 +18,29 @@ def show_contact(request,contact_id):
    print(contact)
    return render(request, 'show_contact.html',{'contact':contact})
 
+@login_required(login_url='login')
+def edit_contact(request,contact_id):
+  contact = Contacts.objects.get(id=contact_id)
+  if request.method == 'GET':
+   edit_contact_form = ContactsForm(instance=contact)
+   print(contact)
+   return render(request, 'edit_contact.html',{'edit_contact_form':edit_contact_form})
+  else:
+     if request.method == 'POST':
+        form = ContactsForm(request.POST,instance=contact)
+        print(request.POST);
+        if form.is_valid():
+           form.save()
+           messages.success(request, 'Your contact has been updated successfully')
+           return redirect('show_contacts')
+        else:
+           for field, errors in form.errors.items():
+              for error in errors:
+                 messages.warning(request, f"{field}: {error}")
+           return redirect(request.META.get('HTTP_REFERER', '/'))
 
-# Create your views here.
+
+        # Create your views here.
 
 @login_required(login_url='login')
 def dashboard(request):
