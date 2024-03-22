@@ -1,0 +1,73 @@
+{% extends 'master.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block menu %}
+{% include 'menu.html' %}
+{% endblock %}
+
+{% block nav %}
+{% include 'nav.html' %}
+{% endblock %}
+
+
+
+
+<!-- Content -->
+
+
+{%block content%}
+<!-- Content -->
+
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="">
+     <nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'contacts' %}">Contacts</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Show Contacts</li>
+  </ol>
+</nav>
+
+
+            <div class="shadow p-3 mb-5 bg-white rounded">
+
+
+
+
+
+<!-- Show All Contacts -->
+<form method="post">
+
+    <button class="btn btn-primary"><a href="{% url 'contacts' %}" style="color:white">Add Contact</a> </button>
+<hr>
+<!--Data -->
+{% if contact %}
+{{contact.firstname}}
+{% endif %}
+<!--End Data-->
+
+
+
+
+
+
+
+</form>
+<!-- End showing Contacts -->
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- / Content -->
+{% endblock %}
+
+
+
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock %}

@@ -12,6 +12,12 @@ def show_contacts(request):
    print(contacts)
    return render(request, 'show_contacts.html',{'contacts':contacts})
 
+@login_required(login_url='login')
+def show_contact(request,contact_id):
+   contact = Contacts.objects.get(id=contact_id)
+   print(contact)
+   return render(request, 'show_contact.html',{'contact':contact})
+
 
 # Create your views here.
 
