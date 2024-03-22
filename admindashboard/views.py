@@ -2,6 +2,16 @@ from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import ContactsForm
+from .models import Contacts
+
+
+# Retrieve all contacts from here
+@login_required(login_url='login')
+def show_contacts(request):
+   contacts = Contacts.objects.all()
+   print(contacts)
+   return render(request, 'show_contacts.html',{'contacts':contacts})
+
 
 # Create your views here.
 

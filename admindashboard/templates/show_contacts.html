@@ -1,0 +1,107 @@
+{% extends 'master.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block menu %}
+{% include 'menu.html' %}
+{% endblock %}
+
+{% block nav %}
+{% include 'nav.html' %}
+{% endblock %}
+
+
+
+
+<!-- Content -->
+
+
+{%block content%}
+<!-- Content -->
+
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="">
+     <nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'contacts' %}">Contacts</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Show Contacts</li>
+  </ol>
+</nav>
+
+
+            <div class="shadow p-3 mb-5 bg-white rounded">
+
+
+
+
+
+<!-- Show All Contacts -->
+<form method="post">
+
+    <button class="btn btn-primary"><a href="{% url 'contacts' %}" style="color:white">Add Contact</a> </button>
+<hr>
+<!--Data -->
+<table id="contacts" class="display">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Tag</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+     {% if contacts %}
+    {% for contact in contacts %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ contact.firstname }}</td>
+            <td>{{ contact.lastname }}</td>
+            <td>{{ contact.phone }}</td>
+            <td>{{ contact.email }}</td>
+            <td>{{ contact.address }}</td>
+            <td>{{ contact.tag }}</td>
+           <td>
+              <button class="btn btn-info btn-sm"><a href="" style="color:white">Show</a> </button>
+                <button class="btn btn-success btn-sm"><a href="" style="color:white">Edit</a> </button>
+                <button class="btn btn-danger btn-sm"><a href="" style="color:white">Delete</a> </button>
+            </td>
+        </tr>
+       {% endfor %}
+    {% endif %}
+
+
+    </tbody>
+</table>
+
+<!--End Data-->
+
+
+
+
+
+
+
+</form>
+<!-- End showing Contacts -->
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- / Content -->
+{% endblock %}
+
+
+
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock %}
