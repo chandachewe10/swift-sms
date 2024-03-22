@@ -35,7 +35,7 @@ class ContactsForm(forms.ModelForm):
                 css_class='form-row'
             ),
 
-            Submit('submit', u'Add Contact', css_class='btn btn-success'),
+            Submit('submit', 'Submit', css_class='btn btn-success'),
         )
 
     firstname = forms.CharField(
@@ -94,9 +94,9 @@ class ContactsForm(forms.ModelForm):
         return email
 
     def clean_phone(self):
-        email = self.cleaned_data.get('phone')
+        phone = self.cleaned_data.get('phone')
         # Check if the phone exists in other records excluding the current instance being edited
-        if Contacts.objects.exclude(id=self.instance.id).filter(email=email).exists():
+        if Contacts.objects.exclude(id=self.instance.id).filter(phone=phone).exists():
             raise forms.ValidationError("This Phone is already in use.")
         return phone
 
