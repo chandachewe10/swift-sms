@@ -22,7 +22,7 @@ def add_contact(request):
             messages.success(request, 'Your contact has been added successfully')
             return redirect('contacts')
          else:
-            messages.error(request, 'The email has already been taken')
+            messages.warning(request, form.errors.get('email'))
             return redirect('contacts')
 
 
