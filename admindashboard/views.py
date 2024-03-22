@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .forms import ContactsForm
 
 # Create your views here.
@@ -14,7 +15,11 @@ def add_contact(request):
       return render(request, 'add_contact.html',{'contact_form':contact_form})
    else:
       if request.method == 'POST':
-         form = UserRegisterForm(request.POST)
+         form = ContactsForm(request.POST)
+         print(request.POST);
          if form.is_valid():
             form.save()
+            messages.success(request, 'Your contact has been added successfully')
+            return redirect('contacts')
+
 

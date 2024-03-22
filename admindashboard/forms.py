@@ -1,8 +1,9 @@
 from django import forms
+from .models import Contacts
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit
 
-class ContactsForm(forms.Form):
+class ContactsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -73,4 +74,7 @@ class ContactsForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': 'Customer'})
     )
 
+    class Meta:
+        model = Contacts
+        fields = ['firstname', 'lastname', 'email', 'address','company','tag']
 
