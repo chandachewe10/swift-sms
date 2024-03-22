@@ -21,5 +21,8 @@ def add_contact(request):
             form.save()
             messages.success(request, 'Your contact has been added successfully')
             return redirect('contacts')
+         else:
+            messages.error(request, 'The email has already been taken')
+            return redirect('contacts')
 
 

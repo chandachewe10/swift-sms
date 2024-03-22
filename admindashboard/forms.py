@@ -1,4 +1,5 @@
 from django import forms
+from django.db import models
 from .models import Contacts
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit
@@ -23,12 +24,17 @@ class ContactsForm(forms.ModelForm):
                 Column('address', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
+            Row(
+                Column('phone', css_class='form-group col-md-12 mb-0'),
 
+                css_class='form-row'
+            ),
             Row(
                 Column('company', css_class='form-group col-md-6 mb-0'),
                 Column('tag', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
+
             Submit('submit', u'Add Contact', css_class='btn btn-success'),
         )
 
@@ -44,6 +50,12 @@ class ContactsForm(forms.ModelForm):
         max_length=255,
         required=True,
         widget=forms.TextInput(attrs={'placeholder': 'Doe'})
+    )
+    phone = forms.CharField(
+        label="Phone",
+        max_length=10,
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder': 'Phone'})
     )
 
     email = forms.EmailField(
@@ -74,7 +86,13 @@ class ContactsForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'placeholder': 'Customer'})
     )
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if Contacts.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email address is already in use.")
+        return email
+
     class Meta:
         model = Contacts
-        fields = ['firstname', 'lastname', 'email', 'address','company','tag']
+        fields = ['firstname', 'lastname','phone','email', 'address','company','tag']
 
