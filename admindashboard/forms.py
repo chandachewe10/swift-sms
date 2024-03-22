@@ -88,9 +88,17 @@ class ContactsForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if Contacts.objects.filter(email=email).exists():
+        # Check if the email exists in other records excluding the current instance being edited
+        if Contacts.objects.exclude(id=self.instance.id).filter(email=email).exists():
             raise forms.ValidationError("This email address is already in use.")
         return email
+
+    def clean_phone(self):
+        email = self.cleaned_data.get('phone')
+        # Check if the phone exists in other records excluding the current instance being edited
+        if Contacts.objects.exclude(id=self.instance.id).filter(email=email).exists():
+            raise forms.ValidationError("This Phone is already in use.")
+        return phone
 
     class Meta:
         model = Contacts
