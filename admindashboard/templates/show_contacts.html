@@ -87,7 +87,7 @@
            <td>
               <button class="btn btn-info btn-sm"><a href="{% url 'show_contact' contact.id %}" style="color:white">Show</a> </button>
                 <button class="btn btn-success btn-sm"><a href="{% url 'edit_contact' contact.id %}" style="color:white">Edit</a> </button>
-                <button class="btn btn-danger btn-sm"><a href="" style="color:white">Delete</a> </button>
+                <button class="btn btn-danger btn-sm"><a href="{% url 'delete_contact' contact.id %}" style="color:white">Delete</a> </button>
             </td>
         </tr>
        {% endfor %}
