@@ -67,7 +67,7 @@ def delete_contact(request,contact_id):
    contact = Contacts.objects.get(id=contact_id)
    contact.delete()
    messages.success(request, 'Your contact has been deleted successfully')
-   return redirect('contacts')
+   return redirect('show_contacts')
 
 
 
