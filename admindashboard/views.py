@@ -62,4 +62,16 @@ def add_contact(request):
             messages.warning(request, form.errors.get('email'))
             return redirect('contacts')
 
+@login_required(login_url='login')
+def delete_contact(request,contact_id):
+   contact = Contacts.objects.get(id=contact_id)
+   contact.delete()
+   messages.success(request, 'Your contact has been deleted successfully')
+   return redirect('contacts')
+
+
+
+
+
+
 
