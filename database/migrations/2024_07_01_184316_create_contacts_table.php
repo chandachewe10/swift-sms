@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('company')->nullable();
             $table->string('nationality')->nullable();
+            $table->string('tag')->nullable();
             $table->foreign('company_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });

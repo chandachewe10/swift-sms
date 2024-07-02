@@ -30,7 +30,7 @@ class MessagesResource extends Resource
                     ->columnSpan(2),
 
                 Forms\Components\Repeater::make('contact')
-                ->label('Phone Number(s)')
+                    ->label('Phone Number(s)')
                     ->schema([
                         Forms\Components\TextInput::make('contact')
                             ->label('Phone')
@@ -43,7 +43,8 @@ class MessagesResource extends Resource
 
                     ])
                     ->columnSpan(2)
-                    ->addActionLabel('Add Phone'),
+                    ->addActionLabel('Add Phone number')
+                ,
 
                 Forms\Components\TextInput::make('status')
                     ->hidden()

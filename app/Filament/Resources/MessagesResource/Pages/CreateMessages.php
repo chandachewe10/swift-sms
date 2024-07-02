@@ -1,94 +1,89 @@
 <?php
-
 namespace App\Filament\Resources\MessagesResource\Pages;
 
 use App\Filament\Resources\MessagesResource;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use App\Models\Messages;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
-use Carbon\Carbon;
 use Http;
 
 class CreateMessages extends CreateRecord
 {
     protected static string $resource = MessagesResource::class;
 
-
     protected function handleRecordCreation(array $data): Model
     {
-        
-        $contacts = $data['contact']; 
-        $senderId = auth()->user()->senderId;   
+        $contacts = $data['contact'];
+        $senderId = auth()->user()->sender_id;
         $message = $data['message'];
-        
-            if(auth()->user()->wallet->balance  < count($contacts)) {
-                $difference = (count($contacts)) - (auth()->user()->wallet->balance); 
-                Notification::make()
-            ->title('Insufficient SMS Balance')
-            ->body('You have Insufficient SMS Balance to send ' .$difference. ' number of Message(s)')
-            ->warning()
-            ->send();
-               
-            } 
-
-
-            $url = env('BULK_SMS_BASE_URI') . '/api/v2.1/action/send/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . urlencode($contacts) . '/senderId/' . urlencode($senderId) . '/message/' . urlencode($message);
-
-            
-            $response = Http::get($url);
-
-
-            $response = $response->collect();   
-            if ($response->status() == 200)  {
-               
-               auth()->user()->wallet->withdraw(count($contacts),['description' => 'Sending of SMS(s)']);
-
-               Messages::create([
-               'message' => $message,
-               'responseText' => $response['responseText'],
-               'contact' => $contacts,
-               'status' => $response->status(),
-               'user_id' => auth()->user()->id,
-               ]);
-
-               toast('Message(s) Sent Successfully!','success');
-               return redirect()->back();   
-            } 
-
-            elseif ($response->status() == 422)  {
-                UnSuccessfullSms::create([
+    
+        // Ensure each contact is a string
+        $contactStrings = array_map(function($contact) {
+            // Assuming each contact is an array with a 'contact' key
+            return is_array($contact) ? $contact['contact'] : $contact;
+        }, $contacts);
+   
+        // Check if the user has enough balance
+        if (auth()->user()->wallet->balance < count($contactStrings)) {
+            $difference = count($contactStrings) - auth()->user()->wallet->balance;
+            Notification::make()
+                ->title('Insufficient SMS Balance')
+                ->body('You have Insufficient SMS Balance to send ' . $difference . ' number of Message(s)')
+                ->warning()
+                ->send();
+                $this->halt();
+       
+        }
+    
+        // Convert the array of contact strings into a comma-separated string
+        $contactsString = implode(',', $contactStrings);
+    
+        // URL encode the components
+        $encodedContacts = urlencode($contactsString);
+        $encodedSenderId = urlencode($senderId);
+        $encodedMessage = urlencode($message);
+    
+        // Construct the URL with properly encoded components
+        $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
+    
+        // Send the HTTP request
+        $response = Http::get($url);
+    
+        // Handle the response
+        $responseData = $response->json();
+        if ($response->successful()) {
+            // Withdraw the amount from the user's wallet
+            auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
+    
+            // Create the message record
+            Messages::create([
                 'message' => $message,
-                'responseText' => $data['responseText'],
-                'contact' => $contacts,
+                'responseText' => $responseData['responseText'] ?? '',
+                'contact' => $contactsString,
                 'status' => $response->status(),
-                'user_id' => auth()->user()->id,
-                ]);
-
-             toast('Message(s) Not sent!','warning');
-             return redirect()->back();   
-             } 
-
-
-             else{
-                UnSuccessfullSms::create([
-                    'message' => $message,
-                    'responseText' => $data['responseText'],
-                    'contact' => $contacts,
-                    'status' => $response->status(),
-                    'user_id' => auth()->user()->id,
-                    ]); 
-
-             toast('Message(s) Not sent!','warning');
-             return redirect()->back();   
-             }
-            
-        // $messages = Messages::create([
-        // 'message' => 12    
-        // ]);
-        // return $messages; 
-
-
+                'company_id' => auth()->user()->id,
+            ]);
+    
+            Notification::make()
+                ->title('Message(s) sent')
+                ->body('SMS(es) have been queued for delivery')
+                ->success()
+                ->send();
+        } else {
+            Messages::create([
+                'message' => $message,
+                'responseText' => $responseData['responseText'] ?? 'Error sending SMS',
+                'contact' => $contactsString,
+                'status' => $response->status(),
+                'company_id' => auth()->user()->id,
+            ]);
+    
+            Notification::make()
+                ->title('Failed to send message(s)')
+                ->body('There was an error sending the SMS(es).')
+                ->danger()
+                ->send();
+        }
     }
-}
+}    
