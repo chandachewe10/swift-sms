@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('contacts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('company_id')->unique();
+            $table->unsignedBigInteger('company_id');
             $table->string('first_name');
             $table->string('last_name');
             $table->string('phone1')->unique();
