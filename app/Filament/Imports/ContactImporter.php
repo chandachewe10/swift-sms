@@ -15,6 +15,7 @@ class ContactImporter extends Importer
     {
         return [
             ImportColumn::make('company_id')
+            ->label('SKU')
                 ->requiredMapping()
                 ->numeric()
                 ->rules(['required', 'integer']),
@@ -46,10 +47,10 @@ class ContactImporter extends Importer
 
     public function resolveRecord(): ?Contact
     {
-        // return Contact::firstOrNew([
-        //     // Update existing records, matching them by `$this->data['column_name']`
-        //     'email' => $this->data['email'],
-        // ]);
+        return Contact::firstOrNew([
+            // Update existing records, matching them by `$this->data['phone1']`
+            'phone1' => $this->data['phone1'],
+        ]);
 
         return new Contact();
     }
