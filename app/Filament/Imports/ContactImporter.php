@@ -15,22 +15,27 @@ class ContactImporter extends Importer
     {
         return [
             ImportColumn::make('company_id')
-            ->label('SKU')
+            ->label('Company ID')
                 ->requiredMapping()
                 ->numeric()
                 ->rules(['required', 'integer']),
             ImportColumn::make('first_name')
+            ->label('First Name')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
             ImportColumn::make('last_name')
+            ->label('Last Name')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
             ImportColumn::make('phone1')
+            ->label('Phone')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
             ImportColumn::make('phone2')
+            ->label('Phone 2')
                 ->rules(['max:255']),
             ImportColumn::make('phone3')
+            ->label('Phone 3')
                 ->rules(['max:255']),
             ImportColumn::make('email')
                 ->rules(['email', 'max:255']),
