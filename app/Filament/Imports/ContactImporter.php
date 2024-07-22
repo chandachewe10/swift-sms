@@ -14,7 +14,33 @@ class ContactImporter extends Importer
     public static function getColumns(): array
     {
         return [
-            //
+            ImportColumn::make('company_id')
+                ->requiredMapping()
+                ->numeric()
+                ->rules(['required', 'integer']),
+            ImportColumn::make('first_name')
+                ->requiredMapping()
+                ->rules(['required', 'max:255']),
+            ImportColumn::make('last_name')
+                ->requiredMapping()
+                ->rules(['required', 'max:255']),
+            ImportColumn::make('phone1')
+                ->requiredMapping()
+                ->rules(['required', 'max:255']),
+            ImportColumn::make('phone2')
+                ->rules(['max:255']),
+            ImportColumn::make('phone3')
+                ->rules(['max:255']),
+            ImportColumn::make('email')
+                ->rules(['email', 'max:255']),
+            ImportColumn::make('address')
+                ->rules(['max:255']),
+            ImportColumn::make('company')
+                ->rules(['max:255']),
+            ImportColumn::make('nationality')
+                ->rules(['max:255']),
+            ImportColumn::make('tag')
+                ->rules(['max:255']),
         ];
     }
 

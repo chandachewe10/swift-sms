@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Filament\Resources;
-
+use App\Filament\Imports\ContactImporter;
+use Filament\Tables\Actions\ImportAction;
 use App\Filament\Resources\ContactResource\Pages;
 use App\Filament\Resources\ContactResource\RelationManagers;
 use App\Models\Contact;
@@ -91,6 +92,10 @@ class ContactResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->headerActions([
+            ImportAction::make()
+                ->importer(ContactImporter::class)
+        ])
             ->columns([
                 Tables\Columns\TextColumn::make('company_id')
                     ->hidden()
