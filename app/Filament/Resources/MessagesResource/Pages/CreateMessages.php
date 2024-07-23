@@ -25,7 +25,7 @@ class CreateMessages extends CreateRecord
         }, $contacts);
    
         // Check if the user has enough balance
-        if (auth()->user()->wallet->balance < count($contactStrings)) {
+        if (auth()->user()->wallet->balance > count($contactStrings)) {
             $difference = count($contactStrings) - auth()->user()->wallet->balance;
             Notification::make()
                 ->title('Insufficient SMS Balance')
@@ -52,17 +52,18 @@ class CreateMessages extends CreateRecord
     
         // Handle the response
         $responseData = $response->json();
+        
         if ($response->successful()) {
             // Withdraw the amount from the user's wallet
-            auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
+           // auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
     
             // Create the message record
-            Messages::create([
+           $data = Messages::create([
                 'message' => $message,
                 'responseText' => $responseData['responseText'] ?? '',
                 'contact' => $contactsString,
                 'status' => $response->status(),
-                'company_id' => auth()->user()->id,
+                'company_id' => auth()->user()->user_id,
             ]);
     
             Notification::make()
@@ -70,8 +71,10 @@ class CreateMessages extends CreateRecord
                 ->body('SMS(es) have been queued for delivery')
                 ->success()
                 ->send();
+                $this->halt();
+                return $data;
         } else {
-            Messages::create([
+            $data = Messages::create([
                 'message' => $message,
                 'responseText' => $responseData['responseText'] ?? 'Error sending SMS',
                 'contact' => $contactsString,
@@ -84,6 +87,8 @@ class CreateMessages extends CreateRecord
                 ->body('There was an error sending the SMS(es).')
                 ->danger()
                 ->send();
+                $this->halt();
+                return $data;
         }
     }
 }    
