@@ -29,6 +29,13 @@ class ContactImporter extends Importer
                 ->rules(['required', 'max:255']),
             ImportColumn::make('phone1')
             ->label('Phone')
+            ->castStateUsing(function (float $state): ?float {
+                if (blank($state)) {
+                    return null;
+                }
+            
+                return round($state * 100);
+            })
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
             ImportColumn::make('phone2')
@@ -56,7 +63,7 @@ class ContactImporter extends Importer
             // Update existing records, matching them by `$this->data['phone1']`
             'phone1' => $this->data['phone1'],
         ]);
-
+        
         return new Contact();
     }
 

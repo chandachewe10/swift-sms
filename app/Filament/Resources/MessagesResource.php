@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MessagesResource\Pages;
 use App\Filament\Resources\MessagesResource\RelationManagers;
+use App\Filament\Imports\MessagesImporter;
+use Filament\Tables\Actions\ImportAction;
 use App\Models\Messages;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -55,6 +57,10 @@ class MessagesResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->headerActions([
+            ImportAction::make()
+                ->importer(MessagesImporter::class)
+        ])
             ->columns([
                 Tables\Columns\TextColumn::make('message')
                     ->searchable(),
