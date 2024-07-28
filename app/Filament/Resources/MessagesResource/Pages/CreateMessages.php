@@ -79,7 +79,7 @@ class CreateMessages extends CreateRecord
                 'responseText' => $responseData['responseText'] ?? 'Error sending SMS',
                 'contact' => $contactsString,
                 'status' => $response->status(),
-                'company_id' => auth()->user()->id,
+                'company_id' => auth()->user()->user_id,
             ]);
     
             Notification::make()
