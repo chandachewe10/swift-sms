@@ -42,6 +42,7 @@ $contacts = Contact::all()->mapWithKeys(function($contact) {
                     ->columnSpan(2),
 
     Select::make('contact')
+    ->prefixIcon('heroicon-o-users')
     ->label('Contacts')
     ->options(
         // Static options (if needed)
@@ -79,15 +80,31 @@ $contacts = Contact::all()->mapWithKeys(function($contact) {
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                //
-            ])
+        ->columns([
+            Tables\Columns\TextColumn::make('message')
+                ->searchable(),
+            Tables\Columns\TextColumn::make('contact')
+            ->badge()
+                ->searchable(),
+            Tables\Columns\TextColumn::make('responseText')
+                ->searchable(),
+            Tables\Columns\TextColumn::make('created_at')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('updated_at')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
+        ->recordUrl(null)
+        ->recordAction(null)
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\ViewAction::make(),
+                // Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

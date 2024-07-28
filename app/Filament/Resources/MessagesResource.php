@@ -65,6 +65,7 @@ class MessagesResource extends Resource
                 Tables\Columns\TextColumn::make('message')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('contact')
+                ->badge()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('responseText')
                     ->searchable(),
@@ -77,6 +78,8 @@ class MessagesResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->recordUrl(null)
+            ->recordAction(null)
             ->filters([
                 //
             ])

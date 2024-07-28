@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Filament\Resources\ContactMessagesResource\Pages;
-
+use Closure;
 use App\Filament\Resources\ContactMessagesResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -15,5 +15,9 @@ class ListContactMessages extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+
+       
     }
+
+   
 }

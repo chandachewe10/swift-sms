@@ -53,7 +53,7 @@ class CreateMessages extends CreateRecord
         // Handle the response
         $responseData = $response->json();
         
-        if ($response->successful()) {
+        if ($responseData['statusCode'] == 202) {
             // Withdraw the amount from the user's wallet
            // auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
     
@@ -68,7 +68,7 @@ class CreateMessages extends CreateRecord
     
             Notification::make()
                 ->title('Message(s) sent')
-                ->body('SMS(es) have been queued for delivery')
+                ->body($responseData['responseText'] ?? 'SMS(es) have been queued for delivery')
                 ->success()
                 ->send();
                 $this->halt();
@@ -76,7 +76,7 @@ class CreateMessages extends CreateRecord
         } else {
             $data = Messages::create([
                 'message' => $message,
-                'responseText' => $responseData['responseText'] ?? 'Error sending SMS',
+                'responseText' => $responseData['responseText'] ?? 'There was an error sending the SMS(es).',
                 'contact' => $contactsString,
                 'status' => $response->status(),
                 'company_id' => auth()->user()->user_id,
@@ -84,7 +84,7 @@ class CreateMessages extends CreateRecord
     
             Notification::make()
                 ->title('Failed to send message(s)')
-                ->body('There was an error sending the SMS(es).')
+                ->body($responseData['responseText'] ?? 'There was an error sending the SMS(es).')
                 ->danger()
                 ->send();
                 $this->halt();

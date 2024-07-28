@@ -74,7 +74,7 @@ class CreateContactMessages extends CreateRecord
         $data = Messages::create($messageData);
         
         // Send notification based on response status
-        if ($responseData['statusCode'] == 201) {
+        if ($responseData['statusCode'] == 202) {
             // Withdraw the amount from the user's wallet
            // $user->wallet->withdraw(count($contactStrings), ['description' => 'Sending SMS']);
             
