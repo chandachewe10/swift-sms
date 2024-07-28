@@ -60,7 +60,7 @@ class CreateContactMessages extends CreateRecord
         
         // Handle the response
         $responseData = $response->json();
-        
+       
         // Prepare data for message record creation
         $messageData = [
             'message' => $message,
@@ -74,19 +74,19 @@ class CreateContactMessages extends CreateRecord
         $data = Messages::create($messageData);
         
         // Send notification based on response status
-        if ($response->successful()) {
+        if ($responseData['statusCode'] == 201) {
             // Withdraw the amount from the user's wallet
            // $user->wallet->withdraw(count($contactStrings), ['description' => 'Sending SMS']);
             
             Notification::make()
                 ->title('Message(s) Sent')
-                ->body('SMS(es) have been queued for delivery.')
+                ->body($responseData['responseText'] ?? 'SMS(es) have been queued for delivery.')
                 ->success()
                 ->send();
         } else {
             Notification::make()
                 ->title('Failed to Send Message(s)')
-                ->body('There was an error sending the SMS(es).')
+                ->body($responseData['responseText'] ?? 'There was an error sending the SMS(es).')
                 ->danger()
                 ->send();
         }
