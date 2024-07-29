@@ -18,8 +18,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class MessagesResource extends Resource
 {
     protected static ?string $model = Messages::class;
-
+    protected static ?string $navigationGroup = 'Messages';
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-bottom-center-text';
+    protected static ?string $modelLabel = 'Send to Number';
 
     public static function form(Form $form): Form
     {

@@ -10,7 +10,12 @@
         "filament/filament": "^3.2",
         "haruncpi/laravel-id-generator": "^1.1",
         "laravel/framework": "^11.9",
-        "laravel/tinker": "^2.9"
+        "laravel/jetstream": "^4.2|^5.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^2.9",
+        "livewire/livewire": "^3.0",
+        "stephenjude/filament-jetstream": "^0.0.12",
+        "xtend-packages/rest-presenter": "^1.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

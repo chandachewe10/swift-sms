@@ -20,6 +20,7 @@ class ContactMessagesResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
     protected static ?string $modelLabel = 'Send to Contacts';
+    protected static ?string $navigationGroup = 'Messages';
 
 
 
