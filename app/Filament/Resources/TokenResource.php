@@ -16,10 +16,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class TokenResource extends Resource
 {
     protected static ?string $model = Token::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-key';
     protected static ?string $navigationGroup = 'Developers';
+    protected static ?string $navigationIcon = 'heroicon-o-key';
     protected static ?string $modelLabel = 'Token';
+
 
     public static function form(Form $form): Form
     {
@@ -28,10 +28,8 @@ class TokenResource extends Resource
                 Forms\Components\TextInput::make('remember_token')
                 ->label('Token Name')
                 ->prefixIcon('heroicon-o-key')
-                    ->minLength(2)
-                    ->maxLength(100)
-                    ->columnSpan(2),
-                    ,
+                ->required()
+                ->columnSpan(2)
             ]);
     }
 
