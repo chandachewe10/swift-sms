@@ -38,6 +38,7 @@ class AdminPanelProvider extends PanelProvider
                     ->url('https://swift-sms.net/api_docs', shouldOpenInNewTab: true)
                     ->icon('heroicon-o-bookmark-square')
                     ->group('Developers')
+                    ->sort(2)
             ])
 
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
