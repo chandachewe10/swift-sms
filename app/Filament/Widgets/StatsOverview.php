@@ -8,10 +8,11 @@ use App\Models\Messages;
 
 class StatsOverview extends BaseWidget
 {
+    protected static ?int $sort = 1;
     protected function getStats(): array
     {
 
-        $startDate = $this->filters['startDate'] ?? null;
+$startDate = $this->filters['startDate'] ?? null;
 $endDate = $this->filters['endDate'] ?? null;
 $success = 202;
 $companyId = auth()->user()->user_id;
