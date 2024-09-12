@@ -74,14 +74,14 @@ else{
                 ]
             ],
             "customerTimestamp" => $currentTimestamp,
-            "statementDescription" => "SMSes Top Up",
+            "statementDescription" => "TopUp: $companyId",
             "preAuthorisationCode" => "string",
             // "metadata" => [
                 
             //     [
             //         "fieldName" => "customerId",
-            //         "fieldValue" => $companyId,
-            //         "isPII" => true
+            //         "fieldValue" => $companyId
+                    
             //     ]
             // ]
         ];
@@ -103,11 +103,11 @@ else{
 // Handle the response
 $responseData = $response->json();
   
-dd($responseData);
+
 // check if payment has been accepted for processing 
 
 if ($responseData['status'] == "ACCEPTED") {
-$this->getDepositStatus();
+$this->getDepositStatus($uuid);
 
 }
 
@@ -148,7 +148,33 @@ if ($responseData['status'] == "REJECTED") {
 
 
 
-private function getDepositStatus() {
+private function getDepositStatus(Request $request) {
+
+
+    Payment::updateOrCreate(
+        ['depositId' => $data['depositId']],
+        [
+            'correspondent' => $data['correspondent'],
+            'country' => $data['country'],
+            'currency' => $data['currency'],
+            'created' => $data['created'],
+            'customerTimestamp' => $data['customerTimestamp'],
+            'requestedAmount' => $data['requestedAmount'],
+            'statementDescription' => $data['statementDescription'],
+            'status' => $data['status'],
+            'failureCode' => $data['failureReason']['failureCode'] ?? null,
+            'failureMessage' => $data['failureReason']['failureMessage'] ?? null,
+            'payer_type' => $data['payer']['type'],
+            'payer_address' => $data['payer']['address']['value'],
+        ]
+    );
+
+
+
+
+
+
+
 
     $response = Http::withHeaders([
         "Authorization" => "Bearer ".env('PAWA_PAY_TOKEN'),
