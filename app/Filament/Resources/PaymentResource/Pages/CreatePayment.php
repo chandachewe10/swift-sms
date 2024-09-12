@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Filament\Resources\PaymentResource\Pages;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Ramsey\Uuid\Uuid;
@@ -74,7 +75,7 @@ else{
                 ]
             ],
             "customerTimestamp" => $currentTimestamp,
-            "statementDescription" => "TopUp: $companyId",
+            "statementDescription" => "SMS(es) TopUp For: $companyId",
             "preAuthorisationCode" => "string",
             // "metadata" => [
                 
@@ -89,13 +90,10 @@ else{
        // dd(env('PAWA_PAY_BASE_URI').'deposits');
         // Make the HTTP request
         $response = Http::withHeaders([
-            //"Accept-Digest" => "string",
-           // "Accept-Signature" => "string",
+           
             "Authorization" => "Bearer ".env('PAWA_PAY_TOKEN'),
-         //   "Content-Digest" => "string",
             "Content-Type" => "application/json",
-           // "Signature" => "string",
-          //  "Signature-Input" => "string",
+
          
         ])->timeout($timeout)->post(env('PAWA_PAY_BASE_URI').'deposits', $payload);
         
@@ -112,11 +110,14 @@ $this->getDepositStatus($uuid);
 }
 
 if ($responseData['status'] == "REJECTED") {
+    $rejectionReason = $responseData['rejectionReason']['rejectionMessage'] ?? '';
+   
     // The payment has been rejected
     Notification::make()
                 ->title('Payment Rejected')
-                ->body('The payment request has been rejected')
+                ->body('The payment request has been rejected because of: '.$rejectionReason)
                 ->warning()
+                ->persistent()
                 ->send();
                 $this->halt();
     
@@ -128,6 +129,7 @@ if ($responseData['status'] == "REJECTED") {
                 ->title('Payment Ignored')
                 ->body('The payment has been ignored as a duplicate of an already accepted payment with the same deposit ID.')
                 ->warning()
+                ->persistent()
                 ->send();
                 $this->halt();
         
@@ -139,6 +141,7 @@ if ($responseData['status'] == "REJECTED") {
         ->title('Payment Failed')
         ->body('Whoops something went wrong! Please try again later')
         ->warning()
+        ->persistent()
         ->send();
         $this->halt();
         }
@@ -148,31 +151,7 @@ if ($responseData['status'] == "REJECTED") {
 
 
 
-private function getDepositStatus(Request $request) {
-
-
-    Payment::updateOrCreate(
-        ['depositId' => $data['depositId']],
-        [
-            'correspondent' => $data['correspondent'],
-            'country' => $data['country'],
-            'currency' => $data['currency'],
-            'created' => $data['created'],
-            'customerTimestamp' => $data['customerTimestamp'],
-            'requestedAmount' => $data['requestedAmount'],
-            'statementDescription' => $data['statementDescription'],
-            'status' => $data['status'],
-            'failureCode' => $data['failureReason']['failureCode'] ?? null,
-            'failureMessage' => $data['failureReason']['failureMessage'] ?? null,
-            'payer_type' => $data['payer']['type'],
-            'payer_address' => $data['payer']['address']['value'],
-        ]
-    );
-
-
-
-
-
+private function getDepositStatus(string $uuid) {
 
 
 
@@ -184,12 +163,23 @@ private function getDepositStatus(Request $request) {
 
     $responseData = $response->json();
 
+
+
+    $maxRetries = 6;
+    $retryInterval = 5;
+    $foundResponse = false;
+    for ($i = 0; $i < $maxRetries; $i++) {
+
+
+
+
  if ($responseData['status'] == "COMPLETED") {
-        // Credit customer to his wallet
-        auth()->user()->wallet->deposit($numberOfSms, ['description' => 'Account credited with a total number of '.$numberOfSms. ' SMSes' ]);
-      \App\Models\Payment::create([
-'merchant_reference' => $responseData['depositId'],
-'company_id' => $companyId,
+      
+ auth()->user()->wallet->deposit($numberOfSms, ['description' => 'Account credited with a total number of '.$numberOfSms. ' SMSes' ]);
+ Payment::updateOrCreate(
+['depositId' => $paymentData['depositId']],
+[
+'company_id' => auth()->user()->user_id,
 'reference' => $responseData['statementDescription'],
 'merchant_reference' => $responseData['depositId'],
 'customer_wallet' => $customerWallet,
@@ -197,30 +187,76 @@ private function getDepositStatus(Request $request) {
 'fee_amount' => 0.00,
 'percentage' => 0.00,
 'transaction_amount' => $responseData['requestedAmount'],
+'status' => $responseData['status'] ?? null,
+]
 
-      ]);
+
+);
     
+$foundResponse = true;
+break;
     } 
-       elseif($responseData['status'] == "FAILED"){
-        Notification::make()
+if($responseData['status'] == "FAILED"){
+
+    Payment::updateOrCreate(
+        ['depositId' => $paymentData['depositId']],
+        [
+        'company_id' => auth()->user()->user_id,
+        'reference' => $responseData['statementDescription'],
+        'merchant_reference' => $responseData['depositId'],
+        'customer_wallet' => $customerWallet,
+        'amount' => $responseData['depositedAmount'],
+        'fee_amount' => 0.00,
+        'percentage' => 0.00,
+        'transaction_amount' => $responseData['requestedAmount'],
+        'status' => $responseData['status'] ?? null,
+        ]
+        
+        
+        );
+
+
+
+
+    Notification::make()
         ->title('Payment Failed')
         ->body('Payment not approved')
         ->warning()
+        ->persistent()
         ->send();
         $this->halt();
        }
-       else{
-           // Transaction pending
-           //Sleep
-       }
+      
         
         
-               return $data;
+       sleep($retryInterval);
 }
 
 
+if($foundResponse) {
+Log::info('Payments Data: '.$responseData);
+Notification::make()
+->title('Payment Successfull')
+->body('Payment approved successfully')
+->success()
+->persistent()
+->send();
+$this->halt();
+}   
+   
 
-        
+elseif(!$foundResponse) {
+    Notification::make()
+    ->title('Payment Pending')
+    ->body('Payment pending approval')
+    ->info()
+    ->persistent()
+    ->send();
+    $this->halt();
+
+}
+
+
     
-
+}
 }
