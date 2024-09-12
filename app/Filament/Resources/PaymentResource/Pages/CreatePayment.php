@@ -22,6 +22,11 @@ class CreatePayment extends CreateRecord
       $uuid = Uuid::uuid4()->toString();  
       $companyId = auth()->user()->user_id;
       $customerWallet = '26'.$data['customer_wallet']; 
+      $phonePrefix = substr($customerWallet, 0, 5); 
+      $airtelPrefixes = ['26097', '26077'];
+      $mtnPrefixes = ['26096', '26076'];
+      $zamtelPrefixes = ['26095', '26075'];
+     
       $timeout = '60';
       if($data['amount'] == 300){
         $numberOfSms =  1000;
@@ -49,16 +54,50 @@ class CreatePayment extends CreateRecord
       }
 
 
+      
+
 
 
 if($data['operator'] == 'AIRTEL'){
     $correspondent = 'AIRTEL_OAPI_ZMB';
+    if (!in_array($phonePrefix, $airtelPrefixes)) {
+
+    Notification::make()
+                ->title('Invalid Phone Number')
+                ->body('Please enter the valid Airtel phone number')
+                ->warning()
+                ->persistent()
+                ->send();
+                $this->halt(); 
+}
+
+
 }
 elseif($data['operator'] == 'MTN'){
     $correspondent = 'MTN_MOMO_ZMB';  
+    if (!in_array($phonePrefix, $mtnPrefixes)) {
+
+        Notification::make()
+                    ->title('Invalid Phone Number')
+                    ->body('Please enter the valid Mtn phone number')
+                    ->warning()
+                    ->persistent()
+                    ->send();
+                    $this->halt(); 
+    }
 }
 else{
-    $correspondent = 'ZAMTEL_ZMB';      
+    $correspondent = 'ZAMTEL_ZMB'; 
+    if (!in_array($phonePrefix, $zamtelPrefixes)) {
+
+        Notification::make()
+                    ->title('Invalid Phone Number')
+                    ->body('Please enter the valid Zamtel phone number')
+                    ->warning()
+                    ->persistent()
+                    ->send();
+                    $this->halt(); 
+    }     
 }
 
         
@@ -75,7 +114,7 @@ else{
                 ]
             ],
             "customerTimestamp" => $currentTimestamp,
-            "statementDescription" => "SMS(es) TopUp For: $companyId",
+            "statementDescription" => "SMSes TopUp",
             "preAuthorisationCode" => "string",
             // "metadata" => [
                 
@@ -161,7 +200,7 @@ private function getDepositStatus(string $uuid) {
      
     ])->get(env('PAWA_PAY_BASE_URI').'deposits/'.$uuid);
 
-    $responseData = $response->json();
+    $responseData = $response->json()[0];
 
 
 
@@ -171,21 +210,22 @@ private function getDepositStatus(string $uuid) {
     for ($i = 0; $i < $maxRetries; $i++) {
 
 
-
+//dd($responseData);
 
  if ($responseData['status'] == "COMPLETED") {
       
  auth()->user()->wallet->deposit($numberOfSms, ['description' => 'Account credited with a total number of '.$numberOfSms. ' SMSes' ]);
  Payment::updateOrCreate(
-['depositId' => $paymentData['depositId']],
+['depositId' => $responseData['depositId']],
 [
 'company_id' => auth()->user()->user_id,
 'reference' => $responseData['statementDescription'],
 'merchant_reference' => $responseData['depositId'],
-'customer_wallet' => $customerWallet,
-'amount' => $responseData['depositedAmount'],
+'customer_wallet' => $responseData['payer']['address']['value'],
+'amount' => $responseData['requestedAmount'],
 'fee_amount' => 0.00,
 'percentage' => 0.00,
+'currency' => 'ZMW',
 'transaction_amount' => $responseData['requestedAmount'],
 'status' => $responseData['status'] ?? null,
 ]
@@ -197,17 +237,18 @@ $foundResponse = true;
 break;
     } 
 if($responseData['status'] == "FAILED"){
-
+    $failureReason = $responseData['failureReason']['failureMessage'] ?? '';
     Payment::updateOrCreate(
-        ['depositId' => $paymentData['depositId']],
+        ['depositId' => $responseData['depositId']],
         [
         'company_id' => auth()->user()->user_id,
         'reference' => $responseData['statementDescription'],
         'merchant_reference' => $responseData['depositId'],
-        'customer_wallet' => $customerWallet,
-        'amount' => $responseData['depositedAmount'],
+        'customer_wallet' => $responseData['payer']['address']['value'],
+        'amount' => $responseData['requestedAmount'],
         'fee_amount' => 0.00,
         'percentage' => 0.00,
+        'currency' => 'ZMW',
         'transaction_amount' => $responseData['requestedAmount'],
         'status' => $responseData['status'] ?? null,
         ]
@@ -220,7 +261,7 @@ if($responseData['status'] == "FAILED"){
 
     Notification::make()
         ->title('Payment Failed')
-        ->body('Payment not approved')
+        ->body('Payment failed because of: '.$failureReason)
         ->warning()
         ->persistent()
         ->send();

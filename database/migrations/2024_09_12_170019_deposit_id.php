@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-            //
+            $table->string('depositId')->unique();
+            $table->string('status');
         });
     }
 
