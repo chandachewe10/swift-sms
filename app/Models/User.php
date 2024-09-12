@@ -13,7 +13,7 @@ use Filament\Panel;
 use Filament\Models\Contracts\FilamentUser;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements MustVerifyEmail, FilamentUser
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser,Wallet
 {
     use HasApiTokens;
     use HasFactory;

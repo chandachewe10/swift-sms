@@ -16,6 +16,7 @@ $startDate = $this->filters['startDate'] ?? null;
 $endDate = $this->filters['endDate'] ?? null;
 $success = 202;
 $companyId = auth()->user()->user_id;
+$smsBalance = auth()->user()->balance;
 
 // Define prefixes for each operator
 $airtelPrefixes = ['26097', '26077'];
@@ -23,19 +24,9 @@ $mtnPrefixes = ['26096', '26076'];
 $zamtelPrefixes = ['26095', '26075'];
 
 return [
-    Stat::make('SMS Balance', Messages::query()
-    ->when($startDate, fn(Builder $query) => $query->whereDate('created_at', '>=', $startDate))
-    ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
-    ->where('status', $success)
-    ->where('company_id', $companyId)
-    ->where(function ($query) use ($airtelPrefixes) {
-        foreach ($airtelPrefixes as $prefix) {
-            $query->orWhere('contact', 'LIKE', "{$prefix}%");
-        }
-    })
-    ->count())
-    ->description('Airtel')
-    ->color('danger'),
+    Stat::make('SMS Balance',$smsBalance .' SMSes')
+    ->description('Business ID: '.$companyId)
+    ->color('info'),
     Stat::make('Airtel', Messages::query()
         ->when($startDate, fn(Builder $query) => $query->whereDate('created_at', '>=', $startDate))
         ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
@@ -81,3 +72,6 @@ return [
 
     }
 }
+
+
+

@@ -13,7 +13,8 @@
         "laravel/jetstream": "^4.2|^5.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "livewire/livewire": "^3.0"
+        "livewire/livewire": "^3.0",
+        "ramsey/uuid": "^4.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
