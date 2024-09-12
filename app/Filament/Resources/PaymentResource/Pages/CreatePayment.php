@@ -57,8 +57,9 @@ elseif($data['operator'] == 'MTN'){
     $correspondent = 'MTN_MOMO_ZMB';  
 }
 else{
-    $correspondent = 'ZAMTEL';      
+    $correspondent = 'ZAMTEL_ZMB';      
 }
+
         
         $payload = [
             "depositId" => $uuid,
@@ -75,14 +76,14 @@ else{
             "customerTimestamp" => $currentTimestamp,
             "statementDescription" => "SMSes Top Up",
             "preAuthorisationCode" => "string",
-            "metadata" => [
+            // "metadata" => [
                 
-                [
-                    "fieldName" => "customerId",
-                    "fieldValue" => $companyId,
-                    "isPII" => true
-                ]
-            ]
+            //     [
+            //         "fieldName" => "customerId",
+            //         "fieldValue" => $companyId,
+            //         "isPII" => true
+            //     ]
+            // ]
         ];
         
        // dd(env('PAWA_PAY_BASE_URI').'deposits');
