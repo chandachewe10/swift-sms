@@ -12,6 +12,8 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Filament\Panel;
 use Filament\Models\Contracts\FilamentUser;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 
 class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmail 
 {
@@ -21,6 +23,8 @@ class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmai
     use Notifiable;
     use TwoFactorAuthenticatable;
     use HasWallet;
+    use HasRoles;
+    use HasPanelShield;
 
     /**
      * The attributes that are mass assignable.
