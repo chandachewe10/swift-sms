@@ -49,7 +49,8 @@ class SenderIdResource extends Resource
                         
 
                     ])
-                   
+
+                    ->visible(fn() => auth()->user()->hasRole('super_admin'))
                     ,
             
             
