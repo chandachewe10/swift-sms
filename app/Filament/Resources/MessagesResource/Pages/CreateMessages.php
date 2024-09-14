@@ -5,6 +5,7 @@ use App\Filament\Resources\MessagesResource;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use App\Models\Messages;
+use App\Models\SenderId;
 use Filament\Resources\Pages\CreateRecord;
 use Http;
 
@@ -15,7 +16,7 @@ class CreateMessages extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $contacts = $data['contact'];
-        $senderId = auth()->user()->sender_id;
+        $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->first();
         $message = $data['message'];
     
         // Ensure each contact is a string

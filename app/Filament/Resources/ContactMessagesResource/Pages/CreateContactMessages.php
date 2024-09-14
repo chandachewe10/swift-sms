@@ -7,6 +7,7 @@ use App\Filament\Resources\ContactMessagesResource;
 use Filament\Actions;
 use App\Models\Contact;
 use App\Models\Messages; 
+use App\Models\SenderId;
 use Filament\Resources\Pages\CreateRecord;
 use Http;
 use Filament\Notifications\Notification; 
@@ -27,7 +28,7 @@ class CreateContactMessages extends CreateRecord
         })->toArray();
         
         // Get the sender ID and message
-        $senderId = auth()->user()->sender_id;
+        $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->first();
         $message = $data['message'];
         
         // Check user balance
