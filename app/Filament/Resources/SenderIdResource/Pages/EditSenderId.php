@@ -9,6 +9,7 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\SenderId;
 use App\Models\User;
+use Http;
 
 class EditSenderId extends EditRecord
 {
@@ -29,7 +30,20 @@ class EditSenderId extends EditRecord
 
 $status = '';
 if($data['is_approved'] == 1){
-    $status = 'APPROVED';
+$status = 'APPROVED';
+
+
+ $message = "Congratulations! Your senderID has been approved, you are now ready to use our BulkSMS System. All the best";
+ $encodedContacts = urlencode($data['company_phone']);
+ $encodedSenderId = 'MACROIT';
+ $encodedMessage = urlencode($message);
+ 
+ $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
+ 
+ 
+ $response = Http::timeout(300)->get($url);
+ $responseData = $response->json();
+
 }
 elseif(data['is_approved'] == 2){
  $status = 'PENDING APPROVAL';
