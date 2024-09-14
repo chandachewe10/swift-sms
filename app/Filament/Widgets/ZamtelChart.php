@@ -34,24 +34,25 @@ class ZamtelChart extends LineChartWidget
     
         
         $zamtelPrefixes = ['095', '075'];
-        $startDate = $this->filters['startDate'] ?? null;
-        $endDate = $this->filters['endDate'] ?? null;
-        $records = [];
-        
-        for ($month = 1; $month <= 12; $month++) {
-            $records[] = Messages::query()
-            ->when($startDate, fn(Builder $query) => $query->whereDate('created_at', '>=', $startDate))
-            ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
-            ->where(function ($query) use ($zamtelPrefixes) {
-                foreach ($zamtelPrefixes as $prefix) {
-                    $query->orWhere('contact', 'LIKE', "{$prefix}%");
-                }
-            })
-            ->where('status', $success)
-            ->where('company_id', $companyId)
-            ->whereMonth('created_at', $month)
-            ->count();
-        }
+$startDate = $this->filters['startDate'] ?? null;
+$endDate = $this->filters['endDate'] ?? null;
+$records = [];
+
+for ($month = 1; $month <= 12; $month++) {
+    $records[] = Messages::query()
+        ->when($startDate, fn(Builder $query) => $query->whereDate('created_at', '>=', $startDate))
+        ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
+        ->where(function ($query) use ($zamtelPrefixes) {
+            foreach ($zamtelPrefixes as $prefix) {
+                $query->orWhereRaw("CONCAT(',', contact, ',') LIKE ?", ["%,{$prefix}%"]);
+            }
+        })
+        ->where('status', $success)
+        ->where('company_id', $companyId)
+        ->whereMonth('created_at', $month)
+        ->count();
+}
+
         
         return [
             'datasets' => [

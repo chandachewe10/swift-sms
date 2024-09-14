@@ -47,10 +47,11 @@ class CreateMessages extends CreateRecord
         
         $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
     
-        
-        $response = Http::get($url);
+        // Send the HTTP request
+        $response = Http::timeout(300)->get($url);
+
     
-       
+        // Handle the response
         $responseData = $response->json();
        
         if ($responseData['statusCode'] == 202) {

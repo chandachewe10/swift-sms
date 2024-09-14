@@ -44,7 +44,7 @@ class MtnChart extends LineChartWidget
             ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
             ->where(function ($query) use ($mtnPrefixes) {
                 foreach ($mtnPrefixes as $prefix) {
-                    $query->orWhere('contact', 'LIKE', "{$prefix}%");
+                    $query->orWhereRaw("CONCAT(',', contact, ',') LIKE ?", ["%,{$prefix}%"]);
                 }
             })
             ->where('status', $success)

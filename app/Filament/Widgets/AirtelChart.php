@@ -44,7 +44,7 @@ class AirtelChart extends LineChartWidget
             ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
             ->where(function ($query) use ($airtelPrefixes) {
                 foreach ($airtelPrefixes as $prefix) {
-                    $query->orWhere('contact', 'LIKE', "{$prefix}%");
+                    $query->orWhereRaw("CONCAT(',', contact, ',') LIKE ?", ["%,{$prefix}%"]);
                 }
             })
             ->where('status', $success)

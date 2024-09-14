@@ -56,7 +56,8 @@ class CreateContactMessages extends CreateRecord
         $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
         
         // Send the HTTP request
-        $response = Http::get($url);
+        $response = Http::timeout(300)->get($url);
+
         
         // Handle the response
         $responseData = $response->json();

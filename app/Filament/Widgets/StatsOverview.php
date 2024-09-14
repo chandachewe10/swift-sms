@@ -34,7 +34,7 @@ return [
         ->where('company_id', $companyId)
         ->where(function ($query) use ($airtelPrefixes) {
             foreach ($airtelPrefixes as $prefix) {
-                $query->orWhere('contact', 'LIKE', "{$prefix}%");
+                $query->orWhereRaw("CONCAT(',', contact, ',') LIKE ?", ["%,{$prefix}%"]);
             }
         })
         ->count())
@@ -48,7 +48,7 @@ return [
         ->where('company_id', $companyId)
         ->where(function ($query) use ($mtnPrefixes) {
             foreach ($mtnPrefixes as $prefix) {
-                $query->orWhere('contact', 'LIKE', "{$prefix}%");
+                $query->orWhereRaw("CONCAT(',', contact, ',') LIKE ?", ["%,{$prefix}%"]);
             }
         })
         ->count())
@@ -62,7 +62,7 @@ return [
         ->where('company_id', $companyId)
         ->where(function ($query) use ($zamtelPrefixes) {
             foreach ($zamtelPrefixes as $prefix) {
-                $query->orWhere('contact', 'LIKE', "{$prefix}%");
+                $query->orWhereRaw("CONCAT(',', contact, ',') LIKE ?", ["%,{$prefix}%"]);
             }
         })
         ->count())
