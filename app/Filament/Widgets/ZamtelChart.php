@@ -2,86 +2,69 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\ChartWidget;
 use App\Models\Messages;
+use Filament\Widgets\LineChartWidget;
+use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
+use Carbon\CarbonImmutable;
+use Filament\Widgets\StatsOverviewWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Database\Eloquent\Builder;
 
-class ZamtelChart extends ChartWidget
+
+class ZamtelChart extends LineChartWidget
 {
-    
-    
-    protected static ?string $heading = 'Sent Zamtel Messages';
+    use InteractsWithPageFilters;
+   
     protected static ?string $maxHeight = '200px';
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 3;
+   
+   
+
+
+
+    public function getHeading(): string
+    {
+        return 'Sent Zamtel Messages';
+    }
 
     protected function getData(): array
     {
+        $success = 200;  
+        $companyId = auth()->user()->user_id; 
+    
+        
+        $zamtelPrefixes = ['095', '075'];
         $startDate = $this->filters['startDate'] ?? null;
         $endDate = $this->filters['endDate'] ?? null;
-        $success = 202;
-        $companyId = auth()->user()->user_id;
-        // Airtel prefixes
-        $airtelPrefixes = ['095', '075'];
-
-        // Initialize an array to hold the monthly counts
-        $monthlyCounts = array_fill(1, 12, 0);
-
-        // Loop through each month to get counts
+        $records = [];
+        
         for ($month = 1; $month <= 12; $month++) {
-            $monthlyCounts[$month] = Messages::query()
-                ->when($startDate, fn(Builder $query) => $query->whereDate('created_at', '>=', $startDate))
-                ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
-                ->where(function ($query) use ($airtelPrefixes) {
-                    foreach ($airtelPrefixes as $prefix) {
-                        $query->orWhere('contact', 'LIKE', "{$prefix}%");
-                    }
-                })
-                ->whereMonth('created_at', $month)
-                ->where('status', $success)
-                ->where('company_id', $companyId)
-                ->count();
+            $records[] = Messages::query()
+            ->when($startDate, fn(Builder $query) => $query->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn(Builder $query) => $query->whereDate('created_at', '<=', $endDate))
+            ->where(function ($query) use ($zamtelPrefixes) {
+                foreach ($zamtelPrefixes as $prefix) {
+                    $query->orWhere('contact', 'LIKE', "{$prefix}%");
+                }
+            })
+            ->where('status', $success)
+            ->where('company_id', $companyId)
+            ->whereMonth('created_at', $month)
+            ->count();
         }
-
+        
         return [
             'datasets' => [
                 [
-                    'data' => array_map('floatval', $monthlyCounts),
-                    'backgroundColor' => [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4CAF50',
-                        '#FF8C00',
-                        '#9966CC',
-                        '#00BFFF',
-                        '#FFD700',
-                        '#008080',
-                        '#FF4500',
-                        '#8A2BE2',
-                        '#1E90FF',
-                    ],
-                    'hoverBackgroundColor' => [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4CAF50',
-                        '#FF8C00',
-                        '#9966CC',
-                        '#00BFFF',
-                        '#FFD700',
-                        '#008080',
-                        '#FF4500',
-                        '#8A2BE2',
-                        '#1E90FF',
-                    ],
+                    'label' => 'Total Zamtel SMS Sent',
+                    'data' => array_map('floatval', $records),
                 ],
             ],
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         ];
+        
+
+
     }
 
-    protected function getType(): string
-    {
-        return 'pie'; // Use 'pie' for a pie chart
-    }
 }

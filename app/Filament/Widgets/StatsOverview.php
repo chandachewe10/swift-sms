@@ -14,14 +14,14 @@ class StatsOverview extends BaseWidget
 
 $startDate = $this->filters['startDate'] ?? null;
 $endDate = $this->filters['endDate'] ?? null;
-$success = 202;
+$success = 200;
 $companyId = auth()->user()->user_id;
 $smsBalance = auth()->user()->balance;
 
 // Define prefixes for each operator
-$airtelPrefixes = ['26097', '26077'];
-$mtnPrefixes = ['26096', '26076'];
-$zamtelPrefixes = ['26095', '26075'];
+$airtelPrefixes = ['097', '077'];
+$mtnPrefixes = ['096', '076'];
+$zamtelPrefixes = ['095', '075'];
 
 return [
     Stat::make('SMS Balance',$smsBalance .' SMSes')

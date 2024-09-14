@@ -62,9 +62,9 @@ class PaymentResource extends Resource
                 Forms\Components\TextInput::make('customer_wallet')
                 ->label('Enter Phone')
                     ->required()
-                    ->maxLength(255),
+                    ->regex('/^(09|07)[5|6|7][0-9]{7}$/'),
                 Forms\Components\TextInput::make('amount')
-                
+                ->numeric()
                     ->required()
                     ->readOnly()
                     ,
@@ -80,26 +80,23 @@ class PaymentResource extends Resource
                 Tables\Columns\TextColumn::make('merchant_reference')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('company_id')
-                    ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('reference')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('currency')
+                ->badge()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('customer_wallet')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
+                ->badge()
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('fee_amount')
+                    Tables\Columns\TextColumn::make('status')
+                    ->badge()
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('percentage')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('transaction_amount')
-                    ->numeric()
-                    ->sortable(),
+               
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

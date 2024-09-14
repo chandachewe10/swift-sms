@@ -44,15 +44,15 @@ class CreateMessages extends CreateRecord
         $encodedSenderId = urlencode($senderId);
         $encodedMessage = urlencode($message);
     
-        // Construct the URL with properly encoded components
+        
         $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
     
-        // Send the HTTP request
+        
         $response = Http::get($url);
     
-        // Handle the response
+       
         $responseData = $response->json();
-        
+       
         if ($responseData['statusCode'] == 202) {
             // Withdraw the amount from the user's wallet
            // auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
