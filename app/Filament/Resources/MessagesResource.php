@@ -62,6 +62,11 @@ class MessagesResource extends Resource
             ImportAction::make()
                 ->importer(MessagesImporter::class)
         ])
+        ->modifyQueryUsing(function (Builder $query) { 
+           
+                return $query->where('company_id', auth()->user()->user_id); 
+            
+        }) 
             ->columns([
                 Tables\Columns\TextColumn::make('message')
                     ->searchable(),
