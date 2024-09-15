@@ -37,6 +37,7 @@ $contacts = Contact::all()->mapWithKeys(function($contact) {
         return $form
             ->schema([
                 Forms\Components\Textarea::make('message')
+                ->helperText('Write in not more than 160 characters')
                     ->minLength(2)
                     ->maxLength(160)
                     ->rows(5)

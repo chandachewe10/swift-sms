@@ -38,6 +38,8 @@ class ContactResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone1')
+                ->label('Primary Phone Number')
+                ->helperText('This is the phone number which will be recieving mesages')
                     ->unique(ignoreRecord: true)
                     ->tel()
                     ->prefixIcon('heroicon-o-phone')
@@ -45,11 +47,12 @@ class ContactResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone2')
                     ->tel()
-
+                    ->label('Secondary Phone Number')
                     ->prefixIcon('heroicon-o-phone')
                     ->maxLength(255)
                     ->default(null),
                 Forms\Components\TextInput::make('phone3')
+                ->label('Emergency Phone Number')
                     ->tel()
                     ->prefixIcon('heroicon-o-phone')
                     ->maxLength(255)

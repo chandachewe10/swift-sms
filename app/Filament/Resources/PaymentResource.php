@@ -49,7 +49,7 @@ class PaymentResource extends Resource
 
                     Forms\Components\Select::make('operator')
                 ->label('Network Operator')
-                    ->prefixIcon('heroicon-o-wallet')
+                    ->prefixIcon('heroicon-o-phone-arrow-down-left')
                     ->options([
                         'AIRTEL' => 'Airtel',
                         'MTN' => 'Mtn Zambia',
@@ -60,10 +60,13 @@ class PaymentResource extends Resource
                 
                
                 Forms\Components\TextInput::make('customer_wallet')
+                ->prefixIcon('heroicon-o-phone')
                 ->label('Enter Phone')
                     ->required()
                     ->regex('/^(09|07)[5|6|7][0-9]{7}$/'),
                 Forms\Components\TextInput::make('amount')
+                ->prefixIcon('heroicon-o-banknotes')
+               
                 ->numeric()
                     ->required()
                     ->readOnly()

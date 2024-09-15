@@ -28,6 +28,7 @@ class SenderIdResource extends Resource
                 //     ->required()
                 //     ->numeric(),
                 Forms\Components\TextInput::make('name')
+                ->prefixIcon('heroicon-o-user-group')
                 ->label('Create Sender ID')
                 ->helperText('This is the name which is going to appear to your clients when you send them the message. The name is supposed to be short with a maximum of 12 characters. Upon submitting it will then be approved before it is used.')
                     ->required()
@@ -37,11 +38,12 @@ class SenderIdResource extends Resource
                 Forms\Components\TextInput::make('company_phone')
                     ->required()
                     ->regex('/^(09|07)[5|6|7][0-9]{7}$/')
+                    ->prefixIcon('heroicon-o-phone')
                     ->helperText('Other than your email we may use use this number to communicate with you, also when your SENDERID  is approved we will send a confirmation SMS to this number.'),
                    
                     Forms\Components\Select::make('is_approved')
                     ->label('Status')
-                   
+                    ->prefixIcon('heroicon-o-shield-check')
                     ->options([
                         '1' => 'APPROVE',
                         '2' => 'LEAVE IT AS PROCESSING',
