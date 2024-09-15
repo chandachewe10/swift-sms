@@ -97,6 +97,11 @@ class ContactResource extends Resource
             ImportAction::make()
                 ->importer(ContactImporter::class)
         ])
+        ->modifyQueryUsing(function (Builder $query) { 
+           
+            return $query->where('company_id', auth()->user()->user_id); 
+        
+    }) 
             ->columns([
                 Tables\Columns\TextColumn::make('company_id')
                     ->hidden()

@@ -61,6 +61,11 @@ class SenderIdResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->modifyQueryUsing(function (Builder $query) { 
+           
+            return $query->where('company_id', auth()->user()->user_id); 
+        
+    }) 
             ->columns([
                 Tables\Columns\TextColumn::make('company_id')
                    
