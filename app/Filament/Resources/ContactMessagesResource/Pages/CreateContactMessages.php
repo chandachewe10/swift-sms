@@ -28,9 +28,9 @@ class CreateContactMessages extends CreateRecord
         })->toArray();
         
         // Get the sender ID and message
-        $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->first();
+        $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->where('is_approved','=',1)->first()->name ?? '';
         $message = $data['message'];
-        
+       
         // Check user balance
         $user = auth()->user();
         $balance = $user->wallet->balance;
