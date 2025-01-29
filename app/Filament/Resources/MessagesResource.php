@@ -21,6 +21,7 @@ class MessagesResource extends Resource
     protected static ?string $navigationGroup = 'Messages';
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-bottom-center-text';
     protected static ?string $modelLabel = 'Send to Number';
+    protected static ?int $navigationSort = 3; 
 
     public static function form(Form $form): Form
     {

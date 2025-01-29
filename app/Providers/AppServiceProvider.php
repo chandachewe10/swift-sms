@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Models\User;
 use App\Observers\UserObserver;
+use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Model;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,15 @@ class AppServiceProvider extends ServiceProvider
     {
        
            User::observe(UserObserver::class);
+
+        Model::unguard();
+        Filament::registerNavigationGroups([
+            'Messages',
+            'Developers',
+            'User Management'
+        ]);
+
+           
         
     }
 }
