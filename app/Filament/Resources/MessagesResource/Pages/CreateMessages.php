@@ -16,7 +16,7 @@ class CreateMessages extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $contacts = $data['contact'];
-        $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->first();
+        $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->where('is_approved','=',1)->first()->name ?? '';
         $message = $data['message'];
     
         // Ensure each contact is a string

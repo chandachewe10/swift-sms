@@ -28,7 +28,7 @@ class CreatePayment extends CreateRecord
       $zamtelPrefixes = ['26095', '26075'];
      
       $timeout = '60';
-      if($data['amount'] == 300){
+      if($data['amount'] == 5){
         $numberOfSms =  1000;
       }
       elseif($data['amount'] == 650){
@@ -103,7 +103,7 @@ else{
         
         $payload = [
             "depositId" => $uuid,
-            "amount" => $data['amount'],
+            "amount" => 5,//$data['amount'],
             "currency" => "ZMW",
             "country" => "ZMB",
             "correspondent" => $correspondent,
@@ -140,7 +140,7 @@ else{
 // Handle the response
 $responseData = $response->json();
   
-
+// dd($response);
 // check if payment has been accepted for processing 
 
 if ($responseData['status'] == "ACCEPTED") {
@@ -213,7 +213,7 @@ private function getDepositStatus(string $uuid) {
 //dd($responseData);
 
  if ($responseData['status'] == "COMPLETED") {
-      
+  Log::info('Payments Data: '.$responseData);     
  auth()->user()->wallet->deposit($numberOfSms, ['description' => 'Account credited with a total number of '.$numberOfSms. ' SMSes' ]);
  Payment::updateOrCreate(
 ['depositId' => $responseData['depositId']],
