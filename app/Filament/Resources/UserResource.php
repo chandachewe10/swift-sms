@@ -44,15 +44,25 @@ class UserResource extends Resource
                     ->dehydrateStateUsing(fn(string $state): string => Hash::make($state))
                     ->dehydrated(fn(?string $state): bool => filled($state))
                     ->required(fn(string $operation): bool => $operation === 'create'),
-                // Using Select Component
+               
+
+                    Forms\Components\TextInput::make('units')
+                    ->label('Add SMS Units')
+                    ->numeric(),
+
+                     // Using Select Component
                 Forms\Components\Select::make('roles')
-                    ->relationship('roles', 'name')
-                    ->multiple()
-                    ->preload()
-                    ->searchable(),
+                ->relationship('roles', 'name')
+                ->multiple()
+                ->preload()
+                ->searchable()
+                ->columnSpan(2),
+                   
 
 
             ]);
+
+            
     }
 
     public static function table(Table $table): Table

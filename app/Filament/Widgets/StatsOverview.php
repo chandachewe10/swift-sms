@@ -16,7 +16,7 @@ $startDate = $this->filters['startDate'] ?? null;
 $endDate = $this->filters['endDate'] ?? null;
 $success = 200;
 $companyId = auth()->user()->user_id;
-$smsBalance = auth()->user()->balance;
+$smsBalance = auth()->user()->wallet->balance;
 
 // Define prefixes for each operator
 $airtelPrefixes = ['097', '077'];
