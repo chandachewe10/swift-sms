@@ -21,15 +21,12 @@ class CreateUser extends CreateRecord
             
         ]);
 
-        // if($user){
-        //     $roleNames = $data['roles'];
-
-            
-        //     $roles = Role::whereIn('name', $roleNames)->get();
-            
-            
-        //     $user->assignRole($roles);   
-        // }
+        $smsUnits = $data['units'] ?? 0;
+if($smsUnits > 0) {
+    $user->wallet->deposit($smsUnits,['description' => 'SMSes Top of '.$smsUnits .' SMSes']);
+}
+        
+    
         return $user;
     }
 

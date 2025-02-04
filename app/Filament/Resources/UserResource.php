@@ -78,6 +78,9 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('roles.name')
                     ->badge()
                     ->searchable(),
+                    Tables\Columns\TextColumn::make('wallet.balance')
+                    ->label('SMSes')
+                    ->searchable(),
             ])
             ->filters([
                 //

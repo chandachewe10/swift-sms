@@ -5,6 +5,8 @@ namespace App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class EditUser extends EditRecord
 {
@@ -16,5 +18,29 @@ class EditUser extends EditRecord
             Actions\ViewAction::make(),
             Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+       
+        $user = \App\Models\User::updateOrCreate(
+        [
+            'email' => $data['email']
+        ],[
+            'name' => $data['name'],
+            'password' => $data['password'],
+            
+        ]);
+
+        $smsUnits = $data['units'] ?? 0;
+        if($smsUnits > 0) {
+        $user->wallet->deposit($smsUnits,['description' => 'SMSes Top of '.$smsUnits .' SMSes']);
+}
+        
+
+
+return $record;
+       
+
     }
 }
