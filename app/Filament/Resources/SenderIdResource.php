@@ -65,7 +65,9 @@ class SenderIdResource extends Resource
         return $table
         ->modifyQueryUsing(function (Builder $query) { 
            
+            if(!auth()->user()->hasRole('super_admin')){
             return $query->where('company_id', auth()->user()->user_id); 
+        }
         
     }) 
             ->columns([

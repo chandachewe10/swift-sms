@@ -15,12 +15,12 @@ class UserObserver
     public function creating(User $user): void
     {
         // Generate a unique user_id before the user is created
-        $user->user_id = IdGenerator::generate([
-            'table' => 'users',
-            'field' => 'user_id',
-            'length' => 8,
-            'prefix' => date('y') 
-        ]);
+        // $user->user_id = IdGenerator::generate([
+        //     'table' => 'users',
+        //     'field' => 'user_id',
+        //     'length' => 8,
+        //     'prefix' => date('y') 
+        // ]);
     }
 
 
