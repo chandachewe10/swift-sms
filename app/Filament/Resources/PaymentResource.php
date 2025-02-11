@@ -53,7 +53,7 @@ class PaymentResource extends Resource
                     ->options([
                         'AIRTEL' => 'Airtel',
                         'MTN' => 'Mtn Zambia',
-                        'ZAMTEL' => 'Zamtel',
+                       // 'ZAMTEL' => 'Zamtel',
                     ])
                    
                     ->required(),

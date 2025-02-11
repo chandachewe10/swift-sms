@@ -22,7 +22,8 @@ class CreatePayment extends CreateRecord
       $uuid = Uuid::uuid4()->toString();  
       $companyId = auth()->user()->user_id;
       $customerWallet = $data['customer_wallet']; 
-      $phonePrefix = substr($customerWallet, 0, 5); 
+      $phonePrefix = substr($customerWallet, 0, 3); 
+      //dd($phonePrefix);
       $airtelPrefixes = ['097', '077'];
       $mtnPrefixes = ['096', '076'];
       $zamtelPrefixes = ['095', '075'];
@@ -88,11 +89,11 @@ elseif($data['operator'] == 'MTN'){
 }
 else{
     $correspondent = 'ZAMTEL_ZMB'; 
-    if (!in_array($phonePrefix, $zamtelPrefixes)) {
+    if (in_array($phonePrefix, $zamtelPrefixes)) {
 
         Notification::make()
                     ->title('Invalid Phone Number')
-                    ->body('Please enter the valid Zamtel phone number')
+                    ->body('Please Zamtel Phone Number is not supported currently')
                     ->warning()
                     ->persistent()
                     ->send();
@@ -108,8 +109,7 @@ else{
             "reference" => $uuid,
                   ];
         
-       // dd(env('PAWA_PAY_BASE_URI').'deposits');
-        // Make the HTTP request
+       
         $response = Http::withHeaders([
            
             "Authorization" => "Bearer ".env('LENCO_TOKEN'),
@@ -117,7 +117,7 @@ else{
             "accept" => "application/json",
 
          
-        ])->timeout($timeout)->post(env('LENCO_BASE_URI').'deposits', $payload);
+        ])->timeout($timeout)->post(env('LENCO_BASE_URI').'/collections/mobile-money', $payload);
         
 
 // Handle the response
@@ -126,18 +126,27 @@ $responseData = $response->json();
 // dd($response);
 // check if payment has been accepted for processing 
 
-if ($responseData['status'] == "ACCEPTED") {
-$this->getDepositStatus($uuid);
+if ($responseData['status'] == true && ($responseData['data']['status'] == 'pay-offline')) {
+  Notification::make()
+  ->title('Approve Payment')
+  ->body('Please check your mobile phone to confirm the payment request')
+  ->success()
+  ->persistent()
+  ->send(); 
+
+  sleep(5);
+
+ $this->getDepositStatus($uuid);
 
 }
 
-if ($responseData['status'] == "REJECTED") {
-    $rejectionReason = $responseData['rejectionReason']['rejectionMessage'] ?? '';
+if ($responseData['data']['status'] == "failed") {
+    $rejectionReason = $responseData['message'] ?? '';
    
     // The payment has been rejected
     Notification::make()
-                ->title('Payment Rejected')
-                ->body('The payment request has been rejected because of: '.$rejectionReason)
+                ->title('Payment Failed')
+                ->body('The payment request has failed because of: '.$rejectionReason)
                 ->warning()
                 ->persistent()
                 ->send();
@@ -145,12 +154,12 @@ if ($responseData['status'] == "REJECTED") {
     
     }
 
-    if ($responseData['status'] == "DUPLICATE_IGNORED") {
+    if ($responseData['data']['status'] == "pending") {
         // The payment has been ignored
         Notification::make()
-                ->title('Payment Ignored')
-                ->body('The payment has been ignored as a duplicate of an already accepted payment with the same deposit ID.')
-                ->warning()
+                ->title('Payment Pending')
+                ->body('The payment is pending approval')
+                ->info()
                 ->persistent()
                 ->send();
                 $this->halt();
@@ -175,42 +184,39 @@ if ($responseData['status'] == "REJECTED") {
 
 private function getDepositStatus(string $uuid) {
 
+ $maxRetries = 10;
+ $retryInterval = 5;
+ $foundResponse = false;
 
 
-    $response = Http::withHeaders([
-        "Authorization" => "Bearer ".env('PAWA_PAY_TOKEN'),
-        "Content-Type" => "application/json",
-     
-    ])->get(env('PAWA_PAY_BASE_URI').'deposits/'.$uuid);
-
-    $responseData = $response->json()[0];
+ for ($i = 0; $i < $maxRetries; $i++) {
 
 
+  $response = Http::withHeaders([
+    "Authorization" => "Bearer ".env('LENCO_TOKEN'),
+    "Content-Type" => "application/json",
+ 
+])->get(env('LENCO_BASE_URI').'/collections/status/'.$uuid);
 
-    $maxRetries = 6;
-    $retryInterval = 5;
-    $foundResponse = false;
-    for ($i = 0; $i < $maxRetries; $i++) {
 
 
-//dd($responseData);
 
- if ($responseData['status'] == "COMPLETED") {
+
+ if ($responseData['status'] == true && $responseData['data']['settlementStatus'] == "settled") {
   Log::info('Payments Data: '.$responseData);     
  auth()->user()->wallet->deposit($numberOfSms, ['description' => 'Account credited with a total number of '.$numberOfSms. ' SMSes' ]);
+
  Payment::updateOrCreate(
-['depositId' => $responseData['depositId']],
+['depositId' => $responseData['data']['reference']],
 [
 'company_id' => auth()->user()->user_id,
-'reference' => $responseData['statementDescription'],
-'merchant_reference' => $responseData['depositId'],
-'customer_wallet' => $responseData['payer']['address']['value'],
-'amount' => $responseData['requestedAmount'],
-'fee_amount' => 0.00,
-'percentage' => 0.00,
+'reference' => $responseData['data']['mobileMoneyDetails']['accountName'] ?? '',
+'merchant_reference' => $responseData['data']['lencoReference'],
+'customer_wallet' => $responseData['data']['mobileMoneyDetails']['phone'] ?? '',
+'amount' => $responseData['data']['amount'],
 'currency' => 'ZMW',
-'transaction_amount' => $responseData['requestedAmount'],
-'status' => $responseData['status'] ?? null,
+'transaction_amount' =>$responseData['data']['amount'],
+'status' => $responseData['data']['settlementStatus'] ?? null,
 ]
 
 
@@ -218,41 +224,11 @@ private function getDepositStatus(string $uuid) {
     
 $foundResponse = true;
 break;
+
+
     } 
-if($responseData['status'] == "FAILED"){
-    $failureReason = $responseData['failureReason']['failureMessage'] ?? '';
-    Payment::updateOrCreate(
-        ['depositId' => $responseData['depositId']],
-        [
-        'company_id' => auth()->user()->user_id,
-        'reference' => $responseData['statementDescription'],
-        'merchant_reference' => $responseData['depositId'],
-        'customer_wallet' => $responseData['payer']['address']['value'],
-        'amount' => $responseData['requestedAmount'],
-        'fee_amount' => 0.00,
-        'percentage' => 0.00,
-        'currency' => 'ZMW',
-        'transaction_amount' => $responseData['requestedAmount'],
-        'status' => $responseData['status'] ?? null,
-        ]
-        
-        
-        );
 
-
-
-
-    Notification::make()
-        ->title('Payment Failed')
-        ->body('Payment failed because of: '.$failureReason)
-        ->warning()
-        ->persistent()
-        ->send();
-        $this->halt();
-       }
-      
-        
-        
+       
        sleep($retryInterval);
 }
 
@@ -266,14 +242,49 @@ Notification::make()
 ->persistent()
 ->send();
 $this->halt();
-}   
+} 
+
+
+
+
+if ($responseData['status'] == true && $responseData['data']['settlementStatus'] == "pending") {
+
+  $pendingReason = $responseData['data']['reasonForFailure'] ?? '';
+  Payment::updateOrCreate(
+    ['depositId' => $responseData['data']['reference']],
+    [
+    'company_id' => auth()->user()->user_id,
+    'reference' => $responseData['data']['mobileMoneyDetails']['accountName'] ?? '',
+    'merchant_reference' => $responseData['data']['lencoReference'],
+    'customer_wallet' => $responseData['data']['mobileMoneyDetails']['phone'] ?? '',
+    'amount' => $responseData['data']['amount'],
+    'currency' => 'ZMW',
+    'transaction_amount' =>$responseData['data']['amount'],
+    'status' => $responseData['data']['settlementStatus'] ?? null,
+    ]);
+
+
+
+  Notification::make()
+      ->title('Processing Payment')
+      ->body('Payment Delayed because of: '.$failureReason)
+      ->warning()
+      ->persistent()
+      ->send();
+      
+     }
+    
+      
+
+
+
    
 
-elseif(!$foundResponse) {
+else {
     Notification::make()
-    ->title('Payment Pending')
-    ->body('Payment pending approval')
-    ->info()
+    ->title('Payment Update')
+    ->body('Payment Failed: '.$responseData['data']['reasonForFailure'] ?? '')
+    ->warning()
     ->persistent()
     ->send();
     $this->halt();

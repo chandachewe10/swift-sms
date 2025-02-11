@@ -75,4 +75,11 @@ class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmai
     {
         return true;
     }
+
+
+    public function getFilamentRoles()
+    {
+        return $this->roles->pluck('name');
+    }
+
 }
