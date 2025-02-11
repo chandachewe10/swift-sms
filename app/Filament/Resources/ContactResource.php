@@ -97,10 +97,10 @@ class ContactResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->headerActions([
-            ImportAction::make()
-                ->importer(ContactImporter::class)
-        ])
+        // ->headerActions([
+        //     ImportAction::make()
+        //         ->importer(ContactImporter::class)
+        // ])
         ->modifyQueryUsing(function (Builder $query) { 
            
             return $query->where('company_id', auth()->user()->user_id); 
