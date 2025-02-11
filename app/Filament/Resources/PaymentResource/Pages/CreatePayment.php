@@ -21,11 +21,11 @@ class CreatePayment extends CreateRecord
       $currentTimestamp = Carbon::now()->toIso8601String();
       $uuid = Uuid::uuid4()->toString();  
       $companyId = auth()->user()->user_id;
-      $customerWallet = '26'.$data['customer_wallet']; 
+      $customerWallet = $data['customer_wallet']; 
       $phonePrefix = substr($customerWallet, 0, 5); 
-      $airtelPrefixes = ['26097', '26077'];
-      $mtnPrefixes = ['26096', '26076'];
-      $zamtelPrefixes = ['26095', '26075'];
+      $airtelPrefixes = ['097', '077'];
+      $mtnPrefixes = ['096', '076'];
+      $zamtelPrefixes = ['095', '075'];
      
       $timeout = '60';
       if($data['amount'] == 5){
@@ -102,39 +102,22 @@ else{
 
         
         $payload = [
-            "depositId" => $uuid,
-            "amount" => 5,//$data['amount'],
-            "currency" => "ZMW",
-            "country" => "ZMB",
-            "correspondent" => $correspondent,
-            "payer" => [
-                "type" => "MSISDN",
-                "address" => [
-                    "value" => $customerWallet
-                ]
-            ],
-            "customerTimestamp" => $currentTimestamp,
-            "statementDescription" => "SMSes TopUp",
-            "preAuthorisationCode" => "string",
-            // "metadata" => [
-                
-            //     [
-            //         "fieldName" => "customerId",
-            //         "fieldValue" => $companyId
-                    
-            //     ]
-            // ]
-        ];
+            "operator" => strtolower($data['operator']),
+            "phone" => $customerWallet,
+            "amount" => $data['amount'],
+            "reference" => $uuid,
+                  ];
         
        // dd(env('PAWA_PAY_BASE_URI').'deposits');
         // Make the HTTP request
         $response = Http::withHeaders([
            
-            "Authorization" => "Bearer ".env('PAWA_PAY_TOKEN'),
+            "Authorization" => "Bearer ".env('LENCO_TOKEN'),
             "Content-Type" => "application/json",
+            "accept" => "application/json",
 
          
-        ])->timeout($timeout)->post(env('PAWA_PAY_BASE_URI').'deposits', $payload);
+        ])->timeout($timeout)->post(env('LENCO_BASE_URI').'deposits', $payload);
         
 
 // Handle the response
