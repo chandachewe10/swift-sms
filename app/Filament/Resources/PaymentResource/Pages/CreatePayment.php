@@ -28,7 +28,8 @@ class CreatePayment extends CreateRecord
       $mtnPrefixes = ['096', '076'];
       $zamtelPrefixes = ['095', '075'];
      
-      $timeout = '60';
+      $timeout = '120';
+
       if($data['amount'] == 5){
         $numberOfSms =  1000;
       }
@@ -60,7 +61,7 @@ class CreatePayment extends CreateRecord
 
 
 if($data['operator'] == 'AIRTEL'){
-    $correspondent = 'AIRTEL_OAPI_ZMB';
+   
     if (!in_array($phonePrefix, $airtelPrefixes)) {
 
     Notification::make()
@@ -75,7 +76,7 @@ if($data['operator'] == 'AIRTEL'){
 
 }
 elseif($data['operator'] == 'MTN'){
-    $correspondent = 'MTN_MOMO_ZMB';  
+    
     if (!in_array($phonePrefix, $mtnPrefixes)) {
 
         Notification::make()
@@ -88,12 +89,12 @@ elseif($data['operator'] == 'MTN'){
     }
 }
 else{
-    $correspondent = 'ZAMTEL_ZMB'; 
+    
     if (in_array($phonePrefix, $zamtelPrefixes)) {
 
         Notification::make()
                     ->title('Invalid Phone Number')
-                    ->body('Please Zamtel Phone Number is not supported currently')
+                    ->body('Please enter the valid Zamtel phone number')
                     ->warning()
                     ->persistent()
                     ->send();
@@ -101,7 +102,7 @@ else{
     }     
 }
 
-        
+
         $payload = [
             "operator" => strtolower($data['operator']),
             "phone" => $customerWallet,
@@ -116,17 +117,17 @@ else{
             "Content-Type" => "application/json",
             "accept" => "application/json",
 
-         
+        
         ])->timeout($timeout)->post(env('LENCO_BASE_URI').'/collections/mobile-money', $payload);
         
 
 // Handle the response
 $responseData = $response->json();
-  
+
 // dd($response);
 // check if payment has been accepted for processing 
 
-if ($responseData['status'] == true && ($responseData['data']['status'] == 'pay-offline')) {
+if ($responseData['data']['status'] == 'pay-offline') {
   Notification::make()
   ->title('Approve Payment')
   ->body('Please check your mobile phone to confirm the payment request')
@@ -196,7 +197,7 @@ private function getDepositStatus(string $uuid) {
     "Authorization" => "Bearer ".env('LENCO_TOKEN'),
     "Content-Type" => "application/json",
  
-])->get(env('LENCO_BASE_URI').'/collections/status/'.$uuid);
+])->timeout($timeout)->get(env('LENCO_BASE_URI').'/collections/status/'.$uuid);
 
 
 
