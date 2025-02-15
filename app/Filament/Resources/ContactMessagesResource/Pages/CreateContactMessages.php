@@ -31,11 +31,21 @@ class CreateContactMessages extends CreateRecord
         $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->where('is_approved','=',1)->first()->name ?? '';
         $message = $data['message'];
        
+
+        if(is_null($senderId) || empty($senderId)){
+            Notification::make()
+            ->title('Invalid SenderId')
+            ->body('Please wait for your Sender ID to be approved')
+            ->warning()
+            ->send();
+            $this->halt();
+        }
+
         // Check user balance
         $user = auth()->user();
         $balance = $user->wallet->balance;
         
-        if ($balance > count($contactStrings)) {
+        if ($balance < count($contactStrings)) {
             $difference = count($contactStrings) - $balance;
             Notification::make()
                 ->title('Insufficient SMS Balance')
@@ -78,7 +88,7 @@ class CreateContactMessages extends CreateRecord
         // Send notification based on response status
         if ($responseData['statusCode'] == 202) {
             // Withdraw the amount from the user's wallet
-           // $user->wallet->withdraw(count($contactStrings), ['description' => 'Sending SMS']);
+           $user->wallet->withdraw(count($contactStrings), ['description' => 'Sending SMS']);
             
             Notification::make()
                 ->title('Message(s) Sent')

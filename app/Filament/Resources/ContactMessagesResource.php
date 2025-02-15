@@ -48,13 +48,15 @@ $contacts = Contact::all()->mapWithKeys(function($contact) {
     ->prefixIcon('heroicon-o-users')
     ->label('Contacts')
     ->options(
-        // Static options (if needed)
-        Contact::all()->mapWithKeys(function($contact) {
-            return [
-                $contact->id => $contact->first_name . ' ' . $contact->last_name . ' - ' . $contact->phone1,
-            ];
-        })
+        Contact::where('company_id', auth()->user()->user_id) 
+            ->get() 
+            ->mapWithKeys(function ($contact) { 
+                return [
+                    $contact->id => $contact->first_name . ' ' . $contact->last_name . ' - ' . $contact->phone1,
+                ];
+            })
     )
+    
     ->getSearchResultsUsing(fn (string $search) => Contact::where('first_name', 'like', "%{$search}%")
         ->orWhere('last_name', 'like', "%{$search}%")
         ->orWhere('phone1', 'like', "%{$search}%")
