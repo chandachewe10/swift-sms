@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TokenResource\Pages;
 use App\Filament\Resources\TokenResource\RelationManagers;
+use Laravel\Sanctum\PersonalAccessToken;
 use App\Models\User as Token;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TokenResource extends Resource
 {
-    protected static ?string $model = Token::class;
+    protected static ?string $model = PersonalAccessToken::class;
     protected static ?string $navigationGroup = 'Developers';
     protected static ?string $navigationIcon = 'heroicon-o-key';
     protected static ?string $modelLabel = 'Token';
@@ -25,7 +26,7 @@ class TokenResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('remember_token')
+                Forms\Components\TextInput::make('name')
                 ->label('Token Name')
                 ->prefixIcon('heroicon-o-key')
                 ->required()
