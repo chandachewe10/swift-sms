@@ -29,14 +29,14 @@ class PaymentResource extends Resource
                     ->prefixIcon('heroicon-o-wallet')
                     ->live()
                     ->options([
-                        '300' => '0 - 1000',
-                        '650' => '1,001 - 2000',
-                        '1000' => '2,001 - 3000',
-                        '1350' => '3,001 - 4000',
-                        '1450' => '4,001 - 5000',
-                        '1750' => '5,001 - 6000',
-                        '2000' => '6,001 - 7000',
-                        '2200' => '7,001 - 8000',
+                        '500' => '1000',
+                        '800' => '2000',
+                        '1100' => '3000',
+                        '1400' => '4000',
+                        '1700' => '5000',
+                        '2000' => '6000',
+                        '2200' => '7000',
+                        '2500' => '8000',
                     ])
                    
                     ->required(function ($state, Set $set) {
@@ -47,16 +47,16 @@ class PaymentResource extends Resource
                         return true;
                     }),
 
-                    Forms\Components\Select::make('operator')
-                ->label('Network Operator')
-                    ->prefixIcon('heroicon-o-phone-arrow-down-left')
-                    ->options([
-                        'AIRTEL' => 'Airtel',
-                        'MTN' => 'Mtn Zambia',
-                       // 'ZAMTEL' => 'Zamtel',
-                    ])
+                //     Forms\Components\Select::make('operator')
+                // ->label('Network Operator')
+                //     ->prefixIcon('heroicon-o-phone-arrow-down-left')
+                //     ->options([
+                //         'AIRTEL' => 'Airtel',
+                //         'MTN' => 'Mtn Zambia',
+                //         'ZAMTEL' => 'Zamtel',
+                //     ])
                    
-                    ->required(),
+                //     ->required(),
                 
                
                 Forms\Components\TextInput::make('customer_wallet')

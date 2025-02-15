@@ -27,7 +27,9 @@ class Payment extends Model
         'percentage',
         'transaction_amount',
         'depositId',
-        'status'
+        'messages',
+        'status',
+        
 
         
     ];

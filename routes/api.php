@@ -10,3 +10,6 @@ Route::middleware([
     Route::get('send_message', [MessagesAPI::class, 'store']);
 
 });
+
+
+Route::get('pawapay', [MessagesAPI::class, 'paymentResponse']);

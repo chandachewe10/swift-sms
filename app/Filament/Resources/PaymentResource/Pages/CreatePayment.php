@@ -17,282 +17,102 @@ class CreatePayment extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
+
+      $smsMap = [
+        500 => 1000,
+        800 => 2000,
+        1100 => 3000,
+        1400 => 4000,
+        1700 => 5000,
+        2000 => 6000,
+        2200 => 7000,
+        2500 => 8000
+    ];
+    $numberOfSms = $smsMap[$data['amount']];
+    
+      
         
       $currentTimestamp = Carbon::now()->toIso8601String();
       $uuid = Uuid::uuid4()->toString();  
       $companyId = auth()->user()->user_id;
-      $customerWallet = $data['customer_wallet']; 
-      $phonePrefix = substr($customerWallet, 0, 3); 
-      //dd($phonePrefix);
-      $airtelPrefixes = ['097', '077'];
-      $mtnPrefixes = ['096', '076'];
-      $zamtelPrefixes = ['095', '075'];
-     
-      $timeout = '120';
-
-      if($data['amount'] == 5){
-        $numberOfSms =  1000;
-      }
-      elseif($data['amount'] == 650){
-        $numberOfSms =  2000; 
-      }
-      elseif($data['amount'] == 1000){
-        $numberOfSms =  3000; 
-      }
-      elseif($data['amount'] == 1350){
-        $numberOfSms =  4000; 
-      }
-      elseif($data['amount'] == 1450){
-        $numberOfSms =  5000; 
-      }
-      elseif($data['amount'] == 1750){
-        $numberOfSms =  6000; 
-      }
-      elseif($data['amount'] == 2000){
-        $numberOfSms =  7000; 
-      }
-      else{
-        $numberOfSms =  8000;  
-      }
-
-
-      
+      $returnUrl = 'https://swift-sms.net/admin';
+      $apiBaseUri = env('PAWAPAY_BASE_URI');
+      $apiEndpoint = '/widget/sessions';
+      $apiToken = env('PAWAPAY_TOKEN');
+      $phone = '26'.$data['customer_wallet'];
+      $timeout = 30;
 
 
 
-if($data['operator'] == 'AIRTEL'){
-   
-    if (!in_array($phonePrefix, $airtelPrefixes)) {
+ // Request Payload
+    $payload = [
+   'depositId' => $uuid,
+   'returnUrl' => $returnUrl ,
+   'amount' => $data['amount'], 
+   "statementDescription"=> "Payments of $numberOfSms SMSes",
+   "msisdn" => $phone,
+   "language" => "EN",
+   "country" => "ZMB",
+   "reason" => "Payments of SMSes",
+  ];
 
+try {
+
+  $response = Http::withToken($apiToken)
+      ->withHeaders(['Content-Type' => 'application/json'])
+      ->timeout($timeout)->post($apiBaseUri.$apiEndpoint, $payload);
+
+
+  if ($response->successful()) {
+
+    Payment::updateOrCreate(
+      ['depositId' => $uuid],
+      [
+      'company_id' => auth()->user()->user_id,
+      'reference' => 'SMSes TopUp',
+      'merchant_reference' => '',
+      'customer_wallet' => $phone,
+      'amount' => $data['amount'],
+      'currency' => 'ZMW',
+      'transaction_amount' => $data['amount'],
+      'messages' => $numberOfSms,
+      'status' => 'SUBMITTED',
+
+      ]
+    );
+        
+
+$redirectUrl = $response->json('redirectUrl');
+
+
+      return redirect()->away($redirectUrl);
+  } else {
     Notification::make()
-                ->title('Invalid Phone Number')
-                ->body('Please enter the valid Airtel phone number')
+                ->title('PAYMENT FAILED')
+                ->body('Failed to create payment. Please try again.')
                 ->warning()
                 ->persistent()
                 ->send();
                 $this->halt(); 
-}
-
-
-}
-elseif($data['operator'] == 'MTN'){
-    
-    if (!in_array($phonePrefix, $mtnPrefixes)) {
-
-        Notification::make()
-                    ->title('Invalid Phone Number')
-                    ->body('Please enter the valid Mtn phone number')
-                    ->warning()
-                    ->persistent()
-                    ->send();
-                    $this->halt(); 
-    }
-}
-else{
-    
-    if (in_array($phonePrefix, $zamtelPrefixes)) {
-
-        Notification::make()
-                    ->title('Invalid Phone Number')
-                    ->body('Please enter the valid Zamtel phone number')
-                    ->warning()
-                    ->persistent()
-                    ->send();
-                    $this->halt(); 
-    }     
-}
-
-
-        $payload = [
-            "operator" => strtolower($data['operator']),
-            "phone" => $customerWallet,
-            "amount" => $data['amount'],
-            "reference" => $uuid,
-                  ];
-        
-       
-        $response = Http::withHeaders([
-           
-            "Authorization" => "Bearer ".env('LENCO_TOKEN'),
-            "Content-Type" => "application/json",
-            "accept" => "application/json",
-
-        
-        ])->timeout($timeout)->post(env('LENCO_BASE_URI').'/collections/mobile-money', $payload);
-        
-
-// Handle the response
-$responseData = $response->json();
-
-// dd($response);
-// check if payment has been accepted for processing 
-
-if ($responseData['data']['status'] == 'pay-offline') {
+      
+  }
+} catch (\Exception $e) {
   Notification::make()
-  ->title('Approve Payment')
-  ->body('Please check your mobile phone to confirm the payment request')
-  ->success()
+  ->title('PAYMENT FAILED')
+  ->body('Failed to create payment due to: ' . $e->getMessage())
+  ->warning()
   ->persistent()
-  ->send(); 
-
-  sleep(5);
-
- $this->getDepositStatus($uuid);
-
+  ->send();
+  $this->halt();
+  
 }
-
-if ($responseData['data']['status'] == "failed") {
-    $rejectionReason = $responseData['message'] ?? '';
-   
-    // The payment has been rejected
-    Notification::make()
-                ->title('Payment Failed')
-                ->body('The payment request has failed because of: '.$rejectionReason)
-                ->warning()
-                ->persistent()
-                ->send();
-                $this->halt();
-    
-    }
-
-    if ($responseData['data']['status'] == "pending") {
-        // The payment has been ignored
-        Notification::make()
-                ->title('Payment Pending')
-                ->body('The payment is pending approval')
-                ->info()
-                ->persistent()
-                ->send();
-                $this->halt();
-        
-        }
-
-        else{
-            //  Payment Failed
-        Notification::make()
-        ->title('Payment Failed')
-        ->body('Whoops something went wrong! Please try again later')
-        ->warning()
-        ->persistent()
-        ->send();
-        $this->halt();
-        }
-
-    }
-
-
-
-
-private function getDepositStatus(string $uuid) {
-
- $maxRetries = 10;
- $retryInterval = 5;
- $foundResponse = false;
-
-
- for ($i = 0; $i < $maxRetries; $i++) {
-
-
-  $response = Http::withHeaders([
-    "Authorization" => "Bearer ".env('LENCO_TOKEN'),
-    "Content-Type" => "application/json",
- 
-])->timeout($timeout)->get(env('LENCO_BASE_URI').'/collections/status/'.$uuid);
-
-
-
-
-
- if ($responseData['status'] == true && $responseData['data']['settlementStatus'] == "settled") {
-  Log::info('Payments Data: '.$responseData);     
- auth()->user()->wallet->deposit($numberOfSms, ['description' => 'Account credited with a total number of '.$numberOfSms. ' SMSes' ]);
-
- Payment::updateOrCreate(
-['depositId' => $responseData['data']['reference']],
-[
-'company_id' => auth()->user()->user_id,
-'reference' => $responseData['data']['mobileMoneyDetails']['accountName'] ?? '',
-'merchant_reference' => $responseData['data']['lencoReference'],
-'customer_wallet' => $responseData['data']['mobileMoneyDetails']['phone'] ?? '',
-'amount' => $responseData['data']['amount'],
-'currency' => 'ZMW',
-'transaction_amount' =>$responseData['data']['amount'],
-'status' => $responseData['data']['settlementStatus'] ?? null,
-]
-
-
-);
-    
-$foundResponse = true;
-break;
-
-
-    } 
-
-       
-       sleep($retryInterval);
 }
 
 
-if($foundResponse) {
-Log::info('Payments Data: '.$responseData);
-Notification::make()
-->title('Payment Successfull')
-->body('Payment approved successfully')
-->success()
-->persistent()
-->send();
-$this->halt();
-} 
 
-
-
-
-if ($responseData['status'] == true && $responseData['data']['settlementStatus'] == "pending") {
-
-  $pendingReason = $responseData['data']['reasonForFailure'] ?? '';
-  Payment::updateOrCreate(
-    ['depositId' => $responseData['data']['reference']],
-    [
-    'company_id' => auth()->user()->user_id,
-    'reference' => $responseData['data']['mobileMoneyDetails']['accountName'] ?? '',
-    'merchant_reference' => $responseData['data']['lencoReference'],
-    'customer_wallet' => $responseData['data']['mobileMoneyDetails']['phone'] ?? '',
-    'amount' => $responseData['data']['amount'],
-    'currency' => 'ZMW',
-    'transaction_amount' =>$responseData['data']['amount'],
-    'status' => $responseData['data']['settlementStatus'] ?? null,
-    ]);
-
-
-
-  Notification::make()
-      ->title('Processing Payment')
-      ->body('Payment Delayed because of: '.$failureReason)
-      ->warning()
-      ->persistent()
-      ->send();
-      
-     }
-    
-      
-
-
-
-   
-
-else {
-    Notification::make()
-    ->title('Payment Update')
-    ->body('Payment Failed: '.$responseData['data']['reasonForFailure'] ?? '')
-    ->warning()
-    ->persistent()
-    ->send();
-    $this->halt();
 
 }
 
 
-    
-}
-}
+
+

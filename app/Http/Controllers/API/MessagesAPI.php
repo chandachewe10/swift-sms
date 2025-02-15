@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\SenderId;
 use App\Models\Messages;
 use Illuminate\Support\Facades\Http;
+use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
 
 class MessagesAPI extends Controller
 {
@@ -132,5 +134,45 @@ class MessagesAPI extends Controller
     {
         //
     }
+
+
+
+    public function paymentResponse(Request $request)
+{
+    try {
+        // Get the request data
+        $data = $request->all();
+        Log::info("Payment Logged: ", $data);
+
+        
+        $uuid = $data['depositId'] ?? '';
+        $status = $data['status'] ?? '';
+        
+       
+        $paymentsUpdate = Payment::updateOrCreate(
+            ['depositId' => $uuid],
+            [
+                'status' => $status
+            ]
+        );
+
+        // Find the user based on the company_id
+        $user = User::where('user_id', $paymentsUpdate->company_id)->first();
+
+        if ($user && $status === "COMPLETED") {
+            $numberOfSms = $paymentsUpdate->messages ?? 0;
+            if ($numberOfSms > 0) {
+                $user->wallet->deposit($numberOfSms, [
+                    'description' => 'Account credited with a total of ' . $numberOfSms . ' SMSes'
+                ]);
+            }
+        }
+
+       echo 'OK'; // I have recieved the payload
+    } catch (\Exception $e) {
+        Log::error("Payment Response Error: " . $e->getMessage());
+        return response()->json(['error' => 'Failed to process payment'], 500);
+    }
+}
 
 }
