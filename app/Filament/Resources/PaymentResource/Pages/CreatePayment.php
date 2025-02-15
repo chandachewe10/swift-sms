@@ -45,7 +45,7 @@ class CreatePayment extends CreateRecord
 
 
  // Request Payload
-    $payload = [
+ $payload = [
    'depositId' => $uuid,
    'returnUrl' => $returnUrl ,
    'amount' => $data['amount'], 
@@ -65,7 +65,7 @@ try {
 
   if ($response->successful()) {
 
-    Payment::updateOrCreate(
+   $payment = Payment::updateOrCreate(
       ['depositId' => $uuid],
       [
       'company_id' => auth()->user()->user_id,
@@ -85,7 +85,18 @@ try {
 $redirectUrl = $response->json('redirectUrl');
 
 
-      return redirect()->away($redirectUrl);
+   //  return redirect()->away($redirectUrl);
+    
+    // Store the redirect URL in session
+                session(['redirect_url' => $response->json('redirectUrl')]);
+
+                return $payment;
+    
+    
+    
+//
+    
+    
   } else {
     Notification::make()
                 ->title('PAYMENT FAILED')
@@ -108,7 +119,11 @@ $redirectUrl = $response->json('redirectUrl');
 }
 }
 
-
+ protected function getRedirectUrl(): string
+    {
+        return session()->pull('redirect_url', $this->getResource()::getUrl('index'));
+    }
+  
 
 
 }

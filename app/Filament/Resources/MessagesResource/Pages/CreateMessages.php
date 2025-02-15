@@ -19,6 +19,17 @@ class CreateMessages extends CreateRecord
         $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->where('is_approved','=',1)->first()->name ?? '';
         $message = $data['message'];
     
+
+if(is_null($senderId) || empty($senderId)){
+    Notification::make()
+    ->title('Invalid SenderId')
+    ->body('Please wait for your Sender ID to be approved')
+    ->warning()
+    ->send();
+    $this->halt();
+}
+
+
         // Ensure each contact is a string
         $contactStrings = array_map(function($contact) {
             // Assuming each contact is an array with a 'contact' key
@@ -26,7 +37,7 @@ class CreateMessages extends CreateRecord
         }, $contacts);
    
         // Check if the user has enough balance
-        if (auth()->user()->wallet->balance > count($contactStrings)) {
+        if (auth()->user()->wallet->balance < count($contactStrings)) {
             $difference = count($contactStrings) - auth()->user()->wallet->balance;
             Notification::make()
                 ->title('Insufficient SMS Balance')
@@ -57,7 +68,7 @@ class CreateMessages extends CreateRecord
        
         if ($responseData['statusCode'] == 202) {
             // Withdraw the amount from the user's wallet
-           // auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
+            auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
     
             // Create the message record
            $data = Messages::create([

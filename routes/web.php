@@ -20,9 +20,9 @@ use App\Http\Controllers\newsLetterSubscriptionController;
 
 Route::get('/', fn () => view('welcome'));
 
-Route::redirect('/login', '/app/login')->name('login');
+Route::redirect('/login', '/admin/login')->name('login');
 
-Route::redirect('/register', '/app/register')->name('register');
+Route::redirect('/register', '/admin/register')->name('register');
 
 Route::redirect('/dashboard', '/app')->name('dashboard');
 
