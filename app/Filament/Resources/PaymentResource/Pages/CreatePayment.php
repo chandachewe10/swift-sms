@@ -53,7 +53,7 @@ class CreatePayment extends CreateRecord
    "msisdn" => $phone,
    "language" => "EN",
    "country" => "ZMB",
-   "reason" => "Payments of SMSes",
+   "reason" => "$numberOfSms SMSes",
   ];
 
 try {

@@ -23,6 +23,12 @@ class SenderId extends Model
     ];
 
 
+    public function username()
+    {
+        
+        return $this->belongsTo(User::class, 'company_id','user_id');
+    }
+
     public function getIsApprovedAttribute($value) {
         if($value == 1){
             return 'APPROVED';

@@ -28,7 +28,9 @@ class EditUser extends EditRecord
             'email' => $data['email']
         ],[
             'name' => $data['name'],
-            'password' => $data['password'],
+            'password' =>  isset($data['password']) && $data['password'] !== ''
+                ? ($data['password']) // Hash only if a new password is provided
+                : $record->password,
             
         ]);
 
