@@ -74,6 +74,10 @@ class SenderIdResource extends Resource
                 Tables\Columns\TextColumn::make('company_id')
                    
                     ->sortable(),
+
+                    Tables\Columns\TextColumn::make('username.name')
+                   ->label('Owner')
+                    ->sortable(),
                     Tables\Columns\TextColumn::make('company_phone')
                    
                     ->sortable(),
