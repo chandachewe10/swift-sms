@@ -47,16 +47,16 @@ class PaymentResource extends Resource
                         return true;
                     }),
 
-                //     Forms\Components\Select::make('operator')
-                // ->label('Network Operator')
-                //     ->prefixIcon('heroicon-o-phone-arrow-down-left')
-                //     ->options([
-                //         'AIRTEL' => 'Airtel',
-                //         'MTN' => 'Mtn Zambia',
-                //         'ZAMTEL' => 'Zamtel',
-                //     ])
+                    Forms\Components\Select::make('operator')
+                ->label('Network Operator')
+                    ->prefixIcon('heroicon-o-phone-arrow-down-left')
+                    ->options([
+                        'AIRTEL' => 'Airtel',
+                        'MTN' => 'Mtn Zambia',
+                        // 'ZAMTEL' => 'Zamtel',
+                    ])
                    
-                //     ->required(),
+                    ->required(),
                 
                
                 Forms\Components\TextInput::make('customer_wallet')
@@ -85,8 +85,8 @@ class PaymentResource extends Resource
         
     }) 
             ->columns([
-                Tables\Columns\TextColumn::make('merchant_reference')
-                    ->searchable(),
+                // Tables\Columns\TextColumn::make('merchant_reference')
+                //     ->searchable(),
                 Tables\Columns\TextColumn::make('company_id')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('reference')

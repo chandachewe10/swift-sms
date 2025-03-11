@@ -29,101 +29,76 @@ class CreatePayment extends CreateRecord
         2500 => 8000
     ];
     $numberOfSms = $smsMap[$data['amount']];
-    
+    $uuid = Uuid::uuid4()->toString();
+    $lencoEndpoint = "collections/mobile-money";
+   
+    try {
+     
+      $response = Http::withHeaders([
+          'Accept' => 'application/json',
+          'Content-Type' => 'application/json',
+          'Authorization' => env('LENCO_SECRET_KEY'), 
+      ])->post(env('LENCO_BASE_URI').'/'.$lencoEndpoint, [ 
+          'operator'  => strtolower($data['operator']),
+          'phone'     => $data['customer_wallet'],
+          'amount'    => $data['amount'],
+          'reference' =>  $uuid
+      ]);
+
+
+
+$response = $response->json();
+
+
       
+      if ($response['status'] == true &&  $response['data']['status'] == 'pay-offline') {
+
+       
+
+        $payment = Payment::create([
+         
+          'depositId' => $uuid,
+          'company_id' => auth()->user()->user_id,
+          'reference' => $numberOfSms .' SMSes TopUp',
+          'merchant_reference' => '',
+          'customer_wallet' => $data['customer_wallet'],
+          'amount' => $data['amount'],
+          'currency' => 'ZMW',
+          'transaction_amount' => $data['amount'],
+          'messages' => $numberOfSms,
+          'status' => $response['data']['status'],
+    
+          
+        ]);
+
         
-      $currentTimestamp = Carbon::now()->toIso8601String();
-      $uuid = Uuid::uuid4()->toString();  
-      $companyId = auth()->user()->user_id;
-      $returnUrl = 'https://swift-sms.net/admin';
-      $apiBaseUri = env('PAWAPAY_BASE_URI');
-      $apiEndpoint = '/widget/sessions';
-      $apiToken = env('PAWAPAY_TOKEN');
-      $phone = '26'.$data['customer_wallet'];
-      $timeout = 30;
-
-
-
- // Request Payload
- $payload = [
-   'depositId' => $uuid,
-   'returnUrl' => $returnUrl ,
-   'amount' => $data['amount'], 
-   "statementDescription"=> "Payments of $numberOfSms SMSes",
-   "msisdn" => $phone,
-   "language" => "EN",
-   "country" => "ZMB",
-   "reason" => "$numberOfSms SMSes",
-  ];
-
-try {
-
-  $response = Http::withToken($apiToken)
-      ->withHeaders(['Content-Type' => 'application/json'])
-      ->timeout($timeout)->post($apiBaseUri.$apiEndpoint, $payload);
-
-
-  if ($response->successful()) {
-
-   $payment = Payment::updateOrCreate(
-      ['depositId' => $uuid],
-      [
-      'company_id' => auth()->user()->user_id,
-      'reference' => 'SMSes TopUp',
-      'merchant_reference' => '',
-      'customer_wallet' => $phone,
-      'amount' => $data['amount'],
-      'currency' => 'ZMW',
-      'transaction_amount' => $data['amount'],
-      'messages' => $numberOfSms,
-      'status' => 'SUBMITTED',
-
-      ]
-    );
+        throw new \Exception("Please approve the payment request on your phone to complete the transaction.");
+       
         
-
-$redirectUrl = $response->json('redirectUrl');
-
-
-   //  return redirect()->away($redirectUrl);
     
-    // Store the redirect URL in session
-                session(['redirect_url' => $response->json('redirectUrl')]);
-
-                return $payment;
-    
-    
-    
-//
-    
-    
-  } else {
+      } else {
+        throw new \Exception('Payment Failed. Message: '.$response['message']);
+        
+       
+      }
+  } catch (\Exception $e) {
     Notification::make()
-                ->title('PAYMENT FAILED')
-                ->body('Failed to create payment. Please try again.')
-                ->warning()
-                ->persistent()
-                ->send();
-                $this->halt(); 
-      
-  }
-} catch (\Exception $e) {
-  Notification::make()
-  ->title('PAYMENT FAILED')
-  ->body('Failed to create payment due to: ' . $e->getMessage())
-  ->warning()
-  ->persistent()
-  ->send();
-  $this->halt();
-  
-}
-}
+    ->title('Payment Update')
+    ->body('Payment Update: '.$e->getMessage())
+    ->info()
+    ->persistent()
+    ->send();
+    $this->halt();
 
- protected function getRedirectUrl(): string
-    {
-        return session()->pull('redirect_url', $this->getResource()::getUrl('index'));
+  }
+      
+        
+     
+
+return $data;
+    
+ 
     }
-  
 
 
 }

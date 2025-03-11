@@ -12,4 +12,4 @@ Route::middleware([
 });
 
 
-Route::get('pawapay', [MessagesAPI::class, 'paymentResponse']);
+Route::get('lenco', [MessagesAPI::class, 'paymentResponse']);

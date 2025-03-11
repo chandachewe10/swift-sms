@@ -145,8 +145,8 @@ class MessagesAPI extends Controller
         Log::info("Payment Logged: ", $data);
 
         
-        $uuid = $data['depositId'] ?? '';
-        $status = $data['status'] ?? '';
+        $uuid = $data['data']['reference'] ?? '';
+        $status = $data['data']['status'] ?? '';
         
        
         $paymentsUpdate = Payment::updateOrCreate(
@@ -159,7 +159,7 @@ class MessagesAPI extends Controller
         // Find the user based on the company_id
         $user = User::where('user_id', $paymentsUpdate->company_id)->first();
 
-        if ($user && $status === "COMPLETED") {
+        if ($user && $status === "successful") {
             $numberOfSms = $paymentsUpdate->messages ?? 0;
             if ($numberOfSms > 0) {
                 $user->wallet->deposit($numberOfSms, [
@@ -168,7 +168,7 @@ class MessagesAPI extends Controller
             }
         }
 
-       echo 'OK'; // I have recieved the payload
+       echo 200; // I have recieved the payload
     } catch (\Exception $e) {
         Log::error("Payment Response Error: " . $e->getMessage());
         return response()->json(['error' => 'Failed to process payment'], 500);
