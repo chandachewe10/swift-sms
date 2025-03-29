@@ -45,10 +45,10 @@ $status = 'APPROVED';
  $responseData = $response->json();
 
 }
-elseif(data['is_approved'] == 2){
+elseif($data['is_approved'] == 2){
  $status = 'PENDING APPROVAL';
 }
-elseif(data['is_approved'] == 3){
+elseif($data['is_approved'] == 3){
 $status = 'REJECTED';
 }
 else{
