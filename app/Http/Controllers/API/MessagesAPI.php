@@ -36,39 +36,39 @@ class MessagesAPI extends Controller
      */
     public function store(Request $request)
     {
-       
-       
-        
-                       
-             $contacts = $request->numbers;  
-             $senderId = $request->sender_id;   
+
+
+
+
+             $contacts = $request->numbers;
+             $senderId = $request->sender_id;
              $message = $request->message;
              $user = SenderId::where('name',"=",$senderId)->where('is_approved',"=",1)->first();
-             $numbersArray = explode(',', $request->numbers); 
+             $numbersArray = explode(',', $request->numbers);
              $count = count($numbersArray);
-             
+
       // Check if the sender Id is valid
              if(is_null($user)) {
-                
-                return response()->json(['success'=>'false','message' => 'Invalid Sender ID. Please send us an email at info@swift-sms.net'], 422);
-            } 
-      
-      
+
+                return response()->json(['success'=>'false','message' => 'Invalid Sender ID. Please send us an email at swiftsms@macroit.org'], 422);
+            }
+
+
              // Check if the SMS balance is less than the message request and terminate the request
              $company = User::where('user_id',"=",$user->company_id)->first();
              if($company->wallet->balance  < $count) {
-                $difference = ($count) - ($company->wallet->balance); 
+                $difference = ($count) - ($company->wallet->balance);
                 return response()->json(['success'=>'false','message' => 'Insufficient SMS Balance of: '.$difference. ' to send all the message(s)'], 422);
-            } 
+            }
 
 
 
               $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . urlencode($contacts) . '/senderId/' . urlencode($senderId) . '/message/' . urlencode($message);
               $response = Http::get($url);
 
-             $data = $response->collect();   
+             $data = $response->collect();
              if ($response->status() == 200)  {
-              
+
                 $company->wallet->withdraw(count(explode(',',$request->numbers)),['description' => 'Sending of SMS(s) via APIs']);
                 Messages::create([
                     'message' => $message,
@@ -81,8 +81,8 @@ class MessagesAPI extends Controller
 
 
                 return response()->json(['success'=>'true','message' => $data['responseText']], 202);
-             } 
-             
+             }
+
              else  {
                 Messages::create([
                     'message' => $message,
@@ -93,14 +93,14 @@ class MessagesAPI extends Controller
                     ]);
 
 
-                    
+
                 return response()->json(['success'=>'false','message' => $data['responseText']], $response->status());
-             } 
+             }
 
 
-                         
-                         
-             
+
+
+
     }
 
     /**
@@ -144,11 +144,11 @@ class MessagesAPI extends Controller
         $data = $request->all();
         Log::info("Payment Logged: ", $data);
 
-        
+
         $uuid = $data['data']['reference'] ?? '';
         $status = $data['data']['status'] ?? '';
-        
-       
+
+
         $paymentsUpdate = Payment::updateOrCreate(
             ['depositId' => $uuid],
             [

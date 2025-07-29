@@ -28,7 +28,7 @@ class ContactUsController extends Controller
      */
     public function store(Request $request)
     {
-    
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email',
@@ -40,7 +40,7 @@ class ContactUsController extends Controller
 
         // Send the email
         Mail::send('emails.contact-us', ['data' => $validatedData], function ($message) {
-            $message->to('info@swift-sms.net', 'ADMIN')
+            $message->to('swiftsms@macroit.org', 'ADMIN')
                 ->subject('CONTACT US FORM');
         });
 

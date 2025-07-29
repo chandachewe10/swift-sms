@@ -29,14 +29,14 @@ class newsLetterSubscriptionController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-           
+
             'email' => 'required|email'
-           
+
         ]);
 
         // Send the email
         Mail::send('emails.newsletter', ['data' => $validatedData], function ($message) {
-            $message->to('info@swift-sms.net', 'ADMIN')
+            $message->to('swiftsms@macroit.org', 'ADMIN')
                 ->subject('NEWSLETTER SUBSCRIPTION FORM');
         });
 

@@ -18,7 +18,7 @@ class CreateMessages extends CreateRecord
         $contacts = $data['contact'];
         $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->where('is_approved','=',1)->first()->name ?? '';
         $message = $data['message'];
-    
+
 
 if(is_null($senderId) || empty($senderId)){
     Notification::make()
@@ -35,7 +35,7 @@ if(is_null($senderId) || empty($senderId)){
             // Assuming each contact is an array with a 'contact' key
             return is_array($contact) ? $contact['contact'] : $contact;
         }, $contacts);
-   
+
         // Check if the user has enough balance
         if (auth()->user()->wallet->balance < count($contactStrings)) {
             $difference = count($contactStrings) - auth()->user()->wallet->balance;
@@ -45,31 +45,31 @@ if(is_null($senderId) || empty($senderId)){
                 ->warning()
                 ->send();
                 $this->halt();
-       
+
         }
-    
+
         // Convert the array of contact strings into a comma-separated string
         $contactsString = implode(',', $contactStrings);
-    
+
         // URL encode the components
         $encodedContacts = urlencode($contactsString);
         $encodedSenderId = urlencode($senderId);
         $encodedMessage = urlencode($message);
-    
-        
+
+
         $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
-    
+
         // Send the HTTP request
         $response = Http::timeout(300)->get($url);
 
-    
+
         // Handle the response
         $responseData = $response->json();
-       
+
         if ($responseData['statusCode'] == 202) {
             // Withdraw the amount from the user's wallet
             auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
-    
+
             // Create the message record
            $data = Messages::create([
                 'message' => $message,
@@ -78,7 +78,7 @@ if(is_null($senderId) || empty($senderId)){
                 'status' => $response->status(),
                 'company_id' => auth()->user()->user_id,
             ]);
-    
+
             Notification::make()
                 ->title('Message(s) sent')
                 ->body($responseData['responseText'] ?? 'SMS(es) have been queued for delivery')
@@ -94,7 +94,7 @@ if(is_null($senderId) || empty($senderId)){
                 'status' => $response->status(),
                 'company_id' => auth()->user()->user_id,
             ]);
-    
+
             Notification::make()
                 ->title('Failed to send message(s)')
                 ->body($responseData['responseText'] ?? 'There was an error sending the SMS(es).')
@@ -104,4 +104,4 @@ if(is_null($senderId) || empty($senderId)){
                 return $data;
         }
     }
-}    
+}
