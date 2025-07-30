@@ -40,12 +40,12 @@
     <div class="container d-flex h-100">
       <div class="row justify-content-center align-self-center">
         <div class="col-md-6 intro-info order-md-first order-last">
-         <h2 style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;"><span>Welcome</span> to SWIFTSMS</h2> 
+         <h2 style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;"><span>Welcome</span> to SWIFTSMS</h2>
           <div>
-          
+
 <p>Reach, Connect, Impact: Unleash the Power of Bulk SMS!</p>
 <br>
-          
+
             <a href="/admin/register" class="btn-get-started scrollto">Get Started</a>
             <a href="#footer" class="btn-get-started scrollto">Contact Us</a>
           </div>
@@ -65,7 +65,7 @@
   <div class="container-fluid" data-aos="fade-up">
 
     <header class="section-header">
-      <h3>Why choose us?</h3>     
+      <h3>Why choose us?</h3>
     </header>
 <br>
     <div class="row">
@@ -138,9 +138,9 @@
       </div>
     </section><!-- End Services Section -->
 
-   
 
-    <!-- ======= Call To Action Section ======= 
+
+    <!-- ======= Call To Action Section =======
     <section id="call-to-action" class="call-to-action">
       <div class="container" data-aos="zoom-out">
         <div class="row">
@@ -197,11 +197,11 @@
 
       </div>
     </section> -->
-   <!-- End Features Section 
+   <!-- End Features Section
 
 
 
-    - ======= Testimonials Section ======= 
+    - ======= Testimonials Section =======
     <section id="testimonials" class="testimonials">
       <div class="container" data-aos="zoom-in">
 
@@ -256,7 +256,7 @@
         </div>
 
       </div>
-   
+
 
    - ======= Team Section ======= --
     <section id="team" class="team section-bg">
@@ -340,7 +340,7 @@
 
         <div class="row flex-items-xs-middle flex-items-xs-center">
 
-         
+
           <div class="col-xs-12 col-lg-3" data-aos="fade-up" >
             <div class="card">
               <div class="card-header">
@@ -357,7 +357,7 @@
             </div>
           </div>
 
-          
+
           <div class="col-xs-12 col-lg-3" data-aos="fade-up">
             <div class="card">
               <div class="card-header">
@@ -374,7 +374,7 @@
             </div>
           </div>
 
-          
+
           <div class="col-xs-12 col-lg-3" data-aos="fade-up">
             <div class="card">
               <div class="card-header">
@@ -429,7 +429,7 @@
             </div>
           </div>
 
-          
+
           <div class="col-xs-12 col-lg-3" data-aos="fade-up">
             <div class="card">
               <div class="card-header">
@@ -446,7 +446,7 @@
             </div>
           </div>
 
-          
+
           <div class="col-xs-12 col-lg-3" data-aos="fade-up">
             <div class="card">
               <div class="card-header">
@@ -513,8 +513,8 @@
         </video>
 
 
-       
-      
+
+
       </div>
         </div>
         </section>
@@ -543,7 +543,7 @@
             <p>We would love to hear your thoughts, suggestions, concerns or problems with anything so we can improve!</p>
           </header>
           <form action="{{route('feedback.store')}}" method="post" role="form" class="php-email-form">
-           
+
             <div class="form-group">
               <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" data-rule="minlen:4" required/>
               <div class="validate"></div>
@@ -581,19 +581,19 @@
               <textarea class="form-control" name="feedback" rows="5" data-rule="required" required placeholder="Feedback...."></textarea>
               <div class="validate"></div>
             </div>
-  
+
             <div class="mb-3">
              <div class="loading" style="display: none;">Loading</div>
               <div class="error-message" style="background-color:yellow"></div>
               <div class="sent-message" style="display: none;">Your feedback has been sent. Thank you!</div>
             </div>
-  
+
             <div class="text-center"><button style="background-color: #F9A826;" class="btn btn-primary" type="submit" title="Send Feedback">Send Feedback</button></div>
-            
+
             <br>
             <br>
           </form>
-  
+
         </div>
       </div>
       <div class="modal-footer">
@@ -642,7 +642,7 @@
                   <h4>Useful Links</h4>
                   <ul>
                     <li><a href="{{route('terms_and_conditions')}}">Terms and Conditions</a></li>
-                    <li><a href="{{route('privacy_and_policy')}}">Privacy and Policy</a></li>                    
+                    <li><a href="{{route('privacy_and_policy')}}">Privacy and Policy</a></li>
                     <li><a href="{{route('api_docs')}}">API</a></li>
                     <!--<li><a href="">Helpdesk</a></li>-->
                   </ul>
@@ -655,7 +655,7 @@
                     <br>
                     <!-- Sunshare Buildings, Katima Mulilo road,Olympia, Lusaka<br> -->
                    <!-- <strong>Phone:</strong> +260..........<br>-->
-                    <strong>Email:</strong> info@swift-sms.net<br>
+                    <strong>Email:</strong> swiftsms@macroit.org<br>
                   </p>
                 </div>
 
@@ -680,7 +680,7 @@
               <p>Please fill out the form below to get in touch. We will contact you shortly.</p>
 
               <form action="{{route('contact-us.store')}}" method="post" role="form" class="php-email-form">
-               
+
                 <div class="form-group">
                   <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" id="name" placeholder="Your Name" data-rule="minlen:4" data-msg="Please enter at least 4 chars" />
                   @error('name')
@@ -729,7 +729,7 @@
     </div>
     <div class="container">
       <div class="copyright">
-      Powered, owned and created By<strong> <a href="">MACRO-IT</a></strong> 
+      Powered, owned and created By<strong> <a href="https://macroit.org">MACRO-IT</a></strong>
       </div>
     </div>
   </footer><!-- End  Footer -->
