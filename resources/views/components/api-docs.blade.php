@@ -102,7 +102,7 @@
                 <pre>
     API Endpoint:
 
-        https://swift-sms.net/api/send_message
+        https://macroit.org/api/send_message
 
         Body Format: Raw
         {
@@ -110,7 +110,7 @@
             "numbers": "0973750029,0769891754",
             "message": "Good afternoon"
           }
-          
+
                 </pre>
                 <p>
                     Bulk SMS APIs are programming interfaces that allow developers to integrate bulk SMS functionality into their applications or systems. These APIs provide a set of methods and protocols that enable the sending and receiving of SMS messages in large quantities.
@@ -129,7 +129,7 @@
                 <h2>get characters</h2>
                 <pre><code class="bash">
 # Here is a curl example
-curl --location --request GET 'https://swift-sms.net/api/send_message' \
+curl --location --request GET 'https://macroit.org/api/send_message' \
 --header 'Content-Type: application/json' \
 --header 'Accept: application/json' \
 --header 'Authorization: Bearer PWoKyVBMIRh8wfQR2eCw8TOZ2MNmzCd7h9ikOSX2' \
@@ -139,13 +139,13 @@ curl --location --request GET 'https://swift-sms.net/api/send_message' \
   "message": "Good afternoon"
 }
 '
-               
+
 
 
                 </code></pre>
 
 
-             
+
 
 
 
@@ -161,7 +161,7 @@ curl --location --request GET 'https://swift-sms.net/api/send_message' \
                         </tr>
                     </thead>
                     <tbody>
-                       
+
                         <tr>
                             <td>Authorization</td>
                             <td>String</td>
@@ -186,7 +186,7 @@ curl --location --request GET 'https://swift-sms.net/api/send_message' \
 
 
 
-               
+
 
 
 
@@ -200,7 +200,7 @@ curl --location --request GET 'https://swift-sms.net/api/send_message' \
                 <h2>get characters</h2>
                 <pre><code class="bash">
 # Here is a c-sharp-restC# example
-var client = new RestClient("https://swift-sms.net/api/send_message");
+var client = new RestClient("https://macroit.org/api/send_message");
 client.Timeout = -1;
 var request = new RestRequest(Method.GET);
 request.AddHeader("Content-Type", "application/json");
@@ -227,7 +227,7 @@ Console.WriteLine(response.Content);
 
 
 
-          
+
                 <h4>QUERY PARAMETERS</h4>
                 <table class="central-overflow-x">
                     <thead>
@@ -280,7 +280,7 @@ OkHttpClient client = new OkHttpClient().newBuilder()
 MediaType mediaType = MediaType.parse("application/json");
 RequestBody body = RequestBody.create(mediaType, "{\r\n  \"sender_id\": \"MACRO-IT\",\r\n  \"numbers\": \"00973750029,00769891754\",\r\n  \"message\": \"Good afternoon\"\r\n}\r\n");
 Request request = new Request.Builder()
-  .url("https://swift-sms.net/api/send_message")
+  .url("https://macroit.org/api/send_message")
   .method("GET", body)
   .addHeader("Content-Type", "application/json")
   .addHeader("Accept", "application/json")
@@ -296,7 +296,7 @@ Response response = client.newCall(request).execute();
 
 
 
-             
+
                 <h4>QUERY PARAMETERS</h4>
                 <table class="central-overflow-x">
                     <thead>
@@ -361,7 +361,7 @@ xhr.addEventListener("readystatechange", function() {
   }
 });
 
-xhr.open("GET", "https://swift-sms.net/api/send_message");
+xhr.open("GET", "https://macroit.org/api/send_message");
 xhr.setRequestHeader("Content-Type", "application/json");
 xhr.setRequestHeader("Accept", "application/json");
 xhr.setRequestHeader("Authorization", "Bearer PWoKyVBMIRh8wfQR2eCw8TOZ2MNmzCd7h9ikOSX2");
@@ -375,7 +375,7 @@ xhr.send(data);
 
 
 
-             
+
                 <h4>QUERY PARAMETERS</h4>
                 <table class="central-overflow-x">
                     <thead>
@@ -427,7 +427,7 @@ xhr.send(data);
 
 dispatch_semaphore_t sema = dispatch_semaphore_create(0);
 
-NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://swift-sms.net/api/send_message"]
+NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://macroit.org/api/send_message"]
   cachePolicy:NSURLRequestUseProtocolCachePolicy
   timeoutInterval:10.0];
 NSDictionary *headers = @{
@@ -517,7 +517,7 @@ dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://swift-sms.net/api/send_message',
+  CURLOPT_URL => 'https://macroit.org/api/send_message',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
@@ -546,7 +546,7 @@ echo $response;
             </code></pre>
 
 
-              
+
                 <h4>QUERY PARAMETERS</h4>
                 <table class="central-overflow-x">
                     <thead>
@@ -666,7 +666,7 @@ require "uri"
 require "json"
 require "net/http"
 
-url = URI("https://swift-sms.net/api/send_message")
+url = URI("https://macroit.org/api/send_message")
 
 http = Net::HTTP.new(url.host, url.port);
 request = Net::HTTP::Get.new(url)
@@ -683,7 +683,7 @@ response = http.request(request)
 puts response.read_body
 
 
-    
+
         </code></pre>
         <h4>QUERY PARAMETERS</h4>
         <table class="central-overflow-x">
@@ -744,7 +744,7 @@ puts response.read_body
                     Accepted. Request Accepted For Delivery
                 </td>
             </tr>
-            
+
 
         </tbody>
     </table>
