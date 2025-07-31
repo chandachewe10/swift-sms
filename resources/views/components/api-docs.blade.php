@@ -102,7 +102,7 @@
                 <pre>
     API Endpoint:
 
-        https://macroit.org/api/send_message
+        https://swiftsms.macroit.org/api/send_message
 
         Body Format: Raw
         {
@@ -129,7 +129,7 @@
                 <h2>get characters</h2>
                 <pre><code class="bash">
 # Here is a curl example
-curl --location --request GET 'https://macroit.org/api/send_message' \
+curl --location --request GET 'https://swiftsms.macroit.org/api/send_message' \
 --header 'Content-Type: application/json' \
 --header 'Accept: application/json' \
 --header 'Authorization: Bearer PWoKyVBMIRh8wfQR2eCw8TOZ2MNmzCd7h9ikOSX2' \
@@ -200,7 +200,7 @@ curl --location --request GET 'https://macroit.org/api/send_message' \
                 <h2>get characters</h2>
                 <pre><code class="bash">
 # Here is a c-sharp-restC# example
-var client = new RestClient("https://macroit.org/api/send_message");
+var client = new RestClient("https://swiftsms.macroit.org/api/send_message");
 client.Timeout = -1;
 var request = new RestRequest(Method.GET);
 request.AddHeader("Content-Type", "application/json");
@@ -280,7 +280,7 @@ OkHttpClient client = new OkHttpClient().newBuilder()
 MediaType mediaType = MediaType.parse("application/json");
 RequestBody body = RequestBody.create(mediaType, "{\r\n  \"sender_id\": \"MACRO-IT\",\r\n  \"numbers\": \"00973750029,00769891754\",\r\n  \"message\": \"Good afternoon\"\r\n}\r\n");
 Request request = new Request.Builder()
-  .url("https://macroit.org/api/send_message")
+  .url("https://swiftsms.macroit.org/api/send_message")
   .method("GET", body)
   .addHeader("Content-Type", "application/json")
   .addHeader("Accept", "application/json")
@@ -361,7 +361,7 @@ xhr.addEventListener("readystatechange", function() {
   }
 });
 
-xhr.open("GET", "https://macroit.org/api/send_message");
+xhr.open("GET", "https://swiftsms.macroit.org/api/send_message");
 xhr.setRequestHeader("Content-Type", "application/json");
 xhr.setRequestHeader("Accept", "application/json");
 xhr.setRequestHeader("Authorization", "Bearer PWoKyVBMIRh8wfQR2eCw8TOZ2MNmzCd7h9ikOSX2");
@@ -427,7 +427,7 @@ xhr.send(data);
 
 dispatch_semaphore_t sema = dispatch_semaphore_create(0);
 
-NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://macroit.org/api/send_message"]
+NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://swiftsms.macroit.org/api/send_message"]
   cachePolicy:NSURLRequestUseProtocolCachePolicy
   timeoutInterval:10.0];
 NSDictionary *headers = @{
@@ -517,7 +517,7 @@ dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://macroit.org/api/send_message',
+  CURLOPT_URL => 'https://swiftsms.macroit.org/api/send_message',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
@@ -666,7 +666,7 @@ require "uri"
 require "json"
 require "net/http"
 
-url = URI("https://macroit.org/api/send_message")
+url = URI("https://swiftsms.macroit.org/api/send_message")
 
 http = Net::HTTP.new(url.host, url.port);
 request = Net::HTTP::Get.new(url)
