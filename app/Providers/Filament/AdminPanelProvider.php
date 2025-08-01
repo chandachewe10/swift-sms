@@ -26,7 +26,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-        
+
             ->default()
             ->id('admin')
             ->path('admin')
@@ -35,13 +35,13 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset()
             ->emailVerification()
             ->profile()
-            
+
             ->colors([
                 'primary' => Color::Amber,
             ])
             ->navigationItems([
                 NavigationItem::make('Documentation')
-                    ->url('https://swift-sms.net/api_docs', shouldOpenInNewTab: true)
+                    ->url('https://swiftsms.macroit.org/api_docs', shouldOpenInNewTab: true)
                     ->icon('heroicon-o-bookmark-square')
                     ->group('Developers')
                     ->sort(2)
