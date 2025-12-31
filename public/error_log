@@ -1,0 +1,1 @@
+[30-Sep-2025 23:40:06 UTC] PHP Fatal error:  Cannot use empty array elements in arrays in /home/macriahn/SWIFTSMS-PRODUCTION/app/Http/Controllers/SubscriptionsController.php on line 103

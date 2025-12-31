@@ -1,0 +1,246 @@
+--- 
+files: 
+  certificate: 
+    kbmc_macroit_org_e55aa_f6847_1786147199_d38790ac1195d4593b2309e0ea32433b: 
+      created: '1754608289'
+      domains: 
+        - kbmc.macroit.org
+        - www.kbmc.macroit.org
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: 31525963
+      id: kbmc_macroit_org_e55aa_f6847_1786147199_d38790ac1195d4593b2309e0ea32433b
+      is_self_signed: 0
+      issuer.commonName: Sectigo Public Server Authentication CA DV R36
+      issuer.organizationName: Sectigo Limited
+      key_algorithm: rsaEncryption
+      modulus: e55aac3c933fe5b38a0ebe08e0331ee729bb993f288cd55aa045256ce95170bbb91299d38cedfd6dd2eb2e57bdca651cfe9baded57fc1a396df836ed27a5e45012156696822f3ce8a041334b8f33de485ef59adccc9b7cd0f7ddeca6689e5bcf5138da984ae99eb11aa0ab55b6fd787405bd1b3743d7f7e820d7df090c7f762daa4eed58df45b21361f9f4155604a5115f86f8c921506be97de8ee95ebdb2709e72692718111ebd7ceae4772638388f6d9d897e1169ed6604f4e94ddf83fe60705cc48262e306fc5c334fe9f962050cb4cb8838d7ba8c68083961da24ef85a25e1a81c8bd0f5ee3bbd4dd14179eba85bce17c54e9d011af893fec9baa6bf6847
+      modulus_length: 2048
+      not_after: '1786147199'
+      not_before: '1754524800'
+      serial: 85191584803b38b9da7b8aa328f39e5e
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: kbmc.macroit.org
+      validation_type: dv
+    lendfy_development_macroit_org_c9b60_32289_1785628799_f0581cca933ab6801a6b0c42b31cc56c: 
+      created: '1754046167'
+      domains: 
+        - lendfy-development.macroit.org
+        - www.lendfy-development.macroit.org
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: 31458269
+      id: lendfy_development_macroit_org_c9b60_32289_1785628799_f0581cca933ab6801a6b0c42b31cc56c
+      is_self_signed: 0
+      issuer.commonName: Sectigo Public Server Authentication CA DV R36
+      issuer.organizationName: Sectigo Limited
+      key_algorithm: rsaEncryption
+      modulus: c9b60bfed48f02768fbe4daedd1a5a1d5007855788a1358d32b3011c9433bd41f28eae017238a33e3bfbd2e703261019a189cc1e87e81a25041fbe36c79a94afaefbb3450ff5f7f080f79f9fd8f8d1b536c954f3bda63307d38122b05ef34abd719b4772c19171c17c2c6b92d063fd58f46c65ad999f2c749b98c1cc663cf83eb3d608f8cf6121916c80c80006d0f130bfec7fce33bef0cd5fb36fc9a855787791aa02359563965235274cdc0c8b8e5f2af0ef5ddd02a52d48f71c000f61febd462ffde0e49ca7f77478fc93b7d988fe3e0445936caef572231f9ebd73419d0571e360e520186cb0917398563dd90c5b34bce68192696faca45ee9c4fa832289
+      modulus_length: 2048
+      not_after: '1785628799'
+      not_before: '1754006400'
+      serial: bb7154d4a7b0c719b942f1ea29c030fc
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: lendfy-development.macroit.org
+      validation_type: dv
+    lendfy_macroit_org_bbed9_8ed95_1785628799_6bb0b09b83c921c39b6c96308d13db19: 
+      created: '1754046166'
+      domains: 
+        - lendfy.macroit.org
+        - www.lendfy.macroit.org
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: 31458260
+      id: lendfy_macroit_org_bbed9_8ed95_1785628799_6bb0b09b83c921c39b6c96308d13db19
+      is_self_signed: 0
+      issuer.commonName: Sectigo Public Server Authentication CA DV R36
+      issuer.organizationName: Sectigo Limited
+      key_algorithm: rsaEncryption
+      modulus: bbed94b0d60b228ff05862588feb22c5abe9461ed3ddf996eacd5cb108cf28e4351e778af579982b30194ab7e5f8397440c529c466388756ae70beda8f983c7c80e0178c1b7d845c707066110f5edfba28a1f64d939f0e6ce7705af5cd532c4e2757769419858b7f46010841892102fabbd5408d19c06a2046a7368a3a8bc92d58ef7927d3cdf88c52566176f2d81470b7ffdc09466206ce597f7b935f3024fbf5e039d66eae37fde1de3f4de57a51cfb483b95674dee51c4a80e3a32c921d36d05056219d4b796f2ce397d0fe5c7644b6839519d715d61f5b65bb88bd0ce3ed73275fbce33b7f9322514e8973a1c979fe070aba4868a72568ab8fbf41d8ed95
+      modulus_length: 2048
+      not_after: '1785628799'
+      not_before: '1754006400'
+      serial: ecfa5b4a98df892346288f4fe392e1bd
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: lendfy.macroit.org
+      validation_type: dv
+    macroit_org_cde04_6ce69_1785283199_c95717ec71fdea2e1ca7a9cbc4286d51: 
+      created: '1753707241'
+      domains: 
+        - macroit.org
+        - www.macroit.org
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: 31414141
+      id: macroit_org_cde04_6ce69_1785283199_c95717ec71fdea2e1ca7a9cbc4286d51
+      is_self_signed: 0
+      issuer.commonName: Sectigo Public Server Authentication CA DV R36
+      issuer.organizationName: Sectigo Limited
+      key_algorithm: rsaEncryption
+      modulus: cde046c0908dd89f50f322c0b31690259fc0c1649789b4447ed903deef8dd5538e64027d30c7cbcaffc95ce454980364db3153aede8d7108479093622d2230c8dc955857a0aab1d1a8f86b818bca83376b085f47b724203bfce6a4b3130533c3a82379eccac0e348a53f72cb3bfd3477e39ff9fd99018bf8e5b02a3c963e9d7f1e2c5f70a60a681a5e4d5c7938f9c256e369e523ad745bad8ca263330f808630bb7a9c89cbcab9b4dc136d33b20a8b631354ac83e3869ad06bf6d4dabdc77f5f2e82783fed82f9daac4b885113d25375ab08676d36038ad95e18fedab7cd358d3289a9dfc415b2ccd06a9dc54cc51d49be90ae592aa6db7270320b1f2996ce69
+      modulus_length: 2048
+      not_after: '1785283199'
+      not_before: '1753660800'
+      serial: f8c2f4656e3b24b86feb5e09bb4c413b
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: macroit.org
+      validation_type: dv
+    sos_macroit_org_ddb93_ad1f5_1788479999_9b22addd60ddb0d9f8a414a0d7d19cb1: 
+      created: '1756944066'
+      domains: 
+        - sos.macroit.org
+        - www.sos.macroit.org
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: 31790974
+      id: sos_macroit_org_ddb93_ad1f5_1788479999_9b22addd60ddb0d9f8a414a0d7d19cb1
+      is_self_signed: 0
+      issuer.commonName: Sectigo Public Server Authentication CA DV R36
+      issuer.organizationName: Sectigo Limited
+      key_algorithm: rsaEncryption
+      modulus: ddb936652a5d7cb0f44f8fd1454986bd5e422bc06d4f06c9bf2b54421b1b7f6e0c7e999617cc9dc0d3c2b126268afc59d572b771ddad5322b26b4bebff7e15642cd63961c88a2358e81a5c4ca4db5ba5b82b62add073c8297341167ffa46ca128571abbc3927e22a4e253297d5aa6ccd3efaafbcacdf608df3e7aed9e28bb7226e604dcb069d9c75944493fec5e02c3f1e88f19c2783f3f7f26931a0eb1a2ca4bc369d13ae751eaa2bbad5b51761b18ad8a46faf3b316eacdb2942e3a5e3e1fedfc104492cde30d64258bccbda9e6bc6c5ca7fb70333804200a20bd20ee666892f49520e7c481e7d941fb6bddc41e2bfa28b25983cc1fbc053172353813ad1f5
+      modulus_length: 2048
+      not_after: '1788479999'
+      not_before: '1756857600'
+      serial: 6ac0d93affeabf83684dd0cd2ff43cc3
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: sos.macroit.org
+      validation_type: dv
+    swiftsms_macroit_org_c3558_6cd8b_1785369599_3c8698affc2d2c908ab36404584e6a38: 
+      created: '1753794282'
+      domains: 
+        - swiftsms.macroit.org
+        - www.swiftsms.macroit.org
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: 31426253
+      id: swiftsms_macroit_org_c3558_6cd8b_1785369599_3c8698affc2d2c908ab36404584e6a38
+      is_self_signed: 0
+      issuer.commonName: Sectigo Public Server Authentication CA DV R36
+      issuer.organizationName: Sectigo Limited
+      key_algorithm: rsaEncryption
+      modulus: c355856c64268ec7310dd74cac70c983f9a27e2f44cd42b0b5b36e72a8f03b74beef17ecf4bdb960a514314e0aaadd9c39794d939b907cfcd6a2a587f9498d6d85d682071a38ab2f0204f3309bec660035ae69ff9dc0579203e92397393a65067da767cb5f109d37e9d0c87f13a9f30f9962fb6ae2f91ebe8b80adafe0f1151aad54c4b6b64eecb6367784476d6a796f4e437f605b7de8433c51bc32843328be764b7e2ca95251c0899304fa1f510998b4c8955025b2f8a7e3a7a8ea5417433956a00c736f72c4f1f5cf316b67d16d06bcb1a1f52af8dcb5b7d240eff1852181ca48077b6d04e4367c599b3b3d2ea400b73b5d3604b018c676ca6d86f1c6cd8b
+      modulus_length: 2048
+      not_after: '1785369599'
+      not_before: '1753747200'
+      serial: 435fd9f5d90cafa9ccee90852a4b4db7
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: swiftsms.macroit.org
+      validation_type: dv
+  csr: {}
+
+  key: 
+    bbed9_8ed95_75b1e66c4e00ba04085c2bd6f35b4fab: 
+      created: '1754045470'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: nc_module_key_31458260
+      id: bbed9_8ed95_75b1e66c4e00ba04085c2bd6f35b4fab
+      key_algorithm: rsaEncryption
+      modulus: bbed94b0d60b228ff05862588feb22c5abe9461ed3ddf996eacd5cb108cf28e4351e778af579982b30194ab7e5f8397440c529c466388756ae70beda8f983c7c80e0178c1b7d845c707066110f5edfba28a1f64d939f0e6ce7705af5cd532c4e2757769419858b7f46010841892102fabbd5408d19c06a2046a7368a3a8bc92d58ef7927d3cdf88c52566176f2d81470b7ffdc09466206ce597f7b935f3024fbf5e039d66eae37fde1de3f4de57a51cfb483b95674dee51c4a80e3a32c921d36d05056219d4b796f2ce397d0fe5c7644b6839519d715d61f5b65bb88bd0ce3ed73275fbce33b7f9322514e8973a1c979fe070aba4868a72568ab8fbf41d8ed95
+      modulus_length: 2048
+    c3558_6cd8b_b0257fb523e2699195440180a9b628ed: 
+      created: '1753793758'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: nc_module_key_31426253
+      id: c3558_6cd8b_b0257fb523e2699195440180a9b628ed
+      key_algorithm: rsaEncryption
+      modulus: c355856c64268ec7310dd74cac70c983f9a27e2f44cd42b0b5b36e72a8f03b74beef17ecf4bdb960a514314e0aaadd9c39794d939b907cfcd6a2a587f9498d6d85d682071a38ab2f0204f3309bec660035ae69ff9dc0579203e92397393a65067da767cb5f109d37e9d0c87f13a9f30f9962fb6ae2f91ebe8b80adafe0f1151aad54c4b6b64eecb6367784476d6a796f4e437f605b7de8433c51bc32843328be764b7e2ca95251c0899304fa1f510998b4c8955025b2f8a7e3a7a8ea5417433956a00c736f72c4f1f5cf316b67d16d06bcb1a1f52af8dcb5b7d240eff1852181ca48077b6d04e4367c599b3b3d2ea400b73b5d3604b018c676ca6d86f1c6cd8b
+      modulus_length: 2048
+    c9b60_32289_aab1e2c69831209160039b5d7e2e475d: 
+      created: '1754045560'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: nc_module_key_31458269
+      id: c9b60_32289_aab1e2c69831209160039b5d7e2e475d
+      key_algorithm: rsaEncryption
+      modulus: c9b60bfed48f02768fbe4daedd1a5a1d5007855788a1358d32b3011c9433bd41f28eae017238a33e3bfbd2e703261019a189cc1e87e81a25041fbe36c79a94afaefbb3450ff5f7f080f79f9fd8f8d1b536c954f3bda63307d38122b05ef34abd719b4772c19171c17c2c6b92d063fd58f46c65ad999f2c749b98c1cc663cf83eb3d608f8cf6121916c80c80006d0f130bfec7fce33bef0cd5fb36fc9a855787791aa02359563965235274cdc0c8b8e5f2af0ef5ddd02a52d48f71c000f61febd462ffde0e49ca7f77478fc93b7d988fe3e0445936caef572231f9ebd73419d0571e360e520186cb0917398563dd90c5b34bce68192696faca45ee9c4fa832289
+      modulus_length: 2048
+    cde04_6ce69_3332384d41a472aebf8e9502a963e5f9: 
+      created: '1753705512'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: nc_module_key_31414141
+      id: cde04_6ce69_3332384d41a472aebf8e9502a963e5f9
+      key_algorithm: rsaEncryption
+      modulus: cde046c0908dd89f50f322c0b31690259fc0c1649789b4447ed903deef8dd5538e64027d30c7cbcaffc95ce454980364db3153aede8d7108479093622d2230c8dc955857a0aab1d1a8f86b818bca83376b085f47b724203bfce6a4b3130533c3a82379eccac0e348a53f72cb3bfd3477e39ff9fd99018bf8e5b02a3c963e9d7f1e2c5f70a60a681a5e4d5c7938f9c256e369e523ad745bad8ca263330f808630bb7a9c89cbcab9b4dc136d33b20a8b631354ac83e3869ad06bf6d4dabdc77f5f2e82783fed82f9daac4b885113d25375ab08676d36038ad95e18fedab7cd358d3289a9dfc415b2ccd06a9dc54cc51d49be90ae592aa6db7270320b1f2996ce69
+      modulus_length: 2048
+    ddb93_ad1f5_0738bdb0e14d54928d19bf160268e77e: 
+      created: '1756943549'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: nc_module_key_31790974
+      id: ddb93_ad1f5_0738bdb0e14d54928d19bf160268e77e
+      key_algorithm: rsaEncryption
+      modulus: ddb936652a5d7cb0f44f8fd1454986bd5e422bc06d4f06c9bf2b54421b1b7f6e0c7e999617cc9dc0d3c2b126268afc59d572b771ddad5322b26b4bebff7e15642cd63961c88a2358e81a5c4ca4db5ba5b82b62add073c8297341167ffa46ca128571abbc3927e22a4e253297d5aa6ccd3efaafbcacdf608df3e7aed9e28bb7226e604dcb069d9c75944493fec5e02c3f1e88f19c2783f3f7f26931a0eb1a2ca4bc369d13ae751eaa2bbad5b51761b18ad8a46faf3b316eacdb2942e3a5e3e1fedfc104492cde30d64258bccbda9e6bc6c5ca7fb70333804200a20bd20ee666892f49520e7c481e7d941fb6bddc41e2bfa28b25983cc1fbc053172353813ad1f5
+      modulus_length: 2048
+    e55aa_f6847_0a48f6519cf19f3f81646f391ae421cc: 
+      created: '1754607728'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: nc_module_key_31525963
+      id: e55aa_f6847_0a48f6519cf19f3f81646f391ae421cc
+      key_algorithm: rsaEncryption
+      modulus: e55aac3c933fe5b38a0ebe08e0331ee729bb993f288cd55aa045256ce95170bbb91299d38cedfd6dd2eb2e57bdca651cfe9baded57fc1a396df836ed27a5e45012156696822f3ce8a041334b8f33de485ef59adccc9b7cd0f7ddeca6689e5bcf5138da984ae99eb11aa0ab55b6fd787405bd1b3743d7f7e820d7df090c7f762daa4eed58df45b21361f9f4155604a5115f86f8c921506be97de8ee95ebdb2709e72692718111ebd7ceae4772638388f6d9d897e1169ed6604f4e94ddf83fe60705cc48262e306fc5c334fe9f962050cb4cb8838d7ba8c68083961da24ef85a25e1a81c8bd0f5ee3bbd4dd14179eba85bce17c54e9d011af893fec9baa6bf6847
+      modulus_length: 2048
+indexes: 
+  certificate: 
+    modulus: 
+      bbed94b0d60b228ff05862588feb22c5abe9461ed3ddf996eacd5cb108cf28e4351e778af579982b30194ab7e5f8397440c529c466388756ae70beda8f983c7c80e0178c1b7d845c707066110f5edfba28a1f64d939f0e6ce7705af5cd532c4e2757769419858b7f46010841892102fabbd5408d19c06a2046a7368a3a8bc92d58ef7927d3cdf88c52566176f2d81470b7ffdc09466206ce597f7b935f3024fbf5e039d66eae37fde1de3f4de57a51cfb483b95674dee51c4a80e3a32c921d36d05056219d4b796f2ce397d0fe5c7644b6839519d715d61f5b65bb88bd0ce3ed73275fbce33b7f9322514e8973a1c979fe070aba4868a72568ab8fbf41d8ed95: 
+        lendfy_macroit_org_bbed9_8ed95_1785628799_6bb0b09b83c921c39b6c96308d13db19: ~
+      c355856c64268ec7310dd74cac70c983f9a27e2f44cd42b0b5b36e72a8f03b74beef17ecf4bdb960a514314e0aaadd9c39794d939b907cfcd6a2a587f9498d6d85d682071a38ab2f0204f3309bec660035ae69ff9dc0579203e92397393a65067da767cb5f109d37e9d0c87f13a9f30f9962fb6ae2f91ebe8b80adafe0f1151aad54c4b6b64eecb6367784476d6a796f4e437f605b7de8433c51bc32843328be764b7e2ca95251c0899304fa1f510998b4c8955025b2f8a7e3a7a8ea5417433956a00c736f72c4f1f5cf316b67d16d06bcb1a1f52af8dcb5b7d240eff1852181ca48077b6d04e4367c599b3b3d2ea400b73b5d3604b018c676ca6d86f1c6cd8b: 
+        swiftsms_macroit_org_c3558_6cd8b_1785369599_3c8698affc2d2c908ab36404584e6a38: ~
+      c9b60bfed48f02768fbe4daedd1a5a1d5007855788a1358d32b3011c9433bd41f28eae017238a33e3bfbd2e703261019a189cc1e87e81a25041fbe36c79a94afaefbb3450ff5f7f080f79f9fd8f8d1b536c954f3bda63307d38122b05ef34abd719b4772c19171c17c2c6b92d063fd58f46c65ad999f2c749b98c1cc663cf83eb3d608f8cf6121916c80c80006d0f130bfec7fce33bef0cd5fb36fc9a855787791aa02359563965235274cdc0c8b8e5f2af0ef5ddd02a52d48f71c000f61febd462ffde0e49ca7f77478fc93b7d988fe3e0445936caef572231f9ebd73419d0571e360e520186cb0917398563dd90c5b34bce68192696faca45ee9c4fa832289: 
+        lendfy_development_macroit_org_c9b60_32289_1785628799_f0581cca933ab6801a6b0c42b31cc56c: ~
+      cde046c0908dd89f50f322c0b31690259fc0c1649789b4447ed903deef8dd5538e64027d30c7cbcaffc95ce454980364db3153aede8d7108479093622d2230c8dc955857a0aab1d1a8f86b818bca83376b085f47b724203bfce6a4b3130533c3a82379eccac0e348a53f72cb3bfd3477e39ff9fd99018bf8e5b02a3c963e9d7f1e2c5f70a60a681a5e4d5c7938f9c256e369e523ad745bad8ca263330f808630bb7a9c89cbcab9b4dc136d33b20a8b631354ac83e3869ad06bf6d4dabdc77f5f2e82783fed82f9daac4b885113d25375ab08676d36038ad95e18fedab7cd358d3289a9dfc415b2ccd06a9dc54cc51d49be90ae592aa6db7270320b1f2996ce69: 
+        macroit_org_cde04_6ce69_1785283199_c95717ec71fdea2e1ca7a9cbc4286d51: ~
+      ddb936652a5d7cb0f44f8fd1454986bd5e422bc06d4f06c9bf2b54421b1b7f6e0c7e999617cc9dc0d3c2b126268afc59d572b771ddad5322b26b4bebff7e15642cd63961c88a2358e81a5c4ca4db5ba5b82b62add073c8297341167ffa46ca128571abbc3927e22a4e253297d5aa6ccd3efaafbcacdf608df3e7aed9e28bb7226e604dcb069d9c75944493fec5e02c3f1e88f19c2783f3f7f26931a0eb1a2ca4bc369d13ae751eaa2bbad5b51761b18ad8a46faf3b316eacdb2942e3a5e3e1fedfc104492cde30d64258bccbda9e6bc6c5ca7fb70333804200a20bd20ee666892f49520e7c481e7d941fb6bddc41e2bfa28b25983cc1fbc053172353813ad1f5: 
+        sos_macroit_org_ddb93_ad1f5_1788479999_9b22addd60ddb0d9f8a414a0d7d19cb1: ~
+      e55aac3c933fe5b38a0ebe08e0331ee729bb993f288cd55aa045256ce95170bbb91299d38cedfd6dd2eb2e57bdca651cfe9baded57fc1a396df836ed27a5e45012156696822f3ce8a041334b8f33de485ef59adccc9b7cd0f7ddeca6689e5bcf5138da984ae99eb11aa0ab55b6fd787405bd1b3743d7f7e820d7df090c7f762daa4eed58df45b21361f9f4155604a5115f86f8c921506be97de8ee95ebdb2709e72692718111ebd7ceae4772638388f6d9d897e1169ed6604f4e94ddf83fe60705cc48262e306fc5c334fe9f962050cb4cb8838d7ba8c68083961da24ef85a25e1a81c8bd0f5ee3bbd4dd14179eba85bce17c54e9d011af893fec9baa6bf6847: 
+        kbmc_macroit_org_e55aa_f6847_1786147199_d38790ac1195d4593b2309e0ea32433b: ~
+    subject.commonName: 
+      kbmc.macroit.org: 
+        kbmc_macroit_org_e55aa_f6847_1786147199_d38790ac1195d4593b2309e0ea32433b: ~
+      lendfy-development.macroit.org: 
+        lendfy_development_macroit_org_c9b60_32289_1785628799_f0581cca933ab6801a6b0c42b31cc56c: ~
+      lendfy.macroit.org: 
+        lendfy_macroit_org_bbed9_8ed95_1785628799_6bb0b09b83c921c39b6c96308d13db19: ~
+      macroit.org: 
+        macroit_org_cde04_6ce69_1785283199_c95717ec71fdea2e1ca7a9cbc4286d51: ~
+      sos.macroit.org: 
+        sos_macroit_org_ddb93_ad1f5_1788479999_9b22addd60ddb0d9f8a414a0d7d19cb1: ~
+      swiftsms.macroit.org: 
+        swiftsms_macroit_org_c3558_6cd8b_1785369599_3c8698affc2d2c908ab36404584e6a38: ~
+  csr: 
+    commonName: {}
+
+    modulus: {}
+
+uniques: 
+  certificate: 
+    friendly_name: 
+      31414141: macroit_org_cde04_6ce69_1785283199_c95717ec71fdea2e1ca7a9cbc4286d51
+      31426253: swiftsms_macroit_org_c3558_6cd8b_1785369599_3c8698affc2d2c908ab36404584e6a38
+      31458260: lendfy_macroit_org_bbed9_8ed95_1785628799_6bb0b09b83c921c39b6c96308d13db19
+      31458269: lendfy_development_macroit_org_c9b60_32289_1785628799_f0581cca933ab6801a6b0c42b31cc56c
+      31525963: kbmc_macroit_org_e55aa_f6847_1786147199_d38790ac1195d4593b2309e0ea32433b
+      31790974: sos_macroit_org_ddb93_ad1f5_1788479999_9b22addd60ddb0d9f8a414a0d7d19cb1
+  csr: 
+    friendly_name: {}
+
+  key: 
+    friendly_name: 
+      nc_module_key_31414141: cde04_6ce69_3332384d41a472aebf8e9502a963e5f9
+      nc_module_key_31426253: c3558_6cd8b_b0257fb523e2699195440180a9b628ed
+      nc_module_key_31458260: bbed9_8ed95_75b1e66c4e00ba04085c2bd6f35b4fab
+      nc_module_key_31458269: c9b60_32289_aab1e2c69831209160039b5d7e2e475d
+      nc_module_key_31525963: e55aa_f6847_0a48f6519cf19f3f81646f391ae421cc
+      nc_module_key_31790974: ddb93_ad1f5_0738bdb0e14d54928d19bf160268e77e
+    modulus:ecdsa_curve_name:ecdsa_public: 
+      bbed94b0d60b228ff05862588feb22c5abe9461ed3ddf996eacd5cb108cf28e4351e778af579982b30194ab7e5f8397440c529c466388756ae70beda8f983c7c80e0178c1b7d845c707066110f5edfba28a1f64d939f0e6ce7705af5cd532c4e2757769419858b7f46010841892102fabbd5408d19c06a2046a7368a3a8bc92d58ef7927d3cdf88c52566176f2d81470b7ffdc09466206ce597f7b935f3024fbf5e039d66eae37fde1de3f4de57a51cfb483b95674dee51c4a80e3a32c921d36d05056219d4b796f2ce397d0fe5c7644b6839519d715d61f5b65bb88bd0ce3ed73275fbce33b7f9322514e8973a1c979fe070aba4868a72568ab8fbf41d8ed95: bbed9_8ed95_75b1e66c4e00ba04085c2bd6f35b4fab
+      c355856c64268ec7310dd74cac70c983f9a27e2f44cd42b0b5b36e72a8f03b74beef17ecf4bdb960a514314e0aaadd9c39794d939b907cfcd6a2a587f9498d6d85d682071a38ab2f0204f3309bec660035ae69ff9dc0579203e92397393a65067da767cb5f109d37e9d0c87f13a9f30f9962fb6ae2f91ebe8b80adafe0f1151aad54c4b6b64eecb6367784476d6a796f4e437f605b7de8433c51bc32843328be764b7e2ca95251c0899304fa1f510998b4c8955025b2f8a7e3a7a8ea5417433956a00c736f72c4f1f5cf316b67d16d06bcb1a1f52af8dcb5b7d240eff1852181ca48077b6d04e4367c599b3b3d2ea400b73b5d3604b018c676ca6d86f1c6cd8b: c3558_6cd8b_b0257fb523e2699195440180a9b628ed
+      c9b60bfed48f02768fbe4daedd1a5a1d5007855788a1358d32b3011c9433bd41f28eae017238a33e3bfbd2e703261019a189cc1e87e81a25041fbe36c79a94afaefbb3450ff5f7f080f79f9fd8f8d1b536c954f3bda63307d38122b05ef34abd719b4772c19171c17c2c6b92d063fd58f46c65ad999f2c749b98c1cc663cf83eb3d608f8cf6121916c80c80006d0f130bfec7fce33bef0cd5fb36fc9a855787791aa02359563965235274cdc0c8b8e5f2af0ef5ddd02a52d48f71c000f61febd462ffde0e49ca7f77478fc93b7d988fe3e0445936caef572231f9ebd73419d0571e360e520186cb0917398563dd90c5b34bce68192696faca45ee9c4fa832289: c9b60_32289_aab1e2c69831209160039b5d7e2e475d
+      cde046c0908dd89f50f322c0b31690259fc0c1649789b4447ed903deef8dd5538e64027d30c7cbcaffc95ce454980364db3153aede8d7108479093622d2230c8dc955857a0aab1d1a8f86b818bca83376b085f47b724203bfce6a4b3130533c3a82379eccac0e348a53f72cb3bfd3477e39ff9fd99018bf8e5b02a3c963e9d7f1e2c5f70a60a681a5e4d5c7938f9c256e369e523ad745bad8ca263330f808630bb7a9c89cbcab9b4dc136d33b20a8b631354ac83e3869ad06bf6d4dabdc77f5f2e82783fed82f9daac4b885113d25375ab08676d36038ad95e18fedab7cd358d3289a9dfc415b2ccd06a9dc54cc51d49be90ae592aa6db7270320b1f2996ce69: cde04_6ce69_3332384d41a472aebf8e9502a963e5f9
+      ddb936652a5d7cb0f44f8fd1454986bd5e422bc06d4f06c9bf2b54421b1b7f6e0c7e999617cc9dc0d3c2b126268afc59d572b771ddad5322b26b4bebff7e15642cd63961c88a2358e81a5c4ca4db5ba5b82b62add073c8297341167ffa46ca128571abbc3927e22a4e253297d5aa6ccd3efaafbcacdf608df3e7aed9e28bb7226e604dcb069d9c75944493fec5e02c3f1e88f19c2783f3f7f26931a0eb1a2ca4bc369d13ae751eaa2bbad5b51761b18ad8a46faf3b316eacdb2942e3a5e3e1fedfc104492cde30d64258bccbda9e6bc6c5ca7fb70333804200a20bd20ee666892f49520e7c481e7d941fb6bddc41e2bfa28b25983cc1fbc053172353813ad1f5: ddb93_ad1f5_0738bdb0e14d54928d19bf160268e77e
+      e55aac3c933fe5b38a0ebe08e0331ee729bb993f288cd55aa045256ce95170bbb91299d38cedfd6dd2eb2e57bdca651cfe9baded57fc1a396df836ed27a5e45012156696822f3ce8a041334b8f33de485ef59adccc9b7cd0f7ddeca6689e5bcf5138da984ae99eb11aa0ab55b6fd787405bd1b3743d7f7e820d7df090c7f762daa4eed58df45b21361f9f4155604a5115f86f8c921506be97de8ee95ebdb2709e72692718111ebd7ceae4772638388f6d9d897e1169ed6604f4e94ddf83fe60705cc48262e306fc5c334fe9f962050cb4cb8838d7ba8c68083961da24ef85a25e1a81c8bd0f5ee3bbd4dd14179eba85bce17c54e9d011af893fec9baa6bf6847: e55aa_f6847_0a48f6519cf19f3f81646f391ae421cc
