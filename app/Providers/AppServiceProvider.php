@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         Filament::registerNavigationGroups([
             'Messages',
             'WhatsApp',
+            'Email',
             'Developers',
             'User Management',
         ]);

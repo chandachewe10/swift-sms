@@ -16,7 +16,9 @@ class ListWhatsAppTemplates extends ListRecords
         parent::mount();
 
         $user = auth()->user();
-        if (! $user?->whatsapp_subscribed && ! $user?->hasRole('super_admin')) {
+        if (! $user?->hasRole('super_admin')
+            && ! $user?->whatsapp_subscribed
+            && ($user?->whatsapp_credits ?? 0) <= 0) {
             $this->redirect(WhatsAppSubscriptionPage::getUrl());
         }
     }

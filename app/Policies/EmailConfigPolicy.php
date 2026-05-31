@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\WhatsAppConfig;
+use App\Models\EmailConfig;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class WhatsAppConfigPolicy
+class EmailConfigPolicy
 {
     use HandlesAuthorization;
 
@@ -15,15 +15,15 @@ class WhatsAppConfigPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_whats::app::config');
+        return $user->can('view_any_email::config');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, WhatsAppConfig $whatsAppConfig): bool
+    public function view(User $user, EmailConfig $emailConfig): bool
     {
-        return $user->can('view_whats::app::config');
+        return $user->can('view_email::config');
     }
 
     /**
@@ -31,23 +31,23 @@ class WhatsAppConfigPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_whats::app::config');
+        return $user->can('create_email::config');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, WhatsAppConfig $whatsAppConfig): bool
+    public function update(User $user, EmailConfig $emailConfig): bool
     {
-        return $user->can('update_whats::app::config');
+        return $user->can('update_email::config');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, WhatsAppConfig $whatsAppConfig): bool
+    public function delete(User $user, EmailConfig $emailConfig): bool
     {
-        return $user->can('delete_whats::app::config');
+        return $user->can('delete_email::config');
     }
 
     /**
@@ -55,15 +55,15 @@ class WhatsAppConfigPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_whats::app::config');
+        return $user->can('delete_any_email::config');
     }
 
     /**
      * Determine whether the user can permanently delete.
      */
-    public function forceDelete(User $user, WhatsAppConfig $whatsAppConfig): bool
+    public function forceDelete(User $user, EmailConfig $emailConfig): bool
     {
-        return $user->can('force_delete_whats::app::config');
+        return $user->can('force_delete_email::config');
     }
 
     /**
@@ -71,15 +71,15 @@ class WhatsAppConfigPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_whats::app::config');
+        return $user->can('force_delete_any_email::config');
     }
 
     /**
      * Determine whether the user can restore.
      */
-    public function restore(User $user, WhatsAppConfig $whatsAppConfig): bool
+    public function restore(User $user, EmailConfig $emailConfig): bool
     {
-        return $user->can('restore_whats::app::config');
+        return $user->can('restore_email::config');
     }
 
     /**
@@ -87,15 +87,15 @@ class WhatsAppConfigPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_whats::app::config');
+        return $user->can('restore_any_email::config');
     }
 
     /**
      * Determine whether the user can replicate.
      */
-    public function replicate(User $user, WhatsAppConfig $whatsAppConfig): bool
+    public function replicate(User $user, EmailConfig $emailConfig): bool
     {
-        return $user->can('replicate_whats::app::config');
+        return $user->can('replicate_email::config');
     }
 
     /**
@@ -103,6 +103,6 @@ class WhatsAppConfigPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_whats::app::config');
+        return $user->can('reorder_email::config');
     }
 }

@@ -23,12 +23,14 @@ class WhatsAppSubscriptionPage extends Page
             return false;
         }
 
-        return ! $user->whatsapp_subscribed && ! $user->hasRole('super_admin');
+        return ! $user->whatsapp_subscribed
+            && ($user->whatsapp_credits ?? 0) <= 0
+            && ! $user->hasRole('super_admin');
     }
 
     public function mount(): void
     {
-        if (auth()->user()?->whatsapp_subscribed) {
+        if (auth()->user()?->whatsapp_subscribed || (auth()->user()?->whatsapp_credits ?? 0) > 0 || auth()->user()?->hasRole('super_admin')) {
             $this->redirect(route('filament.app.resources.whats-app-messages.index'));
         }
     }

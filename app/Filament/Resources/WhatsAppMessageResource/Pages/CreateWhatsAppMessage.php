@@ -17,7 +17,21 @@ class CreateWhatsAppMessage extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
+        $user   = auth()->user();
         $config = WhatsAppConfig::first();
+
+        // Credit check for non-subscribers
+        if (! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed) {
+            $needed = count(array_filter(array_column($data['recipients'] ?? [], 'phone'), fn ($p) => ! empty(trim($p))));
+            if (($user->whatsapp_credits ?? 0) < $needed) {
+                Notification::make()
+                    ->title('Insufficient WhatsApp credits')
+                    ->body("You need {$needed} credit(s) but have {$user->whatsapp_credits}. Subscribe for unlimited sends.")
+                    ->warning()
+                    ->send();
+                $this->halt();
+            }
+        }
 
         if (! $config) {
             Notification::make()
@@ -63,6 +77,11 @@ class CreateWhatsAppMessage extends CreateRecord
             ]);
 
             isset($result['error']) ? $failCount++ : $successCount++;
+        }
+
+        // Deduct credits for non-subscribers
+        if (! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed && $successCount > 0) {
+            $user->decrement('whatsapp_credits', $successCount);
         }
 
         if ($failCount === 0) {

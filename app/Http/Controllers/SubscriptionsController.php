@@ -128,6 +128,35 @@ public function completeSubscription(Request $request, $amount)
     }
 }
 
+    public function completeEmailSubscription(Request $request)
+    {
+        try {
+            $paymentData = json_decode($request->input('data'), true);
+
+            Log::info('Email subscription payment received', $request->all());
+
+            Payment::create([
+                'company_id'         => auth()->user()->user_id,
+                'reference'          => $paymentData['reference'] ?? null,
+                'currency'           => $paymentData['currency'] ?? '',
+                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? '',
+                'amount'             => $paymentData['amount'] ?? 300,
+                'transaction_amount' => $paymentData['amount'] ?? 300,
+                'depositId'          => $paymentData['id'] ?? '',
+                'status'             => $paymentData['status'] ?? 'successful',
+                'fee_amount'         => $paymentData['fee'] ?? '',
+                'messages'           => 'Bulk Email subscription — K300/month',
+            ]);
+
+            auth()->user()->update(['email_subscribed' => true]);
+
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            Log::error('Email subscription error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function completeWhatsAppSubscription(Request $request)
     {
         try {

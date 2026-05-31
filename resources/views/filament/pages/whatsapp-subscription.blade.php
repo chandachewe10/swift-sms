@@ -20,9 +20,9 @@
                 <div class="mb-6 text-center">
                     <span class="text-4xl font-extrabold text-gray-900 dark:text-white">K500</span>
                     <span class="text-gray-500 dark:text-gray-400"> / month</span>
-                    <div class="mt-1">
+                    <div class="mt-2">
                         <span class="inline-block rounded-full bg-green-100 px-3 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-300">
-                            🔒 Premium Feature
+                            🎉 10 free sends included on sign-up
                         </span>
                     </div>
                 </div>
