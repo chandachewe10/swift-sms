@@ -29,8 +29,9 @@ class AppServiceProvider extends ServiceProvider
         Model::unguard();
         Filament::registerNavigationGroups([
             'Messages',
+            'WhatsApp',
             'Developers',
-            'User Management'
+            'User Management',
         ]);
 
            
