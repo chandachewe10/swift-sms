@@ -23,6 +23,16 @@ class WhatsAppTemplateResource extends Resource
     protected static ?string $navigationLabel = 'Templates';
     protected static ?int $navigationSort = 2;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return 'New';
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'warning';
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -102,7 +112,7 @@ class WhatsAppTemplateResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->action(function (WhatsAppTemplate $record): void {
-                        $config = WhatsAppConfig::where('user_id', auth()->id())->first();
+                        $config = WhatsAppConfig::first();
 
                         if (! $config) {
                             Notification::make()

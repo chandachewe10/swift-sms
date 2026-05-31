@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Payment;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
@@ -127,5 +128,39 @@ public function completeSubscription(Request $request, $amount)
     }
 }
 
+    public function completeWhatsAppSubscription(Request $request)
+    {
+        try {
+            $paymentData = json_decode($request->input('data'), true);
 
+            Log::info('WhatsApp subscription payment received', $request->all());
+
+            $payment = Payment::create([
+                'company_id'         => auth()->user()->user_id,
+                'reference'          => $paymentData['reference'] ?? null,
+                'currency'           => $paymentData['currency'] ?? '',
+                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? '',
+                'amount'             => $paymentData['amount'] ?? 500,
+                'transaction_amount' => $paymentData['amount'] ?? 500,
+                'depositId'          => $paymentData['id'] ?? '',
+                'status'             => $paymentData['status'] ?? 'successful',
+                'fee_amount'         => $paymentData['fee'] ?? '',
+                'messages'           => 'WhatsApp Business subscription — K500/month',
+            ]);
+
+            auth()->user()->update(['whatsapp_subscribed' => true]);
+
+            return response()->json([
+                'status'  => 'success',
+                'payment' => $payment,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('WhatsApp subscription error: ' . $e->getMessage());
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

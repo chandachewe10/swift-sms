@@ -20,9 +20,20 @@ class WhatsAppConfigResource extends Resource
     protected static ?string $navigationLabel = 'API Credentials';
     protected static ?int $navigationSort = 1;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     public static function canCreate(): bool
     {
-        return ! WhatsAppConfig::where('user_id', auth()->id())->exists();
+        return (auth()->user()?->hasRole('super_admin') ?? false)
+            && ! WhatsAppConfig::first();
     }
 
     public static function form(Form $form): Form
@@ -59,7 +70,7 @@ class WhatsAppConfigResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('user_id', auth()->id()))
+            ->modifyQueryUsing(fn (Builder $query) => $query)
             ->columns([
                 Tables\Columns\TextColumn::make('phone_number_id')
                     ->label('Phone Number ID'),

@@ -35,6 +35,14 @@ Route::get('/subscription/{amount}', function ($amount) {
 Route::post('completeSubscription/{amount}',[SubscriptionsController::class,'completeSubscription'])
 ->name('completeSubscription');
 
+Route::get('/whatsapp-subscription', function () {
+    return view('gateways.lenco.lencoWhatsAppPayment');
+})->middleware(['auth'])->name('subscription.whatsapp');
+
+Route::post('completeWhatsAppSubscription', [SubscriptionsController::class, 'completeWhatsAppSubscription'])
+    ->middleware(['auth'])
+    ->name('completeWhatsAppSubscription');
+
 
 Route::get('/team-invitations/{invitation}', [TeamInvitationController::class, 'accept'])
     ->middleware(['signed', 'verified', 'auth', AuthenticateSession::class])

@@ -17,7 +17,7 @@ class CreateWhatsAppMessage extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $config = WhatsAppConfig::where('user_id', auth()->id())->first();
+        $config = WhatsAppConfig::first();
 
         if (! $config) {
             Notification::make()
