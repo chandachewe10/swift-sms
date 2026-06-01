@@ -18,11 +18,13 @@ class CreateContactMessages extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        // Check if sending to all contacts
+        $companyId = auth()->user()->user_id;
+
+        // ── Resolve which contacts to target ──────────────────────────────
         if ($data['send_to_all'] ?? false) {
-            // Get all contacts for the company
-            $contacts = Contact::where('company_id', auth()->user()->user_id)->get();
-            
+            $contacts = Contact::where('company_id', $companyId)->get();
+            $audienceLabel = 'All Contacts';
+
             if ($contacts->isEmpty()) {
                 Notification::make()
                     ->title('No Contacts Found')
@@ -31,20 +33,37 @@ class CreateContactMessages extends CreateRecord
                     ->send();
                 $this->halt();
             }
-        } else {
-            // Use selected contacts
-            $ids = $data['contact'] ?? [];
-            
-            if (empty($ids)) {
+
+        } elseif (! empty($data['tag_filter'])) {
+            $tag = $data['tag_filter'];
+            $contacts = Contact::where('company_id', $companyId)
+                ->where('tag', $tag)
+                ->get();
+            $audienceLabel = 'Tag: ' . $tag;
+
+            if ($contacts->isEmpty()) {
                 Notification::make()
-                    ->title('No Contacts Selected')
-                    ->body('Please select contacts or choose "Send to All Contacts".')
+                    ->title('No Contacts with Tag "' . $tag . '"')
+                    ->body('No contacts were found with this tag. Check your contact tags and try again.')
                     ->warning()
                     ->send();
                 $this->halt();
             }
-            
+
+        } else {
+            $ids = $data['contact'] ?? [];
+
+            if (empty($ids)) {
+                Notification::make()
+                    ->title('No Contacts Selected')
+                    ->body('Please select contacts, choose a tag, or use "Send to All Contacts".')
+                    ->warning()
+                    ->send();
+                $this->halt();
+            }
+
             $contacts = Contact::findMany($ids);
+            $audienceLabel = 'Selected Contacts';
         }
         
         // Extract phone numbers from contacts
@@ -181,12 +200,18 @@ class CreateContactMessages extends CreateRecord
         }
         
         // Prepare data for message record creation
+        $contactLogValue = match(true) {
+            ($data['send_to_all'] ?? false) => 'All Contacts (' . $contactCount . ')',
+            ! empty($data['tag_filter'])    => 'Tag: ' . $data['tag_filter'] . ' (' . $contactCount . ')',
+            default                         => implode(',', $contactStrings),
+        };
+
         $messageData = [
-            'message' => $message,
+            'message'      => $message,
             'responseText' => $consolidatedResponseText,
-            'contact' => $data['send_to_all'] ?? false ? 'All Contacts (' . $contactCount . ')' : implode(',', $contactStrings),
-            'status' => $successCount > 0 ? 200 : 400, // 200 if any succeeded, 400 if all failed
-            'company_id' => auth()->user()->user_id
+            'contact'      => $contactLogValue,
+            'status'       => $successCount > 0 ? 200 : 400,
+            'company_id'   => auth()->user()->user_id,
         ];
         
         // Create the message record
@@ -197,7 +222,11 @@ class CreateContactMessages extends CreateRecord
             // Withdraw the amount from the user's wallet (only for successful messages)
             $user->wallet->withdraw($successCount, ['description' => 'Sending SMS']);
             
-            $recipientText = $data['send_to_all'] ?? false ? 'all contacts' : $contactCount . ' selected contacts';
+            $recipientText = match(true) {
+                ($data['send_to_all'] ?? false) => 'all contacts',
+                ! empty($data['tag_filter'])    => $contactCount . ' contacts with tag "' . $data['tag_filter'] . '"',
+                default                         => $contactCount . ' selected contacts',
+            };
             
             if ($failureCount > 0) {
                 // Partial success

@@ -4,17 +4,16 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactMessagesResource\Pages;
 use App\Filament\Resources\ContactMessagesResource\RelationManagers;
+use App\Models\Contact;
 use App\Models\Messages as ContactMessages;
 use Filament\Forms;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Checkbox;
-use App\Models\Contact;
 
 class ContactMessagesResource extends Resource
 {
@@ -38,52 +37,76 @@ class ContactMessagesResource extends Resource
 
                 Checkbox::make('send_to_all')
                     ->label('Send to All Contacts')
-                    ->helperText('Check this to send the message to all your contacts')
+                    ->helperText('Send to every contact in your address book')
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set) {
                         if ($state) {
-                            // Clear the contact selection when "send to all" is checked
+                            $set('tag_filter', null);
                             $set('contact', []);
                         }
                     })
+                    ->columnSpan(2),
+
+                Select::make('tag_filter')
+                    ->label('Filter by Tag')
+                    ->prefixIcon('heroicon-o-tag')
+                    ->helperText('Send only to contacts that share this tag')
+                    ->placeholder('Select a tag…')
+                    ->options(function () {
+                        return Contact::where('company_id', auth()->user()->user_id)
+                            ->whereNotNull('tag')
+                            ->where('tag', '!=', '')
+                            ->distinct()
+                            ->pluck('tag', 'tag')
+                            ->sort()
+                            ->toArray();
+                    })
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state) {
+                            $set('contact', []);
+                        }
+                    })
+                    ->native(false)
+                    ->searchable()
+                    ->hidden(fn (callable $get) => (bool) $get('send_to_all'))
                     ->columnSpan(2),
 
                 Select::make('contact')
                     ->prefixIcon('heroicon-o-users')
                     ->label('Contacts')
                     ->options(
-                        Contact::where('company_id', auth()->user()->user_id) 
-                            ->get() 
-                            ->mapWithKeys(function ($contact) { 
-                                return [
-                                    $contact->id => $contact->first_name . ' ' . $contact->last_name . ' - ' . $contact->phone1,
-                                ];
-                            })
+                        Contact::where('company_id', auth()->user()->user_id)
+                            ->get()
+                            ->mapWithKeys(fn ($c) => [
+                                $c->id => $c->first_name . ' ' . $c->last_name . ' — ' . $c->phone1
+                                    . ($c->tag ? ' [' . $c->tag . ']' : ''),
+                            ])
                     )
                     ->getSearchResultsUsing(function (string $search) {
                         return Contact::where('company_id', auth()->user()->user_id)
-                            ->where(function ($query) use ($search) {
-                                $query->where('first_name', 'like', "%{$search}%")
-                                    ->orWhere('last_name', 'like', "%{$search}%")
-                                    ->orWhere('phone1', 'like', "%{$search}%");
+                            ->where(function ($q) use ($search) {
+                                $q->where('first_name', 'like', "%{$search}%")
+                                  ->orWhere('last_name',  'like', "%{$search}%")
+                                  ->orWhere('phone1',     'like', "%{$search}%")
+                                  ->orWhere('tag',        'like', "%{$search}%");
                             })
                             ->limit(50)
                             ->get()
-                            ->mapWithKeys(function ($contact) {
-                                return [
-                                    $contact->id => $contact->first_name . ' ' . $contact->last_name . ' - ' . $contact->phone1,
-                                ];
-                            })
+                            ->mapWithKeys(fn ($c) => [
+                                $c->id => $c->first_name . ' ' . $c->last_name . ' — ' . $c->phone1
+                                    . ($c->tag ? ' [' . $c->tag . ']' : ''),
+                            ])
                             ->toArray();
                     })
                     ->native(false)
                     ->multiple()
                     ->searchable()
-                    ->searchingMessage('Searching for contacts...')
-                    ->searchPrompt('Search contacts by their name, phone or email address')
-                    ->loadingMessage('Loading Contacts...')
-                    ->hidden(fn (callable $get) => $get('send_to_all')) // Hide when send_to_all is checked
-                    ->required(fn (callable $get) => !$get('send_to_all')) // Required only when not sending to all
+                    ->searchingMessage('Searching for contacts…')
+                    ->searchPrompt('Search by name, phone or tag')
+                    ->loadingMessage('Loading contacts…')
+                    ->hidden(fn (callable $get) => (bool) $get('send_to_all') || ! empty($get('tag_filter')))
+                    ->required(fn (callable $get) => ! $get('send_to_all') && empty($get('tag_filter')))
                     ->columnSpan(2),
             ]);
     }
