@@ -66,35 +66,38 @@ class MessagesAPI extends Controller
               $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . urlencode($contacts) . '/senderId/' . urlencode($senderId) . '/message/' . urlencode($message);
               $response = Http::get($url);
 
-             $data = $response->collect();
-             if ($response->status() == 200)  {
+             // Normalise to plain array — collect() returns a Collection whose
+             // offsetGet() throws "Undefined array key" when the key is missing.
+             // json() returns null on a non-JSON/empty body (e.g. Zamtel timeout),
+             // so we fall back to [] to make all key accesses safe.
+             $data         = $response->json() ?? [];
+             $responseText = $data['responseText'] ?? 'No response received from the network.';
+             $statusCode   = $data['statusCode']   ?? $response->status();
+
+             if ($response->successful() && $statusCode == 202)  {
 
                 $company->wallet->withdraw(count(explode(',',$request->numbers)),['description' => 'Sending of SMS(s) via APIs']);
                 Messages::create([
-                    'message' => $message,
-                    'responseText' => $data['responseText'],
-                    'contact' => $contacts,
-                    'status' => $response->status(),
-                    'company_id' => $company->user_id,
-                    ]);
+                    'message'      => $message,
+                    'responseText' => $responseText,
+                    'contact'      => $contacts,
+                    'status'       => $response->status(),
+                    'company_id'   => $company->user_id,
+                ]);
 
-
-
-                return response()->json(['success'=>'true','message' => $data['responseText']], 202);
+                return response()->json(['success' => 'true', 'message' => $responseText], 202);
              }
 
              else  {
                 Messages::create([
-                    'message' => $message,
-                    'responseText' => $data['responseText'],
-                    'contact' => $contacts,
-                    'status' => $response->status(),
-                    'company_id' => $company->user_id,
-                    ]);
+                    'message'      => $message,
+                    'responseText' => $responseText,
+                    'contact'      => $contacts,
+                    'status'       => $response->status(),
+                    'company_id'   => $company->user_id,
+                ]);
 
-
-
-                return response()->json(['success'=>'false','message' => $data['responseText']], $response->status());
+                return response()->json(['success' => 'false', 'message' => $responseText], $response->status() ?: 500);
              }
 
 

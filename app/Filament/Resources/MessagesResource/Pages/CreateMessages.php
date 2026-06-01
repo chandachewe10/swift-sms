@@ -62,46 +62,48 @@ if(is_null($senderId) || empty($senderId)){
         // Send the HTTP request
         $response = Http::timeout(300)->get($url);
 
+        // Normalise to array — $response->json() returns null when the API sends
+        // a non-JSON or empty body (e.g. a Zamtel timeout). Accessing null['key']
+        // in PHP 8 raises an ErrorException even with ??, so we guard here.
+        $responseData = $response->json() ?? [];
+        $statusCode   = $responseData['statusCode'] ?? 0;
+        $responseText = $responseData['responseText'] ?? null;
 
-        // Handle the response
-        $responseData = $response->json();
-
-        if ($responseData['statusCode'] == 202) {
+        if ($statusCode == 202) {
             // Withdraw the amount from the user's wallet
             auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
 
-            // Create the message record
-           $data = Messages::create([
-                'message' => $message,
-                'responseText' => $responseData['responseText'] ?? '',
-                'contact' => $contactsString,
-                'status' => $response->status(),
-                'company_id' => auth()->user()->user_id,
+            $data = Messages::create([
+                'message'      => $message,
+                'responseText' => $responseText ?? 'SMS(es) have been queued for delivery',
+                'contact'      => $contactsString,
+                'status'       => $response->status(),
+                'company_id'   => auth()->user()->user_id,
             ]);
 
             Notification::make()
                 ->title('Message(s) sent')
-                ->body($responseData['responseText'] ?? 'SMS(es) have been queued for delivery')
+                ->body($responseText ?? 'SMS(es) have been queued for delivery')
                 ->success()
                 ->send();
-                $this->halt();
-                return $data;
+            $this->halt();
+            return $data;
         } else {
             $data = Messages::create([
-                'message' => $message,
-                'responseText' => $responseData['responseText'] ?? 'There was an error sending the SMS(es).',
-                'contact' => $contactsString,
-                'status' => $response->status(),
-                'company_id' => auth()->user()->user_id,
+                'message'      => $message,
+                'responseText' => $responseText ?? 'No response from the network — message may not have been delivered.',
+                'contact'      => $contactsString,
+                'status'       => $response->status(),
+                'company_id'   => auth()->user()->user_id,
             ]);
 
             Notification::make()
                 ->title('Failed to send message(s)')
-                ->body($responseData['responseText'] ?? 'There was an error sending the SMS(es).')
+                ->body($responseText ?? 'No response received from the network. Please try again.')
                 ->danger()
                 ->send();
-                $this->halt();
-                return $data;
+            $this->halt();
+            return $data;
         }
     }
 }

@@ -134,9 +134,10 @@ class CreateContactMessages extends CreateRecord
                 $response = Http::timeout(300)->get($url);
                 
                 // Handle the response
-                $responseData = null;
+                // Normalise — null when API returns non-JSON/empty body (e.g. Zamtel timeout)
+                $responseData = [];
                 try {
-                    $responseData = $response->json();
+                    $responseData = $response->json() ?? [];
                 } catch (\Exception $e) {
                     \Log::error('Failed to parse JSON response for batch', [
                         'batch' => $batchIndex + 1,

@@ -195,10 +195,10 @@ if (!$senderId) {
                                 // Send the HTTP request
                                 $response = Http::timeout(30)->get($url);
                                 
-                                // Handle the response
-                                $responseData = $response->json();
+                                // Normalise — null when API returns non-JSON/empty body
+                                $responseData = $response->json() ?? [];
                                 
-                                if ($response->successful()) {
+                                if ($response->successful() && ($responseData['statusCode'] ?? 0) == 202) {
                                     // Withdraw the amount from the user's wallet
                                     auth()->user()->wallet->withdraw(1, ['description' => 'Sending of SMS via import']);
                                     
