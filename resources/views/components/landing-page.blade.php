@@ -1,4 +1,4 @@
-
+﻿
   <!-- ======= Top Bar ======= -->
   <div id="topbar" class="d-none d-lg-flex align-items-end fixed-top topbar-transparent">
     <div class="container d-flex justify-content-end">
@@ -40,66 +40,69 @@
     <div class="container d-flex h-100">
       <div class="row justify-content-center align-self-center">
         <div class="col-md-6 intro-info order-md-first order-last">
-         <h2 style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;"><span>Welcome</span> to SWIFTSMS</h2> 
+          <h2 style="font-family:'Trebuchet MS',Arial,sans-serif;line-height:1.3;">
+            <span>Reach Anyone,</span><br>Anywhere in the World
+          </h2>
           <div>
-          
-<p>Reach, Connect, Impact: Unleash the Power of Bulk SMS!</p>
-<br>
-          
-            <a href="/admin/register" class="btn-get-started scrollto">Get Started</a>
-            <a href="#footer" class="btn-get-started scrollto">Contact Us</a>
+            <p style="font-size:17px;opacity:0.9;">Bulk SMS · WhatsApp Business · Bulk Email — all in one powerful platform built for Zambian businesses going global.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
+              <a href="/admin/register" class="btn-get-started scrollto">🚀 Get Started Free</a>
+              <a href="#pricing" class="btn-get-started scrollto" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);">See Pricing</a>
+            </div>
+            <p style="margin-top:16px;font-size:13px;opacity:0.75;">✅ No setup fees &nbsp;·&nbsp; ✅ 10 free sends on Email &amp; WhatsApp &nbsp;·&nbsp; ✅ Pay as you go</p>
           </div>
         </div>
-
         <div class="col-md-6 intro-img order-md-last order-first">
           <img src="{{asset('landing-page/assets/img/illustration.svg')}}" alt="" class="img-fluid">
         </div>
       </div>
-
     </div>
   </section><!-- End Hero -->
 
   <main id="main">
  <!-- ======= Why Us Section ======= -->
- <section id="why-us" class="why-us">
-  <div class="container-fluid" data-aos="fade-up">
+ <section id="why-us" class="why-us" style="padding:60px 0;background:#fff;">
+  <div class="container" data-aos="fade-up">
 
-    <header class="section-header">
-      <h3>Why choose us?</h3>     
+    <header class="section-header" style="text-align:center;margin-bottom:40px;">
+      <h3 style="font-size:28px;font-weight:800;color:#111827;">Why SwiftSMS?</h3>
+      <p style="color:#6b7280;font-size:15px;max-width:520px;margin:10px auto 0;">Built for Zambia, designed for growth — the only platform that combines SMS, WhatsApp, and Email in one place.</p>
     </header>
-<br>
-    <div class="row">
+
+    <div class="row align-items-center">
 
       <div class="col-lg-6" data-aos="zoom-in">
-        <div class="why-us-img">
-          <img src="{{asset('landing-page/assets/img/why-us.jpg')}}" alt="" class="img-fluid">
-        </div>
+        <img src="{{asset('landing-page/assets/img/why-us.jpg')}}" alt="" class="img-fluid" style="border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
       </div>
 
-      <div class="col-lg-6">
-        <div class="why-us-content">
-          <p>Choose us for your bulk SMS needs and unlock the power of seamless communication with our feature-rich platform. We provide a comprehensive solution for sending SMS messages to MTN, Airtel, and Zamtel users, and we go the extra mile by offering API support, making integration with your existing systems a breeze.</p>
-          <p>Whether you need to communicate with a large audience, or personalize your messages, our platform has got you covered.</p><br>
-          <div class="features clearfix" data-aos="fade-up">
-            <i class="fa fa-signal" style="color: #f058dc;"></i>
-            <h4>Multi-network support</h4>
-            <p>Send Bulk SMS Messages Instantly to MTN, Airtel, and Zamtel Users with ease.</p>
-          </div>
+      <div class="col-lg-6" style="padding:30px 20px;">
+        <p style="font-size:15px;color:#6b7280;line-height:1.8;margin-bottom:24px;">From a small startup to a national enterprise — SwiftSMS gives you the tools to reach your audience instantly via SMS, WhatsApp, or Email with zero technical overhead.</p>
 
-          <div class="features clearfix" data-aos="fade-up">
-            <i class="fa fa-object-group" style="color: #ffb774;"></i>
-            <h4>Easy-to-use interface</h4>
-            <p>Our platform is designed to be intuitive and user-friendly.</p>
+        <div style="display:flex;gap:14px;margin-bottom:20px;">
+          <div style="flex-shrink:0;width:42px;height:42px;background:#fff0f9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">📡</div>
+          <div>
+            <h4 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;">Multi-network &amp; international</h4>
+            <p style="font-size:13px;color:#6b7280;margin:0;">Send to MTN, Airtel, Zamtel and international numbers worldwide in one click.</p>
           </div>
-
-          <div class="features clearfix" data-aos="fade-up">
-            <i class="fa fa-code" style="color: #589af1;"></i>
-            <h4>API support</h4>
-            <p>Seamlessly integrate our platform with your existing systems using our robust API, enabling streamlined communication workflows and enhancing your overall efficiency.</p>
-          </div>
-
         </div>
 
+        <div style="display:flex;gap:14px;margin-bottom:20px;">
+          <div style="flex-shrink:0;width:42px;height:42px;background:#fffbeb;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">⚡</div>
+          <div>
+            <h4 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;">Intuitive &amp; fast</h4>
+            <p style="font-size:13px;color:#6b7280;margin:0;">Go from sign-up to sending in minutes. No training needed — built for everyone.</p>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:14px;margin-bottom:20px;">
+          <div style="flex-shrink:0;width:42px;height:42px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🔌</div>
+          <div>
+            <h4 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;">Developer-friendly API</h4>
+            <p style="font-size:13px;color:#6b7280;margin:0;">REST API for seamless integration into your app, CRM, or website. Flash &amp; scheduled SMS included.</p>
+          </div>
+        </div>
+
+        <a href="/admin/register" style="display:inline-block;margin-top:8px;background:#F9A826;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;">Start for Free &#8594;</a>
       </div>
 
     </div>
@@ -109,63 +112,63 @@
 </section>
 
     <!-- ======= Services Section ======= -->
-    <section id="services" class="services section-bg">
+    <section id="services" class="services section-bg" style="padding:60px 0;">
       <div class="container" data-aos="fade-up">
 
-        <header class="section-header">
-          <h3>Services</h3>
-          <p>Our services</p>
+        <header class="section-header" style="text-align:center;margin-bottom:40px;">
+          <h3 style="font-size:28px;font-weight:800;color:#111827;">Everything You Need to Communicate</h3>
+          <p style="color:#6b7280;font-size:15px;max-width:580px;margin:10px auto 0;">One platform. Three powerful channels. Reach your audience wherever they are.</p>
         </header>
 
         <div class="row">
 
-          <div class="col-md-6 col-lg-6 wow bounceInUp" data-aos="zoom-in">
-            <div class="box">
-              <div class="icon" style="background:white;"><span class="iconify" data-icon="ion:ribbon" data-inline="false" data-width="50" data-height="50" style="color: #e98e06;"></span></i></div>
-              <h4 class="title"><a href="">Bulk SMS</a></h4>
-              <p class="description">Our bulk SMS platform offers a comprehensive range of services to cater to your communication needs. Whether you need to send transactional alerts, promotional messages, event reminders, or important notifications, our platform can handle it all.</p>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-6" data-aos="zoom-in">
-            <div class="box">
-              <div class="icon" style="background:white;"><span class="iconify" data-icon="ion:checkmark-done" data-inline="false" data-width="50" data-height="50" style="color: #f058dc;"></span></div>
-              <h4 class="title"><a href="">Reliable and Scalable Infrastructure</a></h4>
-              <p class="description">Our platform is built on a robust and scalable infrastructure, ensuring reliable message delivery even during peak periods. We leverage advanced technologies and partnerships with telecom operators to guarantee high delivery rates. </p>
+          <div class="col-md-6 col-lg-3 wow bounceInUp" data-aos="zoom-in" style="padding:10px;">
+            <div class="box" style="border-radius:14px;border:1px solid #e5e7eb;padding:28px;height:100%;box-shadow:0 2px 12px rgba(0,0,0,0.06);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div class="icon" style="background:#fff8ec;width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                <span class="iconify" data-icon="ion:chatbubbles" data-inline="false" data-width="34" data-height="34" style="color:#e98e06;"></span>
+              </div>
+              <h4 class="title" style="font-size:16px;font-weight:700;color:#111827;margin-bottom:10px;"><a href="" style="color:inherit;text-decoration:none;">Bulk SMS</a></h4>
+              <p class="description" style="font-size:13px;color:#6b7280;line-height:1.6;">Send transactional alerts, promotions, and reminders to MTN, Airtel &amp; Zamtel. Now with international number support and flash/scheduled SMS.</p>
             </div>
           </div>
 
-          <div class="col-md-6 col-lg-6 mt-4" data-aos="zoom-in">
-            <div class="box" style="border-top: 4px solid #25D366;">
-              <div class="icon" style="background:white;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="#25D366">
+          <div class="col-md-6 col-lg-3" data-aos="zoom-in" style="padding:10px;">
+            <div class="box" style="border-radius:14px;border:1px solid #e5e7eb;padding:28px;height:100%;box-shadow:0 2px 12px rgba(0,0,0,0.06);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div class="icon" style="background:#f0fdf4;width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                <span class="iconify" data-icon="ion:checkmark-done" data-inline="false" data-width="34" data-height="34" style="color:#22c55e;"></span>
+              </div>
+              <h4 class="title" style="font-size:16px;font-weight:700;color:#111827;margin-bottom:10px;"><a href="" style="color:inherit;text-decoration:none;">Reliable Infrastructure</a></h4>
+              <p class="description" style="font-size:13px;color:#6b7280;line-height:1.6;">Built on a robust, scalable platform. Advanced delivery tracking, contact management, CSV imports, and a full API for your developers.</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-3 mt-4 mt-lg-0" data-aos="zoom-in" style="padding:10px;">
+            <div class="box" style="border-radius:14px;border:2px solid #25D366;padding:28px;height:100%;box-shadow:0 2px 20px rgba(37,211,102,0.15);transition:transform 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <span style="position:absolute;top:12px;right:14px;background:#fff3cd;color:#856404;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;">NEW</span>
+              <div class="icon" style="background:#f0fdf4;width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="#25D366">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                 </svg>
               </div>
-              <h4 class="title">
-                <a href="">WhatsApp Business Messaging</a>
-                <span style="margin-left:8px; font-size:11px; background:#fff3cd; color:#856404; padding:2px 8px; border-radius:20px; font-weight:600;">NEW</span>
-              </h4>
-              <p class="description">Send professional template messages to your customers directly via WhatsApp. Create approved templates, send to multiple recipients, and track delivery — all through Meta's WhatsApp Cloud API. <strong>Starts at K500/month.</strong> New users get <strong>10 free sends</strong>.</p>
+              <h4 class="title" style="font-size:16px;font-weight:700;color:#111827;margin-bottom:10px;"><a href="" style="color:inherit;text-decoration:none;">WhatsApp Business</a></h4>
+              <p class="description" style="font-size:13px;color:#6b7280;line-height:1.6;">Send approved template messages via Meta's WhatsApp Cloud API. Bulk multi-recipient sends with delivery tracking. <strong>K500/month</strong> + 10 free sends.</p>
             </div>
           </div>
 
-          <div class="col-md-6 col-lg-6 mt-4" data-aos="zoom-in">
-            <div class="box" style="border-top: 4px solid #4285F4;">
-              <div class="icon" style="background:white;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="none" stroke="#4285F4" stroke-width="2" viewBox="0 0 24 24">
+          <div class="col-md-6 col-lg-3 mt-4 mt-lg-0" data-aos="zoom-in" style="padding:10px;">
+            <div class="box" style="border-radius:14px;border:2px solid #4285F4;padding:28px;height:100%;box-shadow:0 2px 20px rgba(66,133,244,0.15);transition:transform 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <span style="position:absolute;top:12px;right:14px;background:#fff3cd;color:#856404;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;">NEW</span>
+              <div class="icon" style="background:#eff6ff;width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="none" stroke="#4285F4" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
               </div>
-              <h4 class="title">
-                <a href="">Bulk Email Messaging</a>
-                <span style="margin-left:8px; font-size:11px; background:#fff3cd; color:#856404; padding:2px 8px; border-radius:20px; font-weight:600;">NEW</span>
-              </h4>
-              <p class="description">Send single or bulk emails to all your contacts using your own SMTP server (Gmail, Zoho, Outlook and more). Write rich HTML emails with our built-in editor. Full delivery logs included. <strong>Starts at K300/month.</strong> New users get <strong>10 free sends</strong>.</p>
+              <h4 class="title" style="font-size:16px;font-weight:700;color:#111827;margin-bottom:10px;"><a href="" style="color:inherit;text-decoration:none;">Bulk Email</a></h4>
+              <p class="description" style="font-size:13px;color:#6b7280;line-height:1.6;">Send rich HTML emails via Gmail, Zoho, Outlook &amp; more using your own SMTP. Single or bulk sends to all contacts. Full delivery logs. <strong>K300/month</strong> + 10 free sends.</p>
             </div>
           </div>
 
-      </div>
-
+        </div>
       </div>
     </section><!-- End Services Section -->
 
@@ -359,227 +362,142 @@
       </div>
     </section>
 
-    -- ====== Pricing Section ======= -->
-    <section id="pricing" class="pricing section-bg wow fadeInUp">
-
+    <!-- ======= SMS Pricing Section ======= -->
+    <section id="pricing" class="section-bg wow fadeInUp" style="padding:60px 0;">
       <div class="container" data-aos="fade-up">
 
-        <header class="section-header">
-          <h3>Pricing</h3>
-          <p>Our pricing structure is designed to provide excellent value for your investment, ensuring that you can effectively reach your audience without breaking the bank.</p>
+        <header class="section-header" style="text-align:center;margin-bottom:40px;">
+          <h3 style="font-size:28px;font-weight:800;color:#111827;">Bulk SMS Pricing</h3>
+          <p style="color:#6b7280;font-size:15px;max-width:560px;margin:10px auto 0;">
+            Pay only for what you need. Bigger bundles = lower cost per SMS. Credits never expire.
+          </p>
         </header>
 
-        <div class="row flex-items-xs-middle flex-items-xs-center">
+        @php
+        $smsBundles = [
+            ['price'=>'K800',   'sms'=>'1,000',  'per'=>'K0.80/SMS', 'popular'=>false, 'save'=>null,         'label'=>'Starter'],
+            ['price'=>'K1,500', 'sms'=>'2,000',  'per'=>'K0.75/SMS', 'popular'=>false, 'save'=>'Save K100',  'label'=>'Standard'],
+            ['price'=>'K2,100', 'sms'=>'3,000',  'per'=>'K0.70/SMS', 'popular'=>false, 'save'=>'Save K300',  'label'=>'Business'],
+            ['price'=>'K3,500', 'sms'=>'5,000',  'per'=>'K0.70/SMS', 'popular'=>true,  'save'=>'Save K500',  'label'=>'Growth'],
+            ['price'=>'K5,200', 'sms'=>'8,000',  'per'=>'K0.65/SMS', 'popular'=>false, 'save'=>'Save K1,200','label'=>'Pro'],
+            ['price'=>'K6,000', 'sms'=>'10,000', 'per'=>'K0.60/SMS', 'popular'=>false, 'save'=>'Save K2,000','label'=>'Enterprise'],
+        ];
+        @endphp
 
-         
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up" >
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>500<span class="period"></span></h3>
+        <div class="row justify-content-center">
+          @foreach($smsBundles as $b)
+          <div class="col-xs-12 col-sm-6 col-lg-4" data-aos="fade-up" style="padding:10px;">
+            <div style="
+                border-radius:16px;
+                border:{{ $b['popular'] ? '2px solid #f59e0b' : '1px solid #e5e7eb' }};
+                background:{{ $b['popular'] ? 'linear-gradient(135deg,#fffbeb,#fef3c7)' : '#fff' }};
+                padding:28px 24px;height:100%;position:relative;
+                box-shadow:{{ $b['popular'] ? '0 8px 30px rgba(245,158,11,0.2)' : '0 2px 12px rgba(0,0,0,0.06)' }};
+                transition:transform 0.2s;" 
+                onmouseover="this.style.transform='translateY(-4px)'" 
+                onmouseout="this.style.transform='translateY(0)'">
+
+              @if($b['popular'])
+              <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#fff;padding:4px 18px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;">&#11088; Most Popular</div>
+              @endif
+
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;margin-bottom:8px;">{{ $b['label'] }}</div>
+              <div style="font-size:36px;font-weight:800;color:#111827;line-height:1;">{{ $b['price'] }}</div>
+              <div style="margin:8px 0 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:13px;color:#6b7280;">{{ $b['per'] }}</span>
+                @if($b['save'])
+                <span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;">{{ $b['save'] }}</span>
+                @endif
               </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  0 - 1000 SMS's
-                </h4>
-               <!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-                </div>
+              <hr style="border:none;border-top:1px solid #f3f4f6;margin:16px 0;">
+              <ul style="list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:#374151;">
+                <li style="padding:5px 0;">&#128232; <strong>{{ $b['sms'] }} SMS</strong> credits</li>
+                <li style="padding:5px 0;">&#127758; Local &amp; international numbers</li>
+                <li style="padding:5px 0;">&#128246; MTN, Airtel &amp; Zamtel</li>
+                <li style="padding:5px 0;">&#8734;&#65039; Credits never expire</li>
+              </ul>
+              <a href="/admin/register" style="display:block;text-align:center;
+                background:{{ $b['popular'] ? '#f59e0b' : '#F9A826' }};
+                color:#fff;font-weight:700;font-size:14px;padding:12px;
+                border-radius:10px;text-decoration:none;transition:opacity 0.2s;"
+                onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                Get Started &#8594;
+              </a>
             </div>
           </div>
-
-          
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up">
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>800<span class="period"></span></h3>
-              </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  1,001 - 2000 SMS's
-                </h4>
-               <!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-                </div>
-            </div>
-          </div>
-
-          
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up">
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>1,100<span class="period"></span></h3>
-              </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  2,001 - 3000 SMS's
-                </h4>
-<!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-              </div>
-            </div>
-          </div>
-
-
-
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up">
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>1,400<span class="period"></span></h3>
-              </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  3,001 - 4000 SMS's
-                </h4>
-<!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-              </div>
-            </div>
-          </div>
-
-
-
-<br>
-
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up">
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>1,700<span class="period"></span></h3>
-              </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  4,001 - 5000 SMS's
-                </h4>
-               <!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-                </div>
-            </div>
-          </div>
-
-          
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up">
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>2000<span class="period"></span></h3>
-              </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  5,001 - 6000 SMS's
-                </h4>
-               <!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-                </div>
-            </div>
-          </div>
-
-          
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up">
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>2,200<span class="period"></span></h3>
-              </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  6,001 - 7000 SMS's
-                </h4>
-               <!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-              </div>
-            </div>
-          </div>
-
-
-
-          <div class="col-xs-12 col-lg-3" data-aos="fade-up">
-            <div class="card">
-              <div class="card-header">
-                <h3><span class="currency">K</span>2,500<span class="period"></span></h3>
-              </div>
-              <div class="card-block">
-                <h4 class="card-title">
-                  7,001 - 8000 SMS's
-                </h4>
-                <!--
-               <form style="background-color: white" ><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_FlfdPPBTmttPRs"> </script> </form>
-               -->
-              </div>
-            </div>
-          </div>
-
-
-
-
-
-
-
-
-
-
-
-
+          @endforeach
         </div>
-      </div>
 
-    </section><!-- End Pricing Section -->
+        <p style="text-align:center;margin-top:30px;color:#9ca3af;font-size:13px;">
+          All prices in Zambian Kwacha (ZMW) &nbsp;&middot;&nbsp; Secure payments via Lenco &nbsp;&middot;&nbsp; No hidden fees
+        </p>
+      </div>
+    </section><!-- End SMS Pricing Section -->
 
     <!-- ======= Premium Messaging Pricing Section ======= -->
-    <section class="pricing section-bg wow fadeInUp">
+    <section class="section-bg wow fadeInUp" style="padding:60px 0;background:linear-gradient(135deg,#0f172a,#1e293b);">
       <div class="container" data-aos="fade-up">
 
-        <header class="section-header">
-          <h3>Premium Messaging Channels</h3>
-          <p>Extend your reach with WhatsApp and Email — both include 10 free sends when you sign up.</p>
+        <header class="section-header" style="text-align:center;margin-bottom:40px;">
+          <h3 style="font-size:28px;font-weight:800;color:#f1f5f9;">Premium Messaging Channels</h3>
+          <p style="color:#94a3b8;font-size:15px;max-width:520px;margin:10px auto 0;">Extend your reach with WhatsApp &amp; Email — both include 10 free sends when you sign up.</p>
         </header>
 
-        <div class="row flex-items-xs-middle flex-items-xs-center justify-content-center">
+        <div class="row justify-content-center">
 
           {{-- WhatsApp --}}
-          <div class="col-xs-12 col-lg-4" data-aos="fade-up">
-            <div class="card" style="border: 2px solid #25D366;">
-              <div class="card-header" style="background: linear-gradient(135deg, #25D366, #128C7E);">
-                <div style="text-align:center; color:white; font-size:13px; font-weight:600; margin-bottom:4px;">WhatsApp Business</div>
-                <h3 style="color:white;"><span class="currency">K</span>500<span class="period">/month</span></h3>
-              </div>
-              <div class="card-block">
-                <div style="text-align:center; margin-bottom:10px;">
-                  <span style="background:#e8f5e9; color:#2e7d32; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:600;">🎉 10 free sends on sign-up</span>
+          <div class="col-xs-12 col-sm-6 col-lg-4" data-aos="fade-up" style="padding:10px;">
+            <div style="border-radius:18px;border:2px solid #25D366;background:#0f2018;padding:32px 28px;height:100%;box-shadow:0 8px 32px rgba(37,211,102,0.2);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+                <div style="background:#25D366;border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
                 </div>
-                <ul style="list-style:none; padding:0; text-align:left; font-size:13px; color:#555;">
-                  <li style="margin-bottom:6px;">✅ Meta WhatsApp Cloud API</li>
-                  <li style="margin-bottom:6px;">✅ Approved message templates</li>
-                  <li style="margin-bottom:6px;">✅ Bulk multi-recipient sends</li>
-                  <li style="margin-bottom:6px;">✅ Delivery status tracking</li>
-                  <li>✅ Full message history</li>
-                </ul>
+                <div>
+                  <div style="font-size:11px;color:#25D366;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">WhatsApp Business</div>
+                  <div style="font-size:26px;font-weight:800;color:#f1f5f9;line-height:1.1;">K500<span style="font-size:14px;font-weight:400;color:#94a3b8;">/month</span></div>
+                </div>
               </div>
+              <div style="margin-bottom:18px;">
+                <span style="background:rgba(37,211,102,0.15);color:#4ade80;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;">&#127881; 10 free sends on sign-up</span>
+              </div>
+              <ul style="list-style:none;padding:0;margin:0;font-size:13px;color:#94a3b8;line-height:1.7;">
+                <li>&#10003; Meta WhatsApp Cloud API</li>
+                <li>&#10003; Approved message templates</li>
+                <li>&#10003; Bulk multi-recipient sends</li>
+                <li>&#10003; Delivery status tracking</li>
+                <li>&#10003; Full message history</li>
+              </ul>
+              <a href="/admin/register" style="display:block;text-align:center;margin-top:22px;background:#25D366;color:#fff;font-weight:700;font-size:14px;padding:12px;border-radius:10px;text-decoration:none;">Activate WhatsApp &#8594;</a>
             </div>
           </div>
 
           {{-- Email --}}
-          <div class="col-xs-12 col-lg-4" data-aos="fade-up">
-            <div class="card" style="border: 2px solid #4285F4;">
-              <div class="card-header" style="background: linear-gradient(135deg, #4285F4, #1565C0);">
-                <div style="text-align:center; color:white; font-size:13px; font-weight:600; margin-bottom:4px;">Bulk Email</div>
-                <h3 style="color:white;"><span class="currency">K</span>300<span class="period">/month</span></h3>
-              </div>
-              <div class="card-block">
-                <div style="text-align:center; margin-bottom:10px;">
-                  <span style="background:#e3f2fd; color:#1565c0; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:600;">🎉 10 free sends on sign-up</span>
+          <div class="col-xs-12 col-sm-6 col-lg-4" data-aos="fade-up" style="padding:10px;">
+            <div style="border-radius:18px;border:2px solid #4285F4;background:#0d1a2e;padding:32px 28px;height:100%;box-shadow:0 8px 32px rgba(66,133,244,0.2);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+                <div style="background:#4285F4;border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
                 </div>
-                <ul style="list-style:none; padding:0; text-align:left; font-size:13px; color:#555;">
-                  <li style="margin-bottom:6px;">✅ Single & bulk email sends</li>
-                  <li style="margin-bottom:6px;">✅ Your own SMTP server</li>
-                  <li style="margin-bottom:6px;">✅ Rich HTML email composer</li>
-                  <li style="margin-bottom:6px;">✅ Send to all contacts</li>
-                  <li>✅ Full delivery logs</li>
-                </ul>
+                <div>
+                  <div style="font-size:11px;color:#4285F4;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Bulk Email</div>
+                  <div style="font-size:26px;font-weight:800;color:#f1f5f9;line-height:1.1;">K300<span style="font-size:14px;font-weight:400;color:#94a3b8;">/month</span></div>
+                </div>
               </div>
+              <div style="margin-bottom:18px;">
+                <span style="background:rgba(66,133,244,0.15);color:#60a5fa;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;">&#127881; 10 free sends on sign-up</span>
+              </div>
+              <ul style="list-style:none;padding:0;margin:0;font-size:13px;color:#94a3b8;line-height:1.7;">
+                <li>&#10003; Single &amp; bulk email sends</li>
+                <li>&#10003; Your own SMTP server</li>
+                <li>&#10003; Gmail, Zoho, Outlook &amp; more</li>
+                <li>&#10003; Send to all contacts at once</li>
+                <li>&#10003; Full delivery logs</li>
+              </ul>
+              <a href="/admin/register" style="display:block;text-align:center;margin-top:22px;background:#4285F4;color:#fff;font-weight:700;font-size:14px;padding:12px;border-radius:10px;text-decoration:none;">Activate Email &#8594;</a>
             </div>
           </div>
 

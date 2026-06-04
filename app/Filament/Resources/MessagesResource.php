@@ -2,21 +2,22 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Imports\MessagesImporter;
 use App\Filament\Resources\MessagesResource\Pages;
 use App\Filament\Resources\MessagesResource\RelationManagers;
-use App\Filament\Imports\MessagesImporter;
-use Filament\Tables\Actions\ImportAction;
 use App\Models\Messages;
 use App\Models\SenderId;
+use App\Services\SmsDispatcher;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ImportAction;
 use Filament\Tables\Table;
+use Http;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Notifications\Notification;
-use Http;
 
 class MessagesResource extends Resource
 {
@@ -44,11 +45,10 @@ class MessagesResource extends Resource
                             ->label('Phone')
                             ->prefixIcon('heroicon-o-phone')
                             ->required()
-                            ->maxLength(255)
+                            ->maxLength(20)
                             ->tel()
-                            ->telRegex('/^(09|07)[5|6|7][0-9]{7}$/')
-
-
+                            ->placeholder('260973008909')
+                            ->helperText('Include country code — e.g. 260973008909 for Zambia, 254700000000 for Kenya'),
                     ])
                     ->columnSpan(2)
                     ->addActionLabel('Add Phone number')
@@ -57,6 +57,28 @@ class MessagesResource extends Resource
                 Forms\Components\TextInput::make('status')
                     ->hidden()
                     ->maxLength(255),
+
+                // ── Mocean-only options ────────────────────────────────────
+                Forms\Components\Section::make('Advanced Delivery Options')
+                    ->description('Additional options available on your current messaging plan.')
+                    ->icon('heroicon-o-signal')
+                    ->schema([
+                        Forms\Components\Toggle::make('flash_sms')
+                            ->label('Flash SMS')
+                            ->helperText('Message pops up immediately on the recipient\'s screen without being saved to their inbox.')
+                            ->columnSpan(1),
+
+                        Forms\Components\DateTimePicker::make('schedule_at')
+                            ->label('Schedule Send')
+                            ->helperText('Leave blank to send immediately. Uses your local time (UTC+2).')
+                            ->minDate(now())
+                            ->displayFormat('Y-m-d H:i')
+                            ->native(false)
+                            ->columnSpan(1),
+                    ])
+                    ->columns(2)
+                    ->visible(fn () => SmsDispatcher::isMocean())
+                    ->collapsible(),
             ]);
     }
 

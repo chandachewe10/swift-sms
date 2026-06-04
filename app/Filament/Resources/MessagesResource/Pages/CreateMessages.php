@@ -1,13 +1,13 @@
 <?php
+
 namespace App\Filament\Resources\MessagesResource\Pages;
 
 use App\Filament\Resources\MessagesResource;
-use Illuminate\Database\Eloquent\Model;
-use Filament\Notifications\Notification;
 use App\Models\Messages;
-use App\Models\SenderId;
+use App\Services\SmsDispatcher;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Http;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateMessages extends CreateRecord
 {
@@ -15,95 +15,80 @@ class CreateMessages extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $contacts = $data['contact'];
-        $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->where('is_approved','=',1)->first()->name ?? '';
-        $message = $data['message'];
+        $user = auth()->user();
 
+        // Build a flat array of phone number strings
+        $contactStrings = array_filter(
+            array_map(
+                fn ($c) => is_array($c) ? ($c['contact'] ?? '') : $c,
+                $data['contact']
+            )
+        );
 
-if(is_null($senderId) || empty($senderId)){
-    Notification::make()
-    ->title('Invalid SenderId')
-    ->body('Please wait for your Sender ID to be approved')
-    ->warning()
-    ->send();
-    $this->halt();
-}
-
-
-        // Ensure each contact is a string
-        $contactStrings = array_map(function($contact) {
-            // Assuming each contact is an array with a 'contact' key
-            return is_array($contact) ? $contact['contact'] : $contact;
-        }, $contacts);
-
-        // Check if the user has enough balance
-        if (auth()->user()->wallet->balance < count($contactStrings)) {
-            $difference = count($contactStrings) - auth()->user()->wallet->balance;
+        if (empty($contactStrings)) {
             Notification::make()
-                ->title('Insufficient SMS Balance')
-                ->body('You have Insufficient SMS Balance to send ' . $difference . ' number of Message(s)')
+                ->title('No phone numbers entered')
                 ->warning()
                 ->send();
-                $this->halt();
-
+            $this->halt();
         }
 
-        // Convert the array of contact strings into a comma-separated string
-        $contactsString = implode(',', $contactStrings);
+        // Balance check
+        if ($user->wallet->balance < count($contactStrings)) {
+            $diff = count($contactStrings) - $user->wallet->balance;
+            Notification::make()
+                ->title('Insufficient SMS Balance')
+                ->body("You need {$diff} more SMS credit(s).")
+                ->warning()
+                ->send();
+            $this->halt();
+        }
 
-        // URL encode the components
-        $encodedContacts = urlencode($contactsString);
-        $encodedSenderId = urlencode($senderId);
-        $encodedMessage = urlencode($message);
+        $options = [
+            'flash'    => (bool) ($data['flash_sms']   ?? false),
+            'schedule' => $data['schedule_at'] ?? null,
+        ];
 
+        // ── Dispatch ──────────────────────────────────────────────────────
+        $result = SmsDispatcher::send(
+            $user->user_id,
+            array_values($contactStrings),
+            $data['message'],
+            $options
+        );
 
-        $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
+        $record = Messages::create([
+            'message'      => $data['message'],
+            'responseText' => $result['responseText'],
+            'contact'      => implode(',', $contactStrings),
+            'status'       => $result['success'] ? 200 : 400,
+            'company_id'   => $user->user_id,
+        ]);
 
-        // Send the HTTP request
-        $response = Http::timeout(300)->get($url);
+        if ($result['success']) {
+            $user->wallet->withdraw(
+                count($contactStrings),
+                ['description' => 'Sending SMS via ' . SmsDispatcher::activeProvider()]
+            );
 
-        // Normalise to array — $response->json() returns null when the API sends
-        // a non-JSON or empty body (e.g. a Zamtel timeout). Accessing null['key']
-        // in PHP 8 raises an ErrorException even with ??, so we guard here.
-        $responseData = $response->json() ?? [];
-        $statusCode   = $responseData['statusCode'] ?? 0;
-        $responseText = $responseData['responseText'] ?? null;
-
-        if ($statusCode == 202) {
-            // Withdraw the amount from the user's wallet
-            auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
-
-            $data = Messages::create([
-                'message'      => $message,
-                'responseText' => $responseText ?? 'SMS(es) have been queued for delivery',
-                'contact'      => $contactsString,
-                'status'       => $response->status(),
-                'company_id'   => auth()->user()->user_id,
-            ]);
+            $suffix = (! empty($options['schedule']))
+                ? ' Scheduled for ' . $data['schedule_at'] . '.'
+                : '';
 
             Notification::make()
                 ->title('Message(s) sent')
-                ->body($responseText ?? 'SMS(es) have been queued for delivery')
+                ->body($result['responseText'] . $suffix)
                 ->success()
                 ->send();
-            $this->halt();
-            return $data;
         } else {
-            $data = Messages::create([
-                'message'      => $message,
-                'responseText' => $responseText ?? 'No response from the network — message may not have been delivered.',
-                'contact'      => $contactsString,
-                'status'       => $response->status(),
-                'company_id'   => auth()->user()->user_id,
-            ]);
-
             Notification::make()
                 ->title('Failed to send message(s)')
-                ->body($responseText ?? 'No response received from the network. Please try again.')
+                ->body($result['responseText'])
                 ->danger()
                 ->send();
-            $this->halt();
-            return $data;
         }
+
+        $this->halt();
+        return $record;
     }
 }

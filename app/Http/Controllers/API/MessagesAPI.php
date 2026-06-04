@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
+use App\Models\Messages;
+use App\Models\Payment;
+use App\Models\SenderId;
+use App\Models\User;
+use App\Services\SmsDispatcher;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\SuccessfullSms;
-use App\Models\UnSuccessfullSms;
-use App\Models\User;
-use App\Models\SenderId;
-use App\Models\Messages;
 use Illuminate\Support\Facades\Http;
-use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
 
 class MessagesAPI extends Controller
@@ -63,42 +62,35 @@ class MessagesAPI extends Controller
 
 
 
-              $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . urlencode($contacts) . '/senderId/' . urlencode($senderId) . '/message/' . urlencode($message);
-              $response = Http::get($url);
+              $numbersArray = array_filter(array_map('trim', explode(',', $contacts)));
 
-             // Normalise to plain array — collect() returns a Collection whose
-             // offsetGet() throws "Undefined array key" when the key is missing.
-             // json() returns null on a non-JSON/empty body (e.g. Zamtel timeout),
-             // so we fall back to [] to make all key accesses safe.
-             $data         = $response->json() ?? [];
-             $responseText = $data['responseText'] ?? 'No response received from the network.';
-             $statusCode   = $data['statusCode']   ?? $response->status();
+             // Optional Mocean-specific params from the API request
+             $options = [
+                 'flash'    => (bool) ($request->flash_sms   ?? false),
+                 'schedule' => $request->schedule_at ?? null,
+             ];
 
-             if ($response->successful() && $statusCode == 202)  {
+             $result = SmsDispatcher::send(
+                 $company->user_id,
+                 array_values($numbersArray),
+                 $message,
+                 $options
+             );
 
-                $company->wallet->withdraw(count(explode(',',$request->numbers)),['description' => 'Sending of SMS(s) via APIs']);
-                Messages::create([
-                    'message'      => $message,
-                    'responseText' => $responseText,
-                    'contact'      => $contacts,
-                    'status'       => $response->status(),
-                    'company_id'   => $company->user_id,
-                ]);
+             Messages::create([
+                 'message'      => $message,
+                 'responseText' => $result['responseText'],
+                 'contact'      => $contacts,
+                 'status'       => $result['statusCode'],
+                 'company_id'   => $company->user_id,
+             ]);
 
-                return response()->json(['success' => 'true', 'message' => $responseText], 202);
+             if ($result['success']) {
+                 $company->wallet->withdraw(count($numbersArray), ['description' => 'Sending SMS via API (' . SmsDispatcher::activeProvider() . ')']);
+                 return response()->json(['success' => 'true', 'message' => $result['responseText']], 202);
              }
 
-             else  {
-                Messages::create([
-                    'message'      => $message,
-                    'responseText' => $responseText,
-                    'contact'      => $contacts,
-                    'status'       => $response->status(),
-                    'company_id'   => $company->user_id,
-                ]);
-
-                return response()->json(['success' => 'false', 'message' => $responseText], $response->status() ?: 500);
-             }
+             return response()->json(['success' => 'false', 'message' => $result['responseText']], $result['statusCode'] ?: 500);
 
 
 

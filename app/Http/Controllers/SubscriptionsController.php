@@ -79,18 +79,14 @@ public function completeSubscription(Request $request, $amount)
 
      Log::info('Subscription payment completed', $request->all());
 
-        // Map amount to SMS bundle
+        // Map amount to SMS bundle (Option B — volume discount pricing)
         $bundles = [
-             
-            500  => 1000,
-            800  => 2000,
-            1100 => 3000,
-            1400 => 4000,
-            1700 => 5000,
-            2000 => 6000,
-            2200 => 7000,
-            2500 => 8000,
-            3000 => 10000,
+            800  => 1000,
+            1500 => 2000,
+            2100 => 3000,
+            3500 => 5000,
+            5200 => 8000,
+            6000 => 10000,
         ];
 
         $numberOfSms = $bundles[$amount] ?? 0; // fallback to 0 if invalid amount

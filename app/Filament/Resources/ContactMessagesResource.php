@@ -6,6 +6,7 @@ use App\Filament\Resources\ContactMessagesResource\Pages;
 use App\Filament\Resources\ContactMessagesResource\RelationManagers;
 use App\Models\Contact;
 use App\Models\Messages as ContactMessages;
+use App\Services\SmsDispatcher;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Select;
@@ -108,6 +109,28 @@ class ContactMessagesResource extends Resource
                     ->hidden(fn (callable $get) => (bool) $get('send_to_all') || ! empty($get('tag_filter')))
                     ->required(fn (callable $get) => ! $get('send_to_all') && empty($get('tag_filter')))
                     ->columnSpan(2),
+
+                // ── Mocean-only options ────────────────────────────────────
+                Forms\Components\Section::make('Advanced Delivery Options')
+                    ->description('Additional options available on your current messaging plan.')
+                    ->icon('heroicon-o-signal')
+                    ->schema([
+                        Forms\Components\Toggle::make('flash_sms')
+                            ->label('Flash SMS')
+                            ->helperText('Message pops up on the recipient\'s screen immediately without being stored in their inbox.')
+                            ->columnSpan(1),
+
+                        Forms\Components\DateTimePicker::make('schedule_at')
+                            ->label('Schedule Send')
+                            ->helperText('Leave blank to send immediately. Uses your local time (UTC+2).')
+                            ->minDate(now())
+                            ->displayFormat('Y-m-d H:i')
+                            ->native(false)
+                            ->columnSpan(1),
+                    ])
+                    ->columns(2)
+                    ->visible(fn () => SmsDispatcher::isMocean())
+                    ->collapsible(),
             ]);
     }
 

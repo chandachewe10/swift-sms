@@ -41,23 +41,28 @@ class ContactResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone1')
                     ->label('Primary Phone Number')
-                    ->helperText('This is the phone number which will be recieving mesages')
+                    ->helperText('Include country code — e.g. 260973008909 for Zambia. This number will receive messages.')
+                    ->placeholder('260973008909')
                     ->unique(ignoreRecord: true)
                     ->tel()
                     ->prefixIcon('heroicon-o-phone')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(20),
                 Forms\Components\TextInput::make('phone2')
                     ->tel()
                     ->label('Secondary Phone Number')
+                    ->placeholder('260973008909')
+                    ->helperText('Include country code, e.g. 260973008909')
                     ->prefixIcon('heroicon-o-phone')
-                    ->maxLength(255)
+                    ->maxLength(20)
                     ->default(null),
                 Forms\Components\TextInput::make('phone3')
                     ->label('Emergency Phone Number')
                     ->tel()
+                    ->placeholder('260973008909')
+                    ->helperText('Include country code, e.g. 260973008909')
                     ->prefixIcon('heroicon-o-phone')
-                    ->maxLength(255)
+                    ->maxLength(20)
                     ->default(null),
                 Forms\Components\TextInput::make('email')
                     ->prefixIcon('heroicon-o-envelope')

@@ -4,6 +4,7 @@ namespace App\Observers;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class UserObserver
 {
@@ -14,13 +15,7 @@ class UserObserver
 
     public function creating(User $user): void
     {
-        // Generate a unique user_id before the user is created
-        // $user->user_id = IdGenerator::generate([
-        //     'table' => 'users',
-        //     'field' => 'user_id',
-        //     'length' => 8,
-        //     'prefix' => date('y') 
-        // ]);
+        //
     }
 
 
@@ -33,6 +28,12 @@ class UserObserver
         $unique_identifier = $user->id;
         $user->user_id = IdGenerator::generate(['table' => 'users', 'field' => 'user_id', 'length' => 8, 'prefix' => $unique_identifier]);
         $user->save();
+
+        // Assign the default panel_user role so new users can access the platform
+        $panelUserRole = Role::firstOrCreate(
+            ['name' => 'panel_user', 'guard_name' => 'web'],
+        );
+        $user->assignRole($panelUserRole);
     }
 
     /**

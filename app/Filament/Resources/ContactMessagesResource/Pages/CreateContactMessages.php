@@ -2,15 +2,14 @@
 
 namespace App\Filament\Resources\ContactMessagesResource\Pages;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\ContactMessagesResource;
-use Filament\Actions;
 use App\Models\Contact;
-use App\Models\Messages; 
-use App\Models\SenderId;
+use App\Models\Messages;
+// SenderId resolved inside SmsDispatcher
+use App\Services\SmsDispatcher;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Http;
-use Filament\Notifications\Notification; 
+use Illuminate\Database\Eloquent\Model;
 
 class CreateContactMessages extends CreateRecord
 {
@@ -66,11 +65,9 @@ class CreateContactMessages extends CreateRecord
             $audienceLabel = 'Selected Contacts';
         }
         
-        // Extract phone numbers from contacts
-        $contactStrings = $contacts->map(function($contact) {
-            return $contact->phone1; 
-        })->filter()->toArray(); // Filter out empty phone numbers
-        
+        // Extract phone numbers
+        $contactStrings = $contacts->pluck('phone1')->filter()->values()->toArray();
+
         if (empty($contactStrings)) {
             Notification::make()
                 ->title('No Valid Phone Numbers')
@@ -79,189 +76,71 @@ class CreateContactMessages extends CreateRecord
                 ->send();
             $this->halt();
         }
-        
-        // Get the sender ID and message
-        $senderId = SenderId::where('company_id', "=", auth()->user()->user_id)
-            ->where('is_approved', '=', 1)
-            ->first()->name ?? '';
-        $message = $data['message'];
-       
-        if (is_null($senderId) || empty($senderId)) {
+
+        $user         = auth()->user();
+        $message      = $data['message'];
+        $contactCount = count($contactStrings);
+
+        // Balance check
+        if ($user->wallet->balance < $contactCount) {
+            $diff = $contactCount - $user->wallet->balance;
             Notification::make()
-                ->title('Invalid SenderId')
-                ->body('Please wait for your Sender ID to be approved')
+                ->title('Insufficient SMS Balance')
+                ->body("You need {$diff} more SMS credit(s) to reach {$contactCount} contacts.")
                 ->warning()
                 ->send();
             $this->halt();
         }
 
-        // Check user balance
-        $user = auth()->user();
-        $balance = $user->wallet->balance;
-        $contactCount = count($contactStrings);
-        
-        if ($balance < $contactCount) {
-            $difference = $contactCount - $balance;
-            Notification::make()
-                ->title('Insufficient SMS Balance')
-                ->body("You have insufficient SMS balance. You need {$difference} more SMS credits to send to {$contactCount} contacts.")
-                ->warning()
-                ->send();
-            $this->halt();
-        }
-        
-        // Process contacts in chunks of 50
-        $batchSize = 50;
-        $contactBatches = array_chunk($contactStrings, $batchSize);
-        $allResponses = [];
-        $successCount = 0;
-        $failureCount = 0;
-        $totalBatches = count($contactBatches);
-        
-        foreach ($contactBatches as $batchIndex => $batch) {
-            $batchContactsString = implode(',', $batch);
-            
-            // URL encode the components
-            $encodedContacts = urlencode($batchContactsString);
-            $encodedSenderId = urlencode($senderId);
-            $encodedMessage = urlencode($message);
-            
-            // Construct the URL with properly encoded components
-            $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
-            
-            try {
-                // Send the HTTP request for this batch
-                $response = Http::timeout(300)->get($url);
-                
-                // Handle the response
-                // Normalise — null when API returns non-JSON/empty body (e.g. Zamtel timeout)
-                $responseData = [];
-                try {
-                    $responseData = $response->json() ?? [];
-                } catch (\Exception $e) {
-                    \Log::error('Failed to parse JSON response for batch', [
-                        'batch' => $batchIndex + 1,
-                        'status' => $response->status(),
-                        'body' => $response->body(),
-                        'error' => $e->getMessage()
-                    ]);
-                }
-                
-                $allResponses[] = [
-                    'batch' => $batchIndex + 1,
-                    'contacts_count' => count($batch),
-                    'response' => $responseData,
-                    'status' => $response->status()
-                ];
-                
-                // Check if this batch was successful
-                if ($responseData && isset($responseData['statusCode']) && $responseData['statusCode'] == 202) {
-                    $successCount += count($batch);
-                } else {
-                    $failureCount += count($batch);
-                    \Log::warning('SMS batch failed', [
-                        'batch' => $batchIndex + 1,
-                        'status' => $response->status(),
-                        'response' => $responseData
-                    ]);
-                }
-                
-            } catch (\Exception $e) {
-                \Log::error('SMS API Batch Request Failed', [
-                    'batch' => $batchIndex + 1,
-                    'error' => $e->getMessage(),
-                    'batch_size' => count($batch)
-                ]);
-                $failureCount += count($batch);
-                
-                $allResponses[] = [
-                    'batch' => $batchIndex + 1,
-                    'contacts_count' => count($batch),
-                    'response' => null,
-                    'error' => $e->getMessage()
-                ];
-            }
-            
-            // Add a small delay between batches to avoid overwhelming the API
-            if ($batchIndex < $totalBatches - 1) {
-                usleep(500000); // 0.5 second delay between batches
-            }
-        }
-        
-        // Create consolidated response message
-        $consolidatedResponseText = "Processed {$contactCount} contacts in {$totalBatches} batches. Success: {$successCount}, Failed: {$failureCount}";
-        
-        // Get the first successful response text or create a default one
-        $firstSuccessfulResponse = collect($allResponses)->first(function($response) {
-            return $response['response'] && isset($response['response']['statusCode']) && $response['response']['statusCode'] == 202;
-        });
-        
-        if ($firstSuccessfulResponse && isset($firstSuccessfulResponse['response']['responseText'])) {
-            $consolidatedResponseText = $firstSuccessfulResponse['response']['responseText'] . " | " . $consolidatedResponseText;
-        }
-        
-        // Prepare data for message record creation
+        // Mocean options (ignored when provider is Zamtel)
+        $options = [
+            'flash'    => (bool) ($data['flash_sms']   ?? false),
+            'schedule' => $data['schedule_at'] ?? null,
+        ];
+
+        // ── Dispatch ──────────────────────────────────────────────────────
+        $result = SmsDispatcher::send($user->user_id, $contactStrings, $message, $options);
+
         $contactLogValue = match(true) {
             ($data['send_to_all'] ?? false) => 'All Contacts (' . $contactCount . ')',
             ! empty($data['tag_filter'])    => 'Tag: ' . $data['tag_filter'] . ' (' . $contactCount . ')',
             default                         => implode(',', $contactStrings),
         };
 
-        $messageData = [
+        $messageRecord = Messages::create([
             'message'      => $message,
-            'responseText' => $consolidatedResponseText,
+            'responseText' => $result['responseText'],
             'contact'      => $contactLogValue,
-            'status'       => $successCount > 0 ? 200 : 400,
-            'company_id'   => auth()->user()->user_id,
-        ];
-        
-        // Create the message record
-        $messageRecord = Messages::create($messageData);
-        
-        // Send notification based on overall results
-        if ($successCount > 0) {
-            // Withdraw the amount from the user's wallet (only for successful messages)
-            $user->wallet->withdraw($successCount, ['description' => 'Sending SMS']);
-            
+            'status'       => $result['success'] ? 200 : 400,
+            'company_id'   => $user->user_id,
+        ]);
+
+        if ($result['success']) {
+            $user->wallet->withdraw($contactCount, ['description' => 'Sending SMS via ' . SmsDispatcher::activeProvider()]);
+
             $recipientText = match(true) {
                 ($data['send_to_all'] ?? false) => 'all contacts',
                 ! empty($data['tag_filter'])    => $contactCount . ' contacts with tag "' . $data['tag_filter'] . '"',
                 default                         => $contactCount . ' selected contacts',
             };
-            
-            if ($failureCount > 0) {
-                // Partial success
-                Notification::make()
-                    ->title('Messages Partially Sent')
-                    ->body("Successfully sent to {$successCount} contacts, {$failureCount} failed. Processed in {$totalBatches} batches.")
-                    ->warning()
-                    ->send();
-            } else {
-                // Complete success
-                Notification::make()
-                    ->title('All Messages Sent Successfully')
-                    ->body("SMS(es) have been queued for delivery to {$recipientText}. Processed in {$totalBatches} batches.")
-                    ->success()
-                    ->send();
-            }
-        } else {
-            // Complete failure
+
+            $suffix = (! empty($options['schedule']))
+                ? ' Scheduled for ' . $data['schedule_at'] . '.'
+                : '';
+
             Notification::make()
-                ->title('Failed to Send Messages')
-                ->body("All {$contactCount} messages failed to send. Please check your configuration and try again.")
+                ->title('Messages sent successfully')
+                ->body("Delivered to {$recipientText}.{$suffix}")
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Failed to send messages')
+                ->body($result['responseText'])
                 ->danger()
                 ->send();
         }
-        
-        // Log the batch processing results for debugging
-        \Log::info('SMS Batch Processing Complete', [
-            'total_contacts' => $contactCount,
-            'total_batches' => $totalBatches,
-            'success_count' => $successCount,
-            'failure_count' => $failureCount,
-            'user_id' => auth()->user()->user_id
-        ]);
-        
+
         $this->halt();
         return $messageRecord;
     }
