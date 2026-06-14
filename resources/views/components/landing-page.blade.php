@@ -8,7 +8,6 @@
       padding: 14px 0;
       background: #fff;
       box-shadow: 0 2px 20px rgba(0,0,0,0.10);
-      /* Hidden above viewport by default */
       transform: translateY(-100%);
       opacity: 0;
       transition: transform 0.35s ease, opacity 0.35s ease;
@@ -17,7 +16,6 @@
       transform: translateY(0);
       opacity: 1;
     }
-    #swift-header .nav-logo img { height: 36px; border-radius: 50%; }
     #swift-header nav a {
       color: #374151;
       font-size: 13px;
@@ -34,6 +32,103 @@
       border-radius: 8px;
       font-weight: 700 !important;
     }
+
+    /* Hamburger button */
+    #mobile-menu-btn {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    #mobile-menu-btn span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background: #0a0f1e;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    #mobile-menu-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    #mobile-menu-btn.open span:nth-child(2) { opacity: 0; }
+    #mobile-menu-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    @media (max-width: 991px) {
+      #mobile-menu-btn { display: flex; }
+    }
+
+    /* Mobile drawer overlay */
+    #mobile-drawer {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 9998;
+      display: flex;
+      pointer-events: none;
+    }
+    #mobile-drawer-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #mobile-drawer-panel {
+      position: absolute;
+      top: 0; right: 0;
+      width: min(80vw, 300px);
+      height: 100%;
+      background: #fff;
+      box-shadow: -4px 0 30px rgba(0,0,0,0.15);
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 24px;
+      overflow-y: auto;
+    }
+    #mobile-drawer.open {
+      pointer-events: all;
+    }
+    #mobile-drawer.open #mobile-drawer-overlay { opacity: 1; }
+    #mobile-drawer.open #mobile-drawer-panel   { transform: translateX(0); }
+
+    #mobile-drawer-panel .drawer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    #mobile-drawer-panel a.drawer-link {
+      display: block;
+      color: #374151;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 13px 0;
+      border-bottom: 1px solid #f1f5f9;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    #mobile-drawer-panel a.drawer-link:hover { color: #F9A826; }
+    #mobile-drawer-panel .drawer-cta {
+      display: block;
+      margin-top: 24px;
+      background: #F9A826;
+      color: #0a0f1e !important;
+      font-weight: 800;
+      font-size: 15px;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      text-decoration: none;
+    }
   </style>
 
   <header id="swift-header">
@@ -42,6 +137,8 @@
         <img src="{{asset('landing-page/img/logo/logo.jpg')}}" alt="SwiftSMS" style="height:36px;border-radius:50%;">
         <span style="font-weight:800;font-size:18px;color:#0a0f1e;">SwiftSMS</span>
       </a>
+
+      <!-- Desktop nav -->
       <nav class="d-none d-lg-flex align-items-center" style="gap:28px;">
         <a href="#why-us">ABOUT</a>
         <a href="#services">SERVICES</a>
@@ -51,12 +148,39 @@
         <a href="/admin/login">LOGIN</a>
         <a href="/admin/register" class="btn-started">GET STARTED</a>
       </nav>
+
+      <!-- Mobile hamburger -->
+      <button id="mobile-menu-btn" aria-label="Open menu" onclick="toggleDrawer()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
 
+  <!-- Mobile drawer -->
+  <div id="mobile-drawer">
+    <div id="mobile-drawer-overlay" onclick="toggleDrawer()"></div>
+    <div id="mobile-drawer-panel">
+      <div class="drawer-logo">
+        <img src="{{asset('landing-page/img/logo/logo.jpg')}}" alt="SwiftSMS" style="height:34px;border-radius:50%;">
+        <span style="font-weight:800;font-size:17px;color:#0a0f1e;">SwiftSMS</span>
+      </div>
+      <a href="#why-us"      class="drawer-link" onclick="toggleDrawer()">About</a>
+      <a href="#services"    class="drawer-link" onclick="toggleDrawer()">Services</a>
+      <a href="#pricing"     class="drawer-link" onclick="toggleDrawer()">Pricing</a>
+      <a href="{{route('api_docs')}}" class="drawer-link" onclick="toggleDrawer()">API Docs</a>
+      <a href="#footer"      class="drawer-link" onclick="toggleDrawer()">Contact</a>
+      <a href="/admin/login" class="drawer-link" onclick="toggleDrawer()">Login</a>
+      <a href="/admin/register" class="drawer-cta">Get Started &#8594;</a>
+    </div>
+  </div>
+
   <script>
     (function(){
-      var header = document.getElementById('swift-header');
+      var header  = document.getElementById('swift-header');
+      var drawer  = document.getElementById('mobile-drawer');
+      var menuBtn = document.getElementById('mobile-menu-btn');
+
+      // Show header on scroll
       window.addEventListener('scroll', function(){
         if (window.scrollY > 80) {
           header.classList.add('visible');
@@ -64,6 +188,12 @@
           header.classList.remove('visible');
         }
       });
+
+      window.toggleDrawer = function() {
+        var isOpen = drawer.classList.toggle('open');
+        menuBtn.classList.toggle('open', isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      };
     })();
   </script>
   <!-- End Header -->
