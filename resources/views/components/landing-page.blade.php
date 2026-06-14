@@ -104,7 +104,7 @@
               <div style="space-y:12px;">
                 <div style="background:rgba(249,168,38,0.1);border:1px solid rgba(249,168,38,0.2);border-radius:12px;padding:14px;margin-bottom:12px;">
                   <div style="font-size:11px;color:#F9A826;font-weight:700;margin-bottom:4px;">&#128232; BULK SMS — SENT</div>
-                  <div style="color:#f1f5f9;font-size:14px;">"Your order #4521 has been confirmed. Track it at swiftsms.co.zm"</div>
+                  <div style="color:#f1f5f9;font-size:14px;">"Your OTP code is 847291. Valid for 5 minutes. Do not share this code with anyone."</div>
                   <div style="font-size:11px;color:#64748b;margin-top:8px;">&#10003;&#10003; Delivered to 1,247 contacts &bull; MTN, Airtel, Zamtel</div>
                 </div>
                 <div style="background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.2);border-radius:12px;padding:14px;margin-bottom:12px;">
