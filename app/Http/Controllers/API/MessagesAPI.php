@@ -53,18 +53,25 @@ class MessagesAPI extends Controller
             }
 
 
-             // Check if the SMS balance is less than the message request and terminate the request
-             $company = User::where('user_id',"=",$user->company_id)->first();
-             if($company->wallet->balance  < $count) {
-                $difference = ($count) - ($company->wallet->balance);
-                return response()->json(['success'=>'false','message' => 'Insufficient SMS Balance of: '.$difference. ' to send all the message(s)'], 422);
-            }
+             $company = User::where('user_id', $user->company_id)->first();
 
+             $numbersArray = array_filter(array_map('trim', explode(',', $contacts)));
+             $split        = \App\Services\SmsDispatcher::splitByType(array_values($numbersArray));
+             $localCount   = count($split['local']);
+             $intlCount    = count($split['international']);
 
+             // Check local balance
+             if ($localCount > 0 && $company->wallet->balance < $localCount) {
+                 $diff = $localCount - $company->wallet->balance;
+                 return response()->json(['success' => 'false', 'message' => "Insufficient local SMS balance. Need {$diff} more credit(s)."], 422);
+             }
 
-              $numbersArray = array_filter(array_map('trim', explode(',', $contacts)));
+             // Check international balance
+             if ($intlCount > 0 && ($company->international_sms_credits ?? 0) < $intlCount) {
+                 $diff = $intlCount - ($company->international_sms_credits ?? 0);
+                 return response()->json(['success' => 'false', 'message' => "Insufficient international SMS balance. Need {$diff} more credit(s)."], 422);
+             }
 
-             // Optional Mocean-specific params from the API request
              $options = [
                  'flash'    => (bool) ($request->flash_sms   ?? false),
                  'schedule' => $request->schedule_at ?? null,
@@ -86,7 +93,12 @@ class MessagesAPI extends Controller
              ]);
 
              if ($result['success']) {
-                 $company->wallet->withdraw(count($numbersArray), ['description' => 'Sending SMS via API (' . SmsDispatcher::activeProvider() . ')']);
+                 if ($result['localCount'] > 0) {
+                     $company->wallet->withdraw($result['localCount'], ['description' => 'Local SMS sent via API']);
+                 }
+                 if ($result['internationalCount'] > 0) {
+                     $company->decrement('international_sms_credits', $result['internationalCount']);
+                 }
                  return response()->json(['success' => 'true', 'message' => $result['responseText']], 202);
              }
 

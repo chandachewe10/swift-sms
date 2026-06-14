@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Messages;
 use App\Models\SenderId;
 use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Http;
@@ -11,13 +10,46 @@ use Illuminate\Support\Facades\Log;
 class SmsDispatcher
 {
     /**
-     * Send SMS using the platform-configured provider (Zamtel or Mocean).
+     * Detect whether a (normalized) number is a local Zambian number.
+     * Zambian numbers after normalization: 12 digits starting with 260.
+     */
+    public static function isZambianNumber(string $number): bool
+    {
+        $digits = preg_replace('/\D/', '', $number);
+        return strlen($digits) === 12 && str_starts_with($digits, '260');
+    }
+
+    /**
+     * Split an array of numbers into ['local' => [...], 'international' => [...]].
+     */
+    public static function splitByType(array $numbers): array
+    {
+        $local         = [];
+        $international = [];
+
+        foreach ($numbers as $number) {
+            $normalized = MoceanService::normalizeNumber($number);
+            if (self::isZambianNumber($normalized)) {
+                $local[] = $number;
+            } else {
+                $international[] = $normalized; // pass normalized form for international
+            }
+        }
+
+        return ['local' => $local, 'international' => $international];
+    }
+
+    /**
+     * Send SMS — automatically routes local numbers via Zamtel and
+     * international numbers via Mocean, regardless of system setting.
      *
-     * @param  string   $companyId  user_id of the sending account
-     * @param  array    $numbers    Array of phone numbers (local or E.164)
-     * @param  string   $message    Message text
-     * @param  array    $options    flash (bool), schedule (datetime string)
-     * @return array{success: bool, responseText: string, statusCode: int, raw: array}
+     * Returns:
+     *   success            bool   — true if at least one group succeeded
+     *   responseText       string — combined status message
+     *   statusCode         int
+     *   localCount         int    — number of local numbers successfully sent
+     *   internationalCount int    — number of international numbers successfully sent
+     *   raw                array
      */
     public static function send(
         string $companyId,
@@ -25,17 +57,50 @@ class SmsDispatcher
         string $message,
         array  $options = []
     ): array {
-        $provider = SystemSetting::get('sms_provider', 'zamtel');
+        $split = self::splitByType($numbers);
 
-        if ($provider === 'mocean') {
-            return self::sendViaMocean($companyId, $numbers, $message, $options);
+        $localResult = ['success' => true, 'responseText' => '', 'statusCode' => 200, 'raw' => []];
+        $intlResult  = ['success' => true, 'responseText' => '', 'statusCode' => 200, 'raw' => []];
+
+        $localCount  = 0;
+        $intlCount   = 0;
+
+        // ── Local → Zamtel ────────────────────────────────────────────────
+        if (! empty($split['local'])) {
+            $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
+            if ($localResult['success']) {
+                $localCount = count($split['local']);
+            }
         }
 
-        return self::sendViaZamtel($companyId, $numbers, $message);
+        // ── International → Mocean ────────────────────────────────────────
+        if (! empty($split['international'])) {
+            $intlResult = self::sendViaMocean($companyId, $split['international'], $message, $options);
+            if ($intlResult['success']) {
+                $intlCount = count($split['international']);
+            }
+        }
+
+        $parts = [];
+        if (! empty($split['local'])) {
+            $parts[] = "Local: " . ($localResult['success'] ? "{$localCount} sent" : "failed — " . $localResult['responseText']);
+        }
+        if (! empty($split['international'])) {
+            $parts[] = "International: " . ($intlResult['success'] ? "{$intlCount} sent" : "failed — " . $intlResult['responseText']);
+        }
+
+        return [
+            'success'            => $localCount > 0 || $intlCount > 0,
+            'responseText'       => implode(' | ', $parts) ?: 'No numbers to send.',
+            'statusCode'         => $localResult['statusCode'] ?: $intlResult['statusCode'],
+            'localCount'         => $localCount,
+            'internationalCount' => $intlCount,
+            'raw'                => ['local' => $localResult['raw'], 'international' => $intlResult['raw']],
+        ];
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Zamtel (existing)
+    // Zamtel (local)
     // ──────────────────────────────────────────────────────────────────────────
 
     private static function sendViaZamtel(string $companyId, array $numbers, string $message): array
@@ -53,12 +118,12 @@ class SmsDispatcher
             ];
         }
 
-        $contactsString  = implode(',', $numbers);
+        $contactsString = implode(',', $numbers);
         $url = env('BULK_SMS_BASE_URI')
-            . '/api_key/'    . urlencode(env('BULK_SMS_TOKEN'))
-            . '/contacts/'   . urlencode($contactsString)
-            . '/senderId/'   . urlencode($senderId)
-            . '/message/'    . urlencode($message);
+            . '/api_key/'  . urlencode(env('BULK_SMS_TOKEN'))
+            . '/contacts/' . urlencode($contactsString)
+            . '/senderId/' . urlencode($senderId)
+            . '/message/'  . urlencode($message);
 
         try {
             $response     = Http::timeout(300)->get($url);
@@ -84,7 +149,7 @@ class SmsDispatcher
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Mocean
+    // Mocean (international)
     // ──────────────────────────────────────────────────────────────────────────
 
     private static function sendViaMocean(
@@ -95,7 +160,6 @@ class SmsDispatcher
     ): array {
         $token = SystemSetting::get('mocean_api_token');
 
-        // Always use the company's own approved Sender ID — never expose platform credentials
         $senderId = SenderId::where('company_id', $companyId)
             ->where('is_approved', 1)
             ->first()?->name;
@@ -103,7 +167,7 @@ class SmsDispatcher
         if (empty($token)) {
             return [
                 'success'      => false,
-                'responseText' => 'Mocean API token is not configured. Please set it in SMS Provider Settings.',
+                'responseText' => 'International SMS is not configured. Please contact support.',
                 'statusCode'   => 422,
                 'raw'          => [],
             ];
@@ -112,19 +176,14 @@ class SmsDispatcher
         if (empty($senderId)) {
             return [
                 'success'      => false,
-                'responseText' => 'No Sender ID configured for Mocean.',
+                'responseText' => 'No Sender ID configured for international SMS.',
                 'statusCode'   => 422,
                 'raw'          => [],
             ];
         }
 
-        // Normalize Zambian local numbers to E.164
-        $normalized = array_map([MoceanService::class, 'normalizeNumber'], $numbers);
-
-        $service = new MoceanService($token);
-
-        // Mocean allows up to 500 per request; batch if needed
-        $batches      = array_chunk($normalized, 500);
+        $service      = new MoceanService($token);
+        $batches      = array_chunk($numbers, 500);
         $successCount = 0;
         $lastResult   = [];
 
@@ -148,6 +207,7 @@ class SmsDispatcher
     // Helpers
     // ──────────────────────────────────────────────────────────────────────────
 
+    /** Still used by the SMS Provider Settings page UI */
     public static function activeProvider(): string
     {
         return SystemSetting::get('sms_provider', 'zamtel');

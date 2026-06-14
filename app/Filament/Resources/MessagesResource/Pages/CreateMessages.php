@@ -17,7 +17,6 @@ class CreateMessages extends CreateRecord
     {
         $user = auth()->user();
 
-        // Build a flat array of phone number strings
         $contactStrings = array_filter(
             array_map(
                 fn ($c) => is_array($c) ? ($c['contact'] ?? '') : $c,
@@ -26,21 +25,32 @@ class CreateMessages extends CreateRecord
         );
 
         if (empty($contactStrings)) {
-            Notification::make()
-                ->title('No phone numbers entered')
-                ->warning()
-                ->send();
+            Notification::make()->title('No phone numbers entered')->warning()->send();
             $this->halt();
         }
 
-        // Balance check
-        if ($user->wallet->balance < count($contactStrings)) {
-            $diff = count($contactStrings) - $user->wallet->balance;
+        // Split into local and international before dispatching
+        $split         = SmsDispatcher::splitByType(array_values($contactStrings));
+        $localCount    = count($split['local']);
+        $intlCount     = count($split['international']);
+
+        // Check local balance
+        if ($localCount > 0 && $user->wallet->balance < $localCount) {
+            $diff = $localCount - $user->wallet->balance;
             Notification::make()
-                ->title('Insufficient SMS Balance')
-                ->body("You need {$diff} more SMS credit(s).")
-                ->warning()
-                ->send();
+                ->title('Insufficient Local SMS Balance')
+                ->body("You need {$diff} more local SMS credit(s). Top up under Payments.")
+                ->warning()->send();
+            $this->halt();
+        }
+
+        // Check international balance
+        if ($intlCount > 0 && ($user->international_sms_credits ?? 0) < $intlCount) {
+            $diff = $intlCount - ($user->international_sms_credits ?? 0);
+            Notification::make()
+                ->title('Insufficient International SMS Balance')
+                ->body("You need {$diff} more international SMS credit(s). Top up under Payments.")
+                ->warning()->send();
             $this->halt();
         }
 
@@ -49,7 +59,6 @@ class CreateMessages extends CreateRecord
             'schedule' => $data['schedule_at'] ?? null,
         ];
 
-        // ── Dispatch ──────────────────────────────────────────────────────
         $result = SmsDispatcher::send(
             $user->user_id,
             array_values($contactStrings),
@@ -66,26 +75,25 @@ class CreateMessages extends CreateRecord
         ]);
 
         if ($result['success']) {
-            $user->wallet->withdraw(
-                count($contactStrings),
-                ['description' => 'Sending SMS via ' . SmsDispatcher::activeProvider()]
-            );
+            // Deduct local credits from wallet
+            if ($result['localCount'] > 0) {
+                $user->wallet->withdraw($result['localCount'], ['description' => 'Local SMS sent via Zamtel']);
+            }
+            // Deduct international credits from column
+            if ($result['internationalCount'] > 0) {
+                $user->decrement('international_sms_credits', $result['internationalCount']);
+            }
 
-            $suffix = (! empty($options['schedule']))
-                ? ' Scheduled for ' . $data['schedule_at'] . '.'
-                : '';
-
+            $suffix = (! empty($options['schedule'])) ? ' Scheduled for ' . $data['schedule_at'] . '.' : '';
             Notification::make()
                 ->title('Message(s) sent')
                 ->body($result['responseText'] . $suffix)
-                ->success()
-                ->send();
+                ->success()->send();
         } else {
             Notification::make()
                 ->title('Failed to send message(s)')
                 ->body($result['responseText'])
-                ->danger()
-                ->send();
+                ->danger()->send();
         }
 
         $this->halt();

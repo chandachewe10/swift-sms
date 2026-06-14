@@ -15,25 +15,15 @@ class EmailSubscriptionPage extends Page
 
     protected static string $view = 'filament.pages.email-subscription';
 
+    // Email is free — hide this subscription page from navigation entirely
     public static function shouldRegisterNavigation(): bool
     {
-        $user = auth()->user();
-
-        if (! $user) {
-            return false;
-        }
-
-        return ! $user->email_subscribed
-            && $user->email_credits <= 0
-            && ! $user->hasRole('super_admin');
+        return false;
     }
 
     public function mount(): void
     {
-        $user = auth()->user();
-
-        if ($user?->email_subscribed || $user?->email_credits > 0 || $user?->hasRole('super_admin')) {
-            $this->redirect(route('filament.app.resources.send-emails.index'));
-        }
+        // Redirect away — bulk email is now free for all users
+        $this->redirect(route('filament.app.resources.send-emails.index'));
     }
 }

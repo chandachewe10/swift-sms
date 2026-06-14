@@ -81,18 +81,31 @@ class CreateContactMessages extends CreateRecord
         $message      = $data['message'];
         $contactCount = count($contactStrings);
 
-        // Balance check
-        if ($user->wallet->balance < $contactCount) {
-            $diff = $contactCount - $user->wallet->balance;
+        // Split numbers into local and international
+        $split      = SmsDispatcher::splitByType($contactStrings);
+        $localCount = count($split['local']);
+        $intlCount  = count($split['international']);
+
+        // Check local balance
+        if ($localCount > 0 && $user->wallet->balance < $localCount) {
+            $diff = $localCount - $user->wallet->balance;
             Notification::make()
-                ->title('Insufficient SMS Balance')
-                ->body("You need {$diff} more SMS credit(s) to reach {$contactCount} contacts.")
-                ->warning()
-                ->send();
+                ->title('Insufficient Local SMS Balance')
+                ->body("You need {$diff} more local SMS credit(s). Top up under Payments.")
+                ->warning()->send();
             $this->halt();
         }
 
-        // Mocean options (ignored when provider is Zamtel)
+        // Check international balance
+        if ($intlCount > 0 && ($user->international_sms_credits ?? 0) < $intlCount) {
+            $diff = $intlCount - ($user->international_sms_credits ?? 0);
+            Notification::make()
+                ->title('Insufficient International SMS Balance')
+                ->body("You need {$diff} more international SMS credit(s). Top up under Payments.")
+                ->warning()->send();
+            $this->halt();
+        }
+
         $options = [
             'flash'    => (bool) ($data['flash_sms']   ?? false),
             'schedule' => $data['schedule_at'] ?? null,
@@ -116,7 +129,14 @@ class CreateContactMessages extends CreateRecord
         ]);
 
         if ($result['success']) {
-            $user->wallet->withdraw($contactCount, ['description' => 'Sending SMS via ' . SmsDispatcher::activeProvider()]);
+            // Deduct local credits from wallet
+            if ($result['localCount'] > 0) {
+                $user->wallet->withdraw($result['localCount'], ['description' => 'Local SMS sent via Zamtel']);
+            }
+            // Deduct international credits from column
+            if ($result['internationalCount'] > 0) {
+                $user->decrement('international_sms_credits', $result['internationalCount']);
+            }
 
             $recipientText = match(true) {
                 ($data['send_to_all'] ?? false) => 'all contacts',
@@ -124,21 +144,17 @@ class CreateContactMessages extends CreateRecord
                 default                         => $contactCount . ' selected contacts',
             };
 
-            $suffix = (! empty($options['schedule']))
-                ? ' Scheduled for ' . $data['schedule_at'] . '.'
-                : '';
+            $suffix = (! empty($options['schedule'])) ? ' Scheduled for ' . $data['schedule_at'] . '.' : '';
 
             Notification::make()
                 ->title('Messages sent successfully')
                 ->body("Delivered to {$recipientText}.{$suffix}")
-                ->success()
-                ->send();
+                ->success()->send();
         } else {
             Notification::make()
                 ->title('Failed to send messages')
                 ->body($result['responseText'])
-                ->danger()
-                ->send();
+                ->danger()->send();
         }
 
         $this->halt();

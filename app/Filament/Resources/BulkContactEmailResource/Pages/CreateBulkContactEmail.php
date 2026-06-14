@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\BulkContactEmailResource\Pages;
 
-use App\Filament\Pages\EmailSubscriptionPage;
 use App\Filament\Resources\BulkContactEmailResource;
 use App\Models\Contact;
 use App\Models\EmailConfig;
@@ -20,17 +19,6 @@ class CreateBulkContactEmail extends CreateRecord
     {
         $user   = auth()->user();
         $config = EmailConfig::where('user_id', auth()->id())->first();
-
-        // Gate: block if no subscription and no credits
-        if (! $user->hasRole('super_admin') && ! $user->email_subscribed && ($user->email_credits ?? 0) <= 0) {
-            Notification::make()
-                ->title('Email credits exhausted')
-                ->body('Subscribe to Bulk Email (K300/month) to continue sending.')
-                ->warning()
-                ->send();
-            $this->redirect(EmailSubscriptionPage::getUrl());
-            $this->halt();
-        }
 
         if (! $config) {
             Notification::make()
@@ -55,21 +43,12 @@ class CreateBulkContactEmail extends CreateRecord
             $this->halt();
         }
 
-        // For non-subscribers using credits, cap the send at available credits
-        $creditLimit  = (! $user->hasRole('super_admin') && ! $user->email_subscribed)
-            ? ($user->email_credits ?? 0)
-            : PHP_INT_MAX;
-
         $service      = new EmailService($config);
         $successCount = 0;
         $failCount    = 0;
         $lastRecord   = null;
 
         foreach ($contacts as $contact) {
-            if ($successCount >= $creditLimit) {
-                break;
-            }
-
             $success = $service->send($contact->email, $data['subject'], $data['body']);
 
             $lastRecord = EmailMessage::create([
@@ -83,11 +62,6 @@ class CreateBulkContactEmail extends CreateRecord
             ]);
 
             $success ? $successCount++ : $failCount++;
-        }
-
-        // Deduct credits for non-subscribers
-        if (! $user->hasRole('super_admin') && ! $user->email_subscribed && $successCount > 0) {
-            $user->decrement('email_credits', $successCount);
         }
 
         if ($failCount === 0) {

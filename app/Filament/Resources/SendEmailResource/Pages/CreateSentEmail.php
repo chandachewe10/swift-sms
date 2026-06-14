@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\SendEmailResource\Pages;
 
-use App\Filament\Pages\EmailSubscriptionPage;
 use App\Filament\Resources\SendEmailResource;
 use App\Models\EmailConfig;
 use App\Models\EmailMessage;
@@ -17,19 +16,6 @@ class CreateSentEmail extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $user = auth()->user();
-
-        // Gate: block if no subscription and no credits
-        if (! $user->hasRole('super_admin') && ! $user->email_subscribed && ($user->email_credits ?? 0) <= 0) {
-            Notification::make()
-                ->title('Email credits exhausted')
-                ->body('Subscribe to Bulk Email (K300/month) to continue sending.')
-                ->warning()
-                ->send();
-            $this->redirect(EmailSubscriptionPage::getUrl());
-            $this->halt();
-        }
-
         $config = EmailConfig::where('user_id', auth()->id())->first();
 
         if (! $config) {
@@ -42,7 +28,7 @@ class CreateSentEmail extends CreateRecord
         }
 
         $service = new EmailService($config);
-        $success  = $service->send($data['to_email'], $data['subject'], $data['body']);
+        $success = $service->send($data['to_email'], $data['subject'], $data['body']);
 
         $record = EmailMessage::create([
             'user_id'       => auth()->id(),
@@ -53,11 +39,6 @@ class CreateSentEmail extends CreateRecord
             'error_message' => $success ? null : 'Send failed — check SMTP credentials.',
             'type'          => 'single',
         ]);
-
-        // Deduct one credit for non-subscribers
-        if ($success && ! $user->hasRole('super_admin') && ! $user->email_subscribed) {
-            $user->decrement('email_credits');
-        }
 
         if ($success) {
             Notification::make()

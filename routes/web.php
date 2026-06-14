@@ -51,6 +51,14 @@ Route::post('completeWhatsAppSubscription', [SubscriptionsController::class, 'co
     ->middleware(['auth'])
     ->name('completeWhatsAppSubscription');
 
+Route::get('/international-subscription/{amount}', function ($amount) {
+    return view('gateways.lenco.lencoInternationalPayment', ['amount' => decrypt($amount)]);
+})->middleware(['auth'])->name('subscription.international');
+
+Route::post('completeInternationalSubscription/{amount}', [SubscriptionsController::class, 'completeInternationalSubscription'])
+    ->middleware(['auth'])
+    ->name('completeInternationalSubscription');
+
 
 Route::get('/team-invitations/{invitation}', [TeamInvitationController::class, 'accept'])
     ->middleware(['signed', 'verified', 'auth', AuthenticateSession::class])

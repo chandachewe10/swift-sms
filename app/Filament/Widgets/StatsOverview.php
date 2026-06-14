@@ -19,7 +19,8 @@ class StatsOverview extends BaseWidget
         $endDate   = $this->filters['endDate']   ?? null;
         $companyId = auth()->user()->user_id;
         $userId    = auth()->id();
-        $smsBalance = auth()->user()->wallet->balance;
+        $smsBalance  = auth()->user()->wallet->balance;
+        $intlBalance = auth()->user()->international_sms_credits ?? 0;
 
         $airtelPrefixes = ['097', '077'];
         $mtnPrefixes    = ['096', '076'];
@@ -39,9 +40,14 @@ class StatsOverview extends BaseWidget
             ->count();
 
         return [
-            Stat::make('SMS Balance', $smsBalance . ' SMSes')
-                ->description('Business ID: ' . $companyId)
+            Stat::make('Local SMS Balance', $smsBalance . ' SMSes')
+                ->description('Zambia — MTN, Airtel & Zamtel')
                 ->color('info'),
+
+            Stat::make('International SMS Balance', $intlBalance . ' SMSes')
+                ->description('Worldwide — any country')
+                ->icon('heroicon-o-globe-alt')
+                ->color('warning'),
 
             Stat::make('Airtel', Messages::query()
                 ->when($startDate, fn (Builder $query) => $query->whereDate('created_at', '>=', $startDate))
