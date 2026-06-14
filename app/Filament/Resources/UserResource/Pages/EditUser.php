@@ -35,9 +35,14 @@ class EditUser extends EditRecord
         ]);
 
         $smsUnits = $data['units'] ?? 0;
-        if($smsUnits > 0) {
-        $user->wallet->deposit($smsUnits,['description' => 'SMSes Top of '.$smsUnits .' SMSes']);
-}
+        if ($smsUnits > 0) {
+            $user->wallet->deposit($smsUnits, ['description' => 'Local SMS top-up of ' . $smsUnits . ' SMS(es) by admin']);
+        }
+
+        $intlUnits = $data['international_units'] ?? 0;
+        if ($intlUnits > 0) {
+            $user->increment('international_sms_credits', $intlUnits);
+        }
         
 
 

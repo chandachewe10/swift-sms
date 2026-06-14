@@ -47,7 +47,13 @@ class UserResource extends Resource
                
 
                     Forms\Components\TextInput::make('units')
-                    ->label('Add SMS Units')
+                    ->label('Add Local SMS Units')
+                    ->helperText('Credits for Zambian numbers (MTN, Airtel, Zamtel)')
+                    ->numeric(),
+
+                    Forms\Components\TextInput::make('international_units')
+                    ->label('Add International SMS Units')
+                    ->helperText('Credits for worldwide numbers ($0.389/SMS)')
                     ->numeric(),
 
                      // Using Select Component
