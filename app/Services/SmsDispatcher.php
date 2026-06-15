@@ -67,31 +67,41 @@ class SmsDispatcher
 
         $devMode = self::isDevMode();
 
-        // ── Local → Zamtel (or mock in dev mode) ──────────────────────────
-        if (! empty($split['local'])) {
-            if ($devMode) {
-                $localResult = [
-                    'success'      => true,
-                    'responseText' => '[DEV MODE] ' . count($split['local']) . ' local SMS(es) simulated — not sent.',
-                    'statusCode'   => 202,
-                    'raw'          => ['test' => true],
-                ];
-                Log::info('SmsDispatcher [DEV MODE]: mocked Zamtel send', ['numbers' => $split['local']]);
-            } else {
-                $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
-            }
-            if ($localResult['success']) {
-                $localCount = count($split['local']);
-            }
-        }
+        if ($devMode) {
+            // ── Dev mode: send ALL numbers through Mocean ─────────────────
+            // Local numbers are normalized to E.164 and passed to Mocean so
+            // the test API token can deliver real messages for testing.
+            $allNormalized = array_merge(
+                array_map([MoceanService::class, 'normalizeNumber'], $split['local']),
+                $split['international']
+            );
 
-        // ── International → Mocean ────────────────────────────────────────
-        // In dev mode Mocean still runs normally — the test API token on their
-        // dashboard controls sandbox behaviour. No extra flag needed.
-        if (! empty($split['international'])) {
-            $intlResult = self::sendViaMocean($companyId, $split['international'], $message, $options);
-            if ($intlResult['success']) {
-                $intlCount = count($split['international']);
+            Log::info('SmsDispatcher [DEV MODE]: routing all numbers via Mocean', ['numbers' => $allNormalized]);
+
+            if (! empty($allNormalized)) {
+                $devResult = self::sendViaMocean($companyId, $allNormalized, $message, $options);
+                if ($devResult['success']) {
+                    $localCount = count($split['local']);
+                    $intlCount  = count($split['international']);
+                }
+                // Overwrite both results so the response text is accurate
+                $localResult = $devResult;
+                $intlResult  = $devResult;
+            }
+        } else {
+            // ── Production: route by number type ─────────────────────────
+            if (! empty($split['local'])) {
+                $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
+                if ($localResult['success']) {
+                    $localCount = count($split['local']);
+                }
+            }
+
+            if (! empty($split['international'])) {
+                $intlResult = self::sendViaMocean($companyId, $split['international'], $message, $options);
+                if ($intlResult['success']) {
+                    $intlCount = count($split['international']);
+                }
             }
         }
 

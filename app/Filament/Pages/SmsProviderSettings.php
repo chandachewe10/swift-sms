@@ -71,9 +71,9 @@ class SmsProviderSettings extends Page implements HasForms
                                     <div>
                                         <strong style='color:#78350f;'>Development mode is ON</strong><br>
                                         <span style='color:#92400e;font-size:13px;'>
-                                            <strong>Mocean:</strong> sends normally using whatever API token is configured — use your Mocean test token to sandbox messages on their side.<br>
-                                            <strong>Zamtel:</strong> sends are mocked locally (no real HTTP call) since Zamtel has no sandbox environment.<br>
-                                            Remember to switch back to your live Mocean token and turn this off before going live.
+                                            All numbers (local &amp; international) are routed through <strong>Mocean</strong> using your configured API token — real messages are delivered.<br>
+                                            Use your <strong>Mocean test API token</strong> to send real test messages without affecting production quotas.<br>
+                                            Remember to switch to your live Mocean token and turn this off before going live.
                                         </span>
                                     </div>
                                 </div>
