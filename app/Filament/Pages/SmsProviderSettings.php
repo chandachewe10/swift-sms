@@ -9,6 +9,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Contracts\Support\Htmlable;
 
 class SmsProviderSettings extends Page implements HasForms
 {
@@ -38,6 +39,7 @@ class SmsProviderSettings extends Page implements HasForms
         $this->form->fill([
             'sms_provider'     => SystemSetting::get('sms_provider', 'zamtel'),
             'mocean_api_token' => SystemSetting::get('mocean_api_token'),
+            'development_mode' => SystemSetting::get('development_mode', 'false') === 'true',
         ]);
     }
 
@@ -45,6 +47,40 @@ class SmsProviderSettings extends Page implements HasForms
     {
         return $form
             ->schema([
+
+                // ── Development Mode ──────────────────────────────────────────
+                Forms\Components\Section::make('🧪 Development / Testing Mode')
+                    ->description('When enabled, no real SMS messages are dispatched. Mocean\'s sandbox is used for all sends. Use this while onboarding clients or running tests.')
+                    ->schema([
+                        Forms\Components\Toggle::make('development_mode')
+                            ->label('Enable Development Mode')
+                            ->helperText('All SMS sends will be simulated — nothing reaches real phones.')
+                            ->onColor('warning')
+                            ->offColor('gray')
+                            ->live()
+                            ->afterStateUpdated(function ($state) {
+                                // Immediately persist so the banner updates on page refresh
+                                SystemSetting::set('development_mode', $state ? 'true' : 'false');
+                            }),
+
+                        Forms\Components\Placeholder::make('dev_mode_notice')
+                            ->label('')
+                            ->content(new \Illuminate\Support\HtmlString("
+                                <div style='background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start;'>
+                                    <span style='font-size:22px;'>⚠️</span>
+                                    <div>
+                                        <strong style='color:#78350f;'>Development mode is ON</strong><br>
+                                        <span style='color:#92400e;font-size:13px;'>
+                                            Mocean's <code>mocean-test=Y</code> flag is sent with every request — messages are validated but <u>never delivered</u> to real phones.
+                                            Zamtel sends are also mocked locally. Remember to turn this off before going live.
+                                        </span>
+                                    </div>
+                                </div>
+                            "))
+                            ->visible(fn (Forms\Get $get) => (bool) $get('development_mode')),
+                    ]),
+
+                // ── Provider Selection ────────────────────────────────────────
                 Forms\Components\Section::make('Active SMS Provider')
                     ->description('Choose which gateway handles all outbound SMS — including API sends.')
                     ->schema([
@@ -59,6 +95,7 @@ class SmsProviderSettings extends Page implements HasForms
                             ->live(),
                     ]),
 
+                // ── Mocean Config ──────────────────────────────────────────────
                 Forms\Components\Section::make('Mocean Configuration')
                     ->description('Required when Mocean is the active provider. Each company\'s approved Sender ID is used automatically.')
                     ->schema([
@@ -81,10 +118,13 @@ class SmsProviderSettings extends Page implements HasForms
 
         SystemSetting::set('sms_provider',     $state['sms_provider']);
         SystemSetting::set('mocean_api_token', $state['mocean_api_token'] ?? null);
+        SystemSetting::set('development_mode', ($state['development_mode'] ?? false) ? 'true' : 'false');
+
+        $devLabel = ($state['development_mode'] ?? false) ? ' | ⚠️ Dev Mode ON' : '';
 
         Notification::make()
             ->title('Settings saved')
-            ->body('Active provider switched to: ' . strtoupper($state['sms_provider']))
+            ->body('Active provider: ' . strtoupper($state['sms_provider']) . $devLabel)
             ->success()
             ->send();
     }

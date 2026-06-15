@@ -65,16 +65,31 @@ class SmsDispatcher
         $localCount  = 0;
         $intlCount   = 0;
 
-        // ── Local → Zamtel ────────────────────────────────────────────────
+        $devMode = self::isDevMode();
+
+        // ── Local → Zamtel (or mock in dev mode) ──────────────────────────
         if (! empty($split['local'])) {
-            $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
+            if ($devMode) {
+                $localResult = [
+                    'success'      => true,
+                    'responseText' => '[DEV MODE] ' . count($split['local']) . ' local SMS(es) simulated — not sent.',
+                    'statusCode'   => 202,
+                    'raw'          => ['test' => true],
+                ];
+                Log::info('SmsDispatcher [DEV MODE]: mocked Zamtel send', ['numbers' => $split['local']]);
+            } else {
+                $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
+            }
             if ($localResult['success']) {
                 $localCount = count($split['local']);
             }
         }
 
-        // ── International → Mocean ────────────────────────────────────────
+        // ── International → Mocean (test flag in dev mode) ────────────────
         if (! empty($split['international'])) {
+            if ($devMode) {
+                $options['test_mode'] = true;
+            }
             $intlResult = self::sendViaMocean($companyId, $split['international'], $message, $options);
             if ($intlResult['success']) {
                 $intlCount = count($split['international']);
@@ -216,5 +231,10 @@ class SmsDispatcher
     public static function isMocean(): bool
     {
         return static::activeProvider() === 'mocean';
+    }
+
+    public static function isDevMode(): bool
+    {
+        return SystemSetting::get('development_mode', 'false') === 'true';
     }
 }
