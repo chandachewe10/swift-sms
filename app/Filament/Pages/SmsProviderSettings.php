@@ -71,8 +71,9 @@ class SmsProviderSettings extends Page implements HasForms
                                     <div>
                                         <strong style='color:#78350f;'>Development mode is ON</strong><br>
                                         <span style='color:#92400e;font-size:13px;'>
-                                            Mocean's <code>mocean-test=Y</code> flag is sent with every request — messages are validated but <u>never delivered</u> to real phones.
-                                            Zamtel sends are also mocked locally. Remember to turn this off before going live.
+                                            <strong>Mocean:</strong> sends normally using whatever API token is configured — use your Mocean test token to sandbox messages on their side.<br>
+                                            <strong>Zamtel:</strong> sends are mocked locally (no real HTTP call) since Zamtel has no sandbox environment.<br>
+                                            Remember to switch back to your live Mocean token and turn this off before going live.
                                         </span>
                                     </div>
                                 </div>

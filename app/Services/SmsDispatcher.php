@@ -85,11 +85,10 @@ class SmsDispatcher
             }
         }
 
-        // ── International → Mocean (test flag in dev mode) ────────────────
+        // ── International → Mocean ────────────────────────────────────────
+        // In dev mode Mocean still runs normally — the test API token on their
+        // dashboard controls sandbox behaviour. No extra flag needed.
         if (! empty($split['international'])) {
-            if ($devMode) {
-                $options['test_mode'] = true;
-            }
             $intlResult = self::sendViaMocean($companyId, $split['international'], $message, $options);
             if ($intlResult['success']) {
                 $intlCount = count($split['international']);

@@ -37,11 +37,6 @@ class MoceanService
             $payload['mocean-alt-dcs'] = 1;
         }
 
-        // In development mode, tell Mocean to validate but never actually send
-        if (! empty($options['test_mode'])) {
-            $payload['mocean-test'] = 'Y';
-        }
-
         if (! empty($options['schedule'])) {
             // Mocean expects YYYY-MM-DD HH:mm:ss in GMT+8.
             // Convert from the app's local time (UTC+2) to GMT+8 (add 6 hours).
