@@ -65,10 +65,10 @@ class CreateContactMessages extends CreateRecord
             $audienceLabel = 'Selected Contacts';
         }
         
-        // Extract phone numbers
-        $contactStrings = $contacts->pluck('phone1')->filter()->values()->toArray();
+        // Filter contacts that have a phone number
+        $contacts = $contacts->filter(fn ($c) => ! empty($c->phone1));
 
-        if (empty($contactStrings)) {
+        if ($contacts->isEmpty()) {
             Notification::make()
                 ->title('No Valid Phone Numbers')
                 ->body('None of the selected contacts have valid phone numbers.')
@@ -79,6 +79,7 @@ class CreateContactMessages extends CreateRecord
 
         $user         = auth()->user();
         $message      = $data['message'];
+        $contactStrings = $contacts->pluck('phone1')->values()->toArray();
         $contactCount = count($contactStrings);
 
         // Split numbers into local and international
@@ -112,7 +113,43 @@ class CreateContactMessages extends CreateRecord
         ];
 
         // ── Dispatch ──────────────────────────────────────────────────────
-        $result = SmsDispatcher::send($user->user_id, $contactStrings, $message, $options);
+        // If the message contains {name}, send individually so each contact
+        // gets their name substituted. Otherwise bulk-send all at once.
+        $hasNamePlaceholder = str_contains($message, '{name}');
+
+        if ($hasNamePlaceholder) {
+            $successCount = 0;
+            $failCount    = 0;
+            $lastResponse = '';
+            $totalLocal   = 0;
+            $totalIntl    = 0;
+
+            foreach ($contacts as $contact) {
+                $personalised = str_replace(
+                    '{name}',
+                    trim(($contact->first_name ?? '') . ' ' . ($contact->last_name ?? '')),
+                    $message
+                );
+                $r = SmsDispatcher::send($user->user_id, [$contact->phone1], $personalised, $options);
+                if ($r['success']) {
+                    $successCount++;
+                    $totalLocal += $r['localCount'] ?? 0;
+                    $totalIntl  += $r['internationalCount'] ?? 0;
+                } else {
+                    $failCount++;
+                }
+                $lastResponse = $r['responseText'];
+            }
+
+            $result = [
+                'success'            => $successCount > 0,
+                'responseText'       => "Personalised: {$successCount} sent, {$failCount} failed. Last: {$lastResponse}",
+                'localCount'         => $totalLocal,
+                'internationalCount' => $totalIntl,
+            ];
+        } else {
+            $result = SmsDispatcher::send($user->user_id, $contactStrings, $message, $options);
+        }
 
         $contactLogValue = match(true) {
             ($data['send_to_all'] ?? false) => 'All Contacts (' . $contactCount . ')',

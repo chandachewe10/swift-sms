@@ -6,6 +6,7 @@ use App\Filament\Resources\ContactMessagesResource\Pages;
 use App\Filament\Resources\ContactMessagesResource\RelationManagers;
 use App\Models\Contact;
 use App\Models\Messages as ContactMessages;
+use App\Models\SmsTemplate;
 use App\Services\SmsDispatcher;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
@@ -29,8 +30,30 @@ class ContactMessagesResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('template_id')
+                    ->label('Use a Template (optional)')
+                    ->placeholder('— pick a saved template —')
+                    ->options(function () {
+                        return SmsTemplate::where('company_id', auth()->user()->user_id)
+                            ->orderBy('name')
+                            ->pluck('name', 'id');
+                    })
+                    ->searchable()
+                    ->native(false)
+                    ->live()
+                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                        if ($state) {
+                            $tpl = SmsTemplate::find($state);
+                            if ($tpl) {
+                                $set('message', $tpl->body);
+                            }
+                        }
+                    })
+                    ->columnSpan(2)
+                    ->dehydrated(false),
+
                 Forms\Components\Textarea::make('message')
-                    ->helperText('Write in not more than 160 characters')
+                    ->helperText('Write in not more than 160 characters. {name} is auto-replaced with each contact\'s name when sending to contacts.')
                     ->minLength(2)
                     ->maxLength(160)
                     ->rows(5)

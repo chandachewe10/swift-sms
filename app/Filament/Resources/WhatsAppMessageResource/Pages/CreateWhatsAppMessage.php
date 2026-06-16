@@ -26,9 +26,8 @@ class CreateWhatsAppMessage extends CreateRecord
             if (($user->whatsapp_credits ?? 0) < $needed) {
                 Notification::make()
                     ->title('Insufficient WhatsApp credits')
-                    ->body("You need {$needed} credit(s) but have {$user->whatsapp_credits}. Subscribe for unlimited sends.")
-                    ->warning()
-                    ->send();
+                    ->body("You need {$needed} credit(s) but have {$user->whatsapp_credits}.")
+                    ->warning()->send();
                 $this->halt();
             }
         }
@@ -37,12 +36,37 @@ class CreateWhatsAppMessage extends CreateRecord
             Notification::make()
                 ->title('WhatsApp credentials not configured')
                 ->body('Go to WhatsApp → API Credentials to add your Meta credentials first.')
-                ->danger()
-                ->send();
+                ->danger()->send();
             $this->halt();
         }
 
         $template = WhatsAppTemplate::findOrFail($data['whatsapp_template_id']);
+
+        // ── Build the components array from parameter values ───────────────
+        $components    = [];
+        $paramRows     = $data['template_params'] ?? [];
+        $format        = $template->parameter_format ?? 'positional';
+
+        if (! empty($paramRows)) {
+            if ($format === 'named') {
+                $parameters = array_map(fn ($row) => [
+                    'type'           => 'text',
+                    'parameter_name' => $row['param_name'],
+                    'text'           => $row['param_value'],
+                ], $paramRows);
+            } else {
+                // Positional — order matters, no parameter_name
+                $parameters = array_map(fn ($row) => [
+                    'type' => 'text',
+                    'text' => $row['param_value'],
+                ], $paramRows);
+            }
+
+            $components[] = [
+                'type'       => 'body',
+                'parameters' => $parameters,
+            ];
+        }
 
         $service = new WhatsAppService(
             $config->phone_number_id,
@@ -65,7 +89,7 @@ class CreateWhatsAppMessage extends CreateRecord
         $lastRecord   = null;
 
         foreach ($recipients as $phone) {
-            $result = $service->sendMessage($phone, $template->name, $template->language);
+            $result = $service->sendMessage($phone, $template->name, $template->language, $components);
 
             $lastRecord = WhatsAppMessage::create([
                 'user_id'              => auth()->id(),
@@ -85,15 +109,9 @@ class CreateWhatsAppMessage extends CreateRecord
         }
 
         if ($failCount === 0) {
-            Notification::make()
-                ->title("{$successCount} message(s) sent successfully")
-                ->success()
-                ->send();
+            Notification::make()->title("{$successCount} message(s) sent successfully")->success()->send();
         } else {
-            Notification::make()
-                ->title("Sent: {$successCount} | Failed: {$failCount}")
-                ->warning()
-                ->send();
+            Notification::make()->title("Sent: {$successCount} | Failed: {$failCount}")->warning()->send();
         }
 
         return $lastRecord;

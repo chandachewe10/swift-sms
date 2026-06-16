@@ -22,10 +22,42 @@ class CreateWhatsAppTemplate extends CreateRecord
             Notification::make()
                 ->title('WhatsApp credentials not configured')
                 ->body('Go to WhatsApp → API Credentials to add your Meta credentials first.')
-                ->danger()
-                ->send();
+                ->danger()->send();
             $this->halt();
         }
+
+        $format       = $data['parameter_format'] ?? 'positional';
+        $exampleRows  = $data['example_params']   ?? [];
+
+        // ── Build the body component with examples ─────────────────────────
+        $bodyComponent = ['type' => 'BODY', 'text' => $data['body_text']];
+
+        if (! empty($exampleRows)) {
+            if ($format === 'named') {
+                $bodyComponent['example'] = [
+                    'body_text_named_params' => array_map(
+                        fn ($row) => [
+                            'param_name' => $row['param_name'],
+                            'example'    => $row['example_value'],
+                        ],
+                        $exampleRows
+                    ),
+                ];
+            } else {
+                // Positional: [[value1, value2, ...]]
+                $bodyComponent['example'] = [
+                    'body_text' => [array_column($exampleRows, 'example_value')],
+                ];
+            }
+        }
+
+        $payload = [
+            'name'             => $data['name'],
+            'category'         => $data['category'],
+            'language'         => $data['language'],
+            'parameter_format' => strtoupper($format), // Meta expects NAMED / POSITIONAL
+            'components'       => [$bodyComponent],
+        ];
 
         $service = new WhatsAppService(
             $config->phone_number_id,
@@ -33,21 +65,13 @@ class CreateWhatsAppTemplate extends CreateRecord
             $config->business_account_id,
         );
 
-        $result = $service->createTemplate([
-            'name'       => $data['name'],
-            'category'   => $data['category'],
-            'language'   => $data['language'],
-            'components' => [
-                ['type' => 'BODY', 'text' => $data['body_text']],
-            ],
-        ]);
+        $result = $service->createTemplate($payload);
 
         if (isset($result['error'])) {
             Notification::make()
                 ->title('Meta API Error')
                 ->body($result['message'] ?? 'Unknown error from WhatsApp API')
-                ->danger()
-                ->send();
+                ->danger()->send();
             $this->halt();
         }
 
@@ -57,6 +81,7 @@ class CreateWhatsAppTemplate extends CreateRecord
             'category'             => $data['category'],
             'language'             => $data['language'],
             'body_text'            => $data['body_text'],
+            'parameter_format'     => $format,
             'status'               => 'PENDING',
             'whatsapp_template_id' => $result['id'] ?? null,
         ]);
@@ -64,8 +89,7 @@ class CreateWhatsAppTemplate extends CreateRecord
         Notification::make()
             ->title('Template submitted for Meta approval')
             ->body('Approval usually takes a few minutes. Use "Refresh Status" to check.')
-            ->success()
-            ->send();
+            ->success()->send();
 
         return $template;
     }

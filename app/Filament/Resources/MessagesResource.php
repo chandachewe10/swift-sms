@@ -7,6 +7,7 @@ use App\Filament\Resources\MessagesResource\Pages;
 use App\Filament\Resources\MessagesResource\RelationManagers;
 use App\Models\Messages;
 use App\Models\SenderId;
+use App\Models\SmsTemplate;
 use App\Services\SmsDispatcher;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -31,8 +32,30 @@ class MessagesResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('template_id')
+                    ->label('Use a Template (optional)')
+                    ->placeholder('— pick a saved template —')
+                    ->options(function () {
+                        return SmsTemplate::where('company_id', auth()->user()->user_id)
+                            ->orderBy('name')
+                            ->pluck('name', 'id');
+                    })
+                    ->searchable()
+                    ->native(false)
+                    ->live()
+                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                        if ($state) {
+                            $tpl = SmsTemplate::find($state);
+                            if ($tpl) {
+                                $set('message', $tpl->body);
+                            }
+                        }
+                    })
+                    ->columnSpan(2)
+                    ->dehydrated(false),
+
                 Forms\Components\Textarea::make('message')
-                ->helperText('Write in not more than 160 characters')
+                ->helperText('Write in not more than 160 characters. Use {placeholder} syntax for dynamic values.')
                     ->minLength(2)
                     ->maxLength(160)
                     ->rows(5)

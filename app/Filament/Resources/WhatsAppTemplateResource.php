@@ -13,29 +13,52 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 
 class WhatsAppTemplateResource extends Resource
 {
     protected static ?string $model = WhatsAppTemplate::class;
     protected static ?string $navigationGroup = 'WhatsApp';
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    protected static ?string $modelLabel = 'WA Template';
+    protected static ?string $navigationIcon  = 'heroicon-o-document-text';
+    protected static ?string $modelLabel      = 'WA Template';
     protected static ?string $navigationLabel = 'Templates';
-    protected static ?int $navigationSort = 2;
+    protected static ?int    $navigationSort  = 2;
 
-    public static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string { return 'New'; }
+    public static function getNavigationBadgeColor(): string|array|null { return 'warning'; }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private static function extractParams(string $body, string $format): array
     {
-        return 'New';
+        preg_match_all('/\{\{([^}]+)\}\}/', $body, $matches);
+        return array_unique($matches[1] ?? []);
     }
 
-    public static function getNavigationBadgeColor(): string|array|null
+    private static function paramHint(string $format): HtmlString
     {
-        return 'warning';
+        if ($format === 'named') {
+            return new HtmlString(
+                '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;font-size:13px;color:#1e40af;">
+                    <strong>Named format:</strong> use <code>{{first_name}}</code>, <code>{{order_number}}</code>, <code>{{amount}}</code> etc.<br>
+                    Parameter names: lowercase letters and underscores only.
+                </div>'
+            );
+        }
+        return new HtmlString(
+            '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:13px;color:#166534;">
+                <strong>Positional format:</strong> use <code>{{1}}</code>, <code>{{2}}</code>, <code>{{3}}</code> etc.<br>
+                Parameters are replaced in order when sending.
+            </div>'
+        );
     }
+
+    // ── Form ───────────────────────────────────────────────────────────────────
 
     public static function form(Form $form): Form
     {
         return $form->schema([
+
             Forms\Components\Section::make('Template Details')
                 ->schema([
                     Forms\Components\TextInput::make('name')
@@ -67,32 +90,88 @@ class WhatsAppTemplateResource extends Resource
                         ->default('en_US')
                         ->columnSpan(1),
 
+                    Forms\Components\TextInput::make('status')
+                        ->disabled()
+                        ->visibleOn('edit')
+                        ->columnSpan(2),
+                ])
+                ->columns(2),
+
+            Forms\Components\Section::make('Message Body & Parameters')
+                ->schema([
+                    Forms\Components\Select::make('parameter_format')
+                        ->label('Parameter Format')
+                        ->options([
+                            'positional' => 'Positional — {{1}}, {{2}}, {{3}}',
+                            'named'      => 'Named — {{first_name}}, {{amount}}',
+                        ])
+                        ->default('positional')
+                        ->native(false)
+                        ->required()
+                        ->live()
+                        ->afterStateUpdated(fn (Forms\Set $set) => $set('example_params', []))
+                        ->columnSpan(2),
+
+                    Forms\Components\Placeholder::make('format_hint')
+                        ->label('')
+                        ->content(fn (Forms\Get $get) => self::paramHint($get('parameter_format') ?? 'positional'))
+                        ->columnSpan(2),
+
                     Forms\Components\Textarea::make('body_text')
                         ->label('Message Body')
                         ->required()
                         ->rows(4)
-                        ->helperText('Use {{1}}, {{2}}, etc. for dynamic variables')
+                        ->live(debounce: 600)
+                        ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                            if (! $state) return;
+                            $params = self::extractParams($state, $get('parameter_format') ?? 'positional');
+                            $set('example_params', array_map(
+                                fn ($p) => ['param_name' => $p, 'example_value' => ''],
+                                $params
+                            ));
+                        })
                         ->columnSpan(2),
 
-                    Forms\Components\TextInput::make('status')
-                        ->disabled()
-                        ->visibleOn('edit')
-                        ->columnSpan(1),
+                    Forms\Components\Repeater::make('example_params')
+                        ->label('Example Parameter Values')
+                        ->helperText('Meta requires an example value for each parameter so reviewers can understand the template.')
+                        ->schema([
+                            Forms\Components\TextInput::make('param_name')
+                                ->label('Placeholder')
+                                ->disabled()
+                                ->dehydrated()
+                                ->prefix('{{')
+                                ->suffix('}}'),
+
+                            Forms\Components\TextInput::make('example_value')
+                                ->label('Example Value')
+                                ->required()
+                                ->placeholder('e.g. John, 500, 2026-01-01'),
+                        ])
+                        ->columns(2)
+                        ->addable(false)
+                        ->deletable(false)
+                        ->reorderable(false)
+                        ->columnSpan(2)
+                        ->visible(fn (Forms\Get $get) => ! empty($get('example_params'))),
                 ])
                 ->columns(2),
         ]);
     }
+
+    // ── Table ──────────────────────────────────────────────────────────────────
 
     public static function table(Table $table): Table
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->where('user_id', auth()->id()))
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('category')
-                    ->badge(),
+                Tables\Columns\TextColumn::make('name')->searchable()->sortable()->weight('bold'),
+                Tables\Columns\TextColumn::make('category')->badge(),
+                Tables\Columns\TextColumn::make('parameter_format')
+                    ->label('Format')
+                    ->badge()
+                    ->color(fn ($state) => $state === 'named' ? 'info' : 'success'),
                 Tables\Columns\TextColumn::make('language'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
@@ -101,10 +180,7 @@ class WhatsAppTemplateResource extends Resource
                         'REJECTED' => 'danger',
                         default    => 'warning',
                     }),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
                 Tables\Actions\Action::make('checkStatus')
@@ -113,48 +189,23 @@ class WhatsAppTemplateResource extends Resource
                     ->color('gray')
                     ->action(function (WhatsAppTemplate $record): void {
                         $config = WhatsAppConfig::first();
-
                         if (! $config) {
-                            Notification::make()
-                                ->title('WhatsApp credentials not configured')
-                                ->body('Go to WhatsApp → API Credentials to add your Meta credentials.')
-                                ->danger()
-                                ->send();
-
+                            Notification::make()->title('WhatsApp credentials not configured')->danger()->send();
                             return;
                         }
-
-                        $service = new WhatsAppService(
-                            $config->phone_number_id,
-                            $config->access_token,
-                            $config->business_account_id,
-                        );
-
-                        $result = $service->getTemplateStatus($record->name);
-
+                        $service = new WhatsAppService($config->phone_number_id, $config->access_token, $config->business_account_id);
+                        $result  = $service->getTemplateStatus($record->name);
                         if (isset($result['data'][0])) {
-                            $status = $result['data'][0]['status'];
-                            $record->update(['status' => $status]);
-                            Notification::make()
-                                ->title("Status updated to: {$status}")
-                                ->success()
-                                ->send();
+                            $record->update(['status' => $result['data'][0]['status']]);
+                            Notification::make()->title('Status updated to: ' . $result['data'][0]['status'])->success()->send();
                         } else {
-                            Notification::make()
-                                ->title('Could not fetch template status')
-                                ->body(json_encode($result))
-                                ->danger()
-                                ->send();
+                            Notification::make()->title('Could not fetch template status')->body(json_encode($result))->danger()->send();
                         }
                     }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
     }
 
     public static function getPages(): array
