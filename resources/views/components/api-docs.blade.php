@@ -55,7 +55,7 @@
         <div class="content-menu">
             <div class="content-infos">
                 <div class="info"><b>Version:</b> 1.0.0</div>
-                <div class="info"><b>Last Updated:</b> 06 June, 2023</div>
+                <div class="info"><b>Last Updated:</b> 17 June, 2026</div>
             </div>
             <ul>
                 <li class="scroll-to-link active" data-target="content-get-started">
@@ -91,6 +91,9 @@
                 <li class="scroll-to-link" data-target="content-errors">
                     <a>Errors</a>
                 </li>
+                <li class="scroll-to-link" data-target="WHATSAPP-API">
+                    <a>WhatsApp API</a>
+                </li>
             </ul>
         </div>
     </div>
@@ -121,8 +124,101 @@
                 </p>
             </div>
 
+            <!--WHATSAPP API-->
+            <div class="overflow-hidden content-section" id="WHATSAPP-API">
+                <h2>Send WhatsApp Template Message</h2>
+                <pre>
+    API Endpoint:
 
+        https://swiftsms.macroit.org/api/send_whatsapp_message
 
+    Method: POST
+    Auth: Bearer Token (Sanctum)
+    Content-Type: application/json
+                </pre>
+                <pre><code class="bash">
+# If the template has no parameters, send:
+{
+  "template_name": "opening_our_business_time",
+  "language_code": "en_US",
+  "recipients": ["260973750029"]
+}
+
+# If the template has parameters, send:
+{
+  "template_name": "order_update",
+  "language_code": "en_US",
+  "recipients": ["260971234567", "260977000111"],
+  "template_params": [
+    { "param_name": "customer_name", "param_value": "John" },
+    { "param_name": "order_number", "param_value": "A1023" }
+  ]
+}
+                </code></pre>
+                <p>
+                    This endpoint sends Meta-approved WhatsApp templates using your account configuration.
+                    The <strong>template_name</strong> must exist under your account and be in <strong>APPROVED</strong> status.
+                </p>
+                <p>
+                    <strong>Testing note:</strong> recipient phone numbers used for API testing must be submitted in the WhatsApp dashboard under
+                    <strong>Testing Numbers</strong> and approved by our admin team before they can be used.
+                </p>
+                <p>
+                    Example templates available for all users (free for testing):
+                    <strong>opening_our_business_time</strong> and <strong>system_maintenance</strong>.
+                    These shared templates do not require WhatsApp credits.
+                </p>
+                <pre><code class="bash">
+# cURL example for WhatsApp
+curl --location --request POST 'https://swiftsms.macroit.org/api/send_whatsapp_message' \
+--header 'Content-Type: application/json' \
+--header 'Accept: application/json' \
+--header 'Authorization: Bearer YOUR_API_TOKEN' \
+--data-raw '{
+  "template_name": "system_maintenance",
+  "language_code": "en_US",
+  "recipients": ["260973750029"]
+}'
+                </code></pre>
+                <h4>REQUEST FIELDS</h4>
+                <table class="central-overflow-x">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>template_name</td>
+                            <td>String</td>
+                            <td>Yes</td>
+                            <td>Name of an approved WhatsApp template in your account (e.g opening_our_business_time or system_maintenance).</td>
+                        </tr>
+                        <tr>
+                            <td>language_code</td>
+                            <td>String</td>
+                            <td>No</td>
+                            <td>Template language code. Defaults to the template language (or en_US).</td>
+                        </tr>
+                        <tr>
+                            <td>recipients</td>
+                            <td>Array of Strings</td>
+                            <td>Yes</td>
+                            <td>Recipient numbers in international format (without +) and already approved as testing numbers.</td>
+                        </tr>
+                        <tr>
+                            <td>template_params</td>
+                            <td>Array</td>
+                            <td>No</td>
+                            <td>Template placeholders. Required if your template has variables.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!--WHATSAPP API-->
 
             <!--cURL PHP API-->
             <div class="overflow-hidden content-section" id="cURL">

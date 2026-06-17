@@ -34,8 +34,12 @@ class WhatsAppMessageResource extends Resource
                     // ── Template selection ────────────────────────────────
                     Forms\Components\Select::make('whatsapp_template_id')
                         ->label('Approved Template')
-                        ->options(fn () => WhatsAppTemplate::where('user_id', auth()->id())
+                        ->options(fn () => WhatsAppTemplate::query()
                             ->where('status', 'APPROVED')
+                            ->where(function ($query) {
+                                $query->where('user_id', auth()->id())
+                                    ->orWhereIn('name', WhatsAppTemplate::SHARED_TESTING_TEMPLATES);
+                            })
                             ->pluck('name', 'id'))
                         ->required()
                         ->native(false)
@@ -58,7 +62,7 @@ class WhatsAppMessageResource extends Resource
                                 $params
                             ));
                         })
-                        ->helperText('Only Meta-approved templates can be sent')
+                        ->helperText('Your approved templates plus shared testing templates (opening_our_business_time, system_maintenance)')
                         ->columnSpan(2),
 
                     // ── Template body preview ─────────────────────────────
@@ -100,6 +104,7 @@ class WhatsAppMessageResource extends Resource
                     // ── Recipients ────────────────────────────────────────
                     Forms\Components\Repeater::make('recipients')
                         ->label('Recipients')
+                        ->helperText('Only testing numbers approved by admin in WhatsApp -> Testing Numbers can be used.')
                         ->schema([
                             Forms\Components\TextInput::make('phone')
                                 ->label('Phone number with country code')

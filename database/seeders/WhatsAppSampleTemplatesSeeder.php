@@ -16,6 +16,22 @@ class WhatsAppSampleTemplatesSeeder extends Seeder
     {
         $templates = [
             [
+                'name'             => 'opening_our_business_time',
+                'category'         => 'UTILITY',
+                'language'         => 'en_US',
+                'parameter_format' => 'positional',
+                'status'           => 'APPROVED',
+                'body_text'        => 'Our business is now open. Thank you for choosing us.',
+            ],
+            [
+                'name'             => 'system_maintenance',
+                'category'         => 'UTILITY',
+                'language'         => 'en_US',
+                'parameter_format' => 'positional',
+                'status'           => 'APPROVED',
+                'body_text'        => 'We are performing scheduled system maintenance. We apologize for any inconvenience.',
+            ],
+            [
                 'name'             => 'auto_pay_reminder_2',
                 'category'         => 'UTILITY',
                 'language'         => 'en_US',

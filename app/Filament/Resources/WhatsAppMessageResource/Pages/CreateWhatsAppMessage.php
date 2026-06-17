@@ -5,6 +5,7 @@ namespace App\Filament\Resources\WhatsAppMessageResource\Pages;
 use App\Filament\Resources\WhatsAppMessageResource;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessage;
+use App\Models\WhatsAppTestingNumber;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsAppService;
 use Filament\Notifications\Notification;
@@ -20,18 +21,6 @@ class CreateWhatsAppMessage extends CreateRecord
         $user   = auth()->user();
         $config = WhatsAppConfig::first();
 
-        // Credit check for non-subscribers
-        if (! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed) {
-            $needed = count(array_filter(array_column($data['recipients'] ?? [], 'phone'), fn ($p) => ! empty(trim($p))));
-            if (($user->whatsapp_credits ?? 0) < $needed) {
-                Notification::make()
-                    ->title('Insufficient WhatsApp credits')
-                    ->body("You need {$needed} credit(s) but have {$user->whatsapp_credits}.")
-                    ->warning()->send();
-                $this->halt();
-            }
-        }
-
         if (! $config) {
             Notification::make()
                 ->title('WhatsApp credentials not configured')
@@ -41,6 +30,19 @@ class CreateWhatsAppMessage extends CreateRecord
         }
 
         $template = WhatsAppTemplate::findOrFail($data['whatsapp_template_id']);
+        $isFreeTestingTemplate = WhatsAppTemplate::isSharedTestingTemplate($template->name);
+
+        // Credit check for non-subscribers (shared testing templates are free)
+        if (! $isFreeTestingTemplate && ! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed) {
+            $needed = count(array_filter(array_column($data['recipients'] ?? [], 'phone'), fn ($p) => ! empty(trim($p))));
+            if (($user->whatsapp_credits ?? 0) < $needed) {
+                Notification::make()
+                    ->title('Insufficient WhatsApp credits')
+                    ->body("You need {$needed} credit(s) but have {$user->whatsapp_credits}.")
+                    ->warning()->send();
+                $this->halt();
+            }
+        }
 
         // ── Build the components array from parameter values ───────────────
         $components    = [];
@@ -84,6 +86,23 @@ class CreateWhatsAppMessage extends CreateRecord
             $this->halt();
         }
 
+        $approvedNumbers = WhatsAppTestingNumber::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->pluck('phone_number')
+            ->map(fn (string $number) => trim($number))
+            ->all();
+
+        $unapprovedRecipients = array_values(array_diff($recipients, $approvedNumbers));
+        if (! empty($unapprovedRecipients)) {
+            Notification::make()
+                ->title('Unapproved testing recipient(s)')
+                ->body('Submit these number(s) under WhatsApp -> Testing Numbers and wait for admin approval: ' . implode(', ', $unapprovedRecipients))
+                ->danger()
+                ->send();
+            $this->halt();
+        }
+
         $successCount = 0;
         $failCount    = 0;
         $lastRecord   = null;
@@ -103,8 +122,8 @@ class CreateWhatsAppMessage extends CreateRecord
             isset($result['error']) ? $failCount++ : $successCount++;
         }
 
-        // Deduct credits for non-subscribers
-        if (! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed && $successCount > 0) {
+        // Deduct credits for non-subscribers (shared testing templates are free)
+        if (! $isFreeTestingTemplate && ! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed && $successCount > 0) {
             $user->decrement('whatsapp_credits', $successCount);
         }
 

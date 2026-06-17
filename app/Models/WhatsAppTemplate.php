@@ -10,6 +10,12 @@ class WhatsAppTemplate extends Model
 {
     protected $table = 'whatsapp_templates';
 
+    /** Templates available to all users for free testing. */
+    public const SHARED_TESTING_TEMPLATES = [
+        'opening_our_business_time',
+        'system_maintenance',
+    ];
+
     protected $fillable = [
         'user_id',
         'name',
@@ -35,6 +41,23 @@ class WhatsAppTemplate extends Model
     public function hasParams(): bool
     {
         return count($this->extractParams()) > 0;
+    }
+
+    public static function isSharedTestingTemplate(string $name): bool
+    {
+        return in_array($name, self::SHARED_TESTING_TEMPLATES, true);
+    }
+
+    public static function resolveApproved(string $name, int $userId): ?self
+    {
+        return static::query()
+            ->where('name', $name)
+            ->where('status', 'APPROVED')
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->orWhereIn('name', self::SHARED_TESTING_TEMPLATES);
+            })
+            ->first();
     }
 
     public function user(): BelongsTo
