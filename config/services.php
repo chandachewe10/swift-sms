@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'meta_whatsapp' => [
+        'app_id' => env('META_APP_ID', '1573778724345266'),
+        'app_secret' => env('META_APP_SECRET'),
+        'config_id' => env('META_CONFIG_ID', '866319909357587'),
+        'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
+        'redirect_uri' => env('META_EMBEDDED_SIGNUP_REDIRECT_URI'),
+        'onboard_url' => env('META_EMBEDDED_SIGNUP_URL'),
+    ],
+
 ];

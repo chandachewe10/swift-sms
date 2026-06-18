@@ -156,6 +156,11 @@
 }
                 </code></pre>
                 <p>
+                    Each company must first register its WhatsApp phone number under
+                    <strong>WhatsApp → Register Phone Number</strong> in the dashboard.
+                    Messages are sent using that company's own Meta WhatsApp configuration.
+                </p>
+                <p>
                     This endpoint sends Meta-approved WhatsApp templates using your account configuration.
                     The <strong>template_name</strong> must exist under your account and be in <strong>APPROVED</strong> status.
                 </p>

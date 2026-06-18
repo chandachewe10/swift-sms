@@ -188,9 +188,9 @@ class WhatsAppTemplateResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->action(function (WhatsAppTemplate $record): void {
-                        $config = WhatsAppConfig::first();
+                        $config = WhatsAppConfig::forUser(auth()->id());
                         if (! $config) {
-                            Notification::make()->title('WhatsApp credentials not configured')->danger()->send();
+                            Notification::make()->title('WhatsApp phone number not registered')->danger()->send();
                             return;
                         }
                         $service = new WhatsAppService($config->phone_number_id, $config->access_token, $config->business_account_id);

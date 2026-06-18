@@ -17,8 +17,8 @@ class WhatsAppConfigResource extends Resource
     protected static ?string $navigationGroup = 'WhatsApp';
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static ?string $modelLabel = 'WA Credentials';
-    protected static ?string $navigationLabel = 'API Credentials';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationLabel = 'Company WA Configs';
+    protected static ?int $navigationSort = 2;
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -32,8 +32,7 @@ class WhatsAppConfigResource extends Resource
 
     public static function canCreate(): bool
     {
-        return (auth()->user()?->hasRole('super_admin') ?? false)
-            && ! WhatsAppConfig::first();
+        return false;
     }
 
     public static function form(Form $form): Form
@@ -70,23 +69,32 @@ class WhatsAppConfigResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query)
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('user'))
             ->columns([
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Company User')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('phone_number')
+                    ->label('Business Phone')
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('phone_number_id')
                     ->label('Phone Number ID'),
                 Tables\Columns\TextColumn::make('business_account_id')
                     ->label('WABA ID')
                     ->placeholder('—'),
+                Tables\Columns\TextColumn::make('business_id')
+                    ->label('Business ID')
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('app_id')
                     ->label('App ID')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Updated')
                     ->dateTime()
                     ->sortable(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([]);

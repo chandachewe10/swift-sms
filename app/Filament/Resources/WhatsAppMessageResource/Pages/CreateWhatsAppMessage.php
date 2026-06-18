@@ -19,12 +19,12 @@ class CreateWhatsAppMessage extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $user   = auth()->user();
-        $config = WhatsAppConfig::first();
+        $config = WhatsAppConfig::forUser($user->id);
 
         if (! $config) {
             Notification::make()
-                ->title('WhatsApp credentials not configured')
-                ->body('Go to WhatsApp → API Credentials to add your Meta credentials first.')
+                ->title('WhatsApp phone number not registered')
+                ->body('Go to WhatsApp → Register Phone Number to connect your company WhatsApp account first.')
                 ->danger()->send();
             $this->halt();
         }

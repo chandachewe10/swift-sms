@@ -12,9 +12,6 @@ class ListWhatsAppConfigs extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\CreateAction::make()
-                ->label('Set Up Credentials'),
-        ];
+        return [];
     }
 }

@@ -26,12 +26,12 @@ class WhatsAppMessagesAPI extends Controller
         ]);
 
         $user = $request->user();
-        $config = WhatsAppConfig::first();
+        $config = WhatsAppConfig::forUser($user->id);
 
         if (! $config) {
             return response()->json([
                 'success' => false,
-                'message' => 'WhatsApp credentials have not been configured by the admin yet.',
+                'message' => 'WhatsApp phone number not registered. Register under WhatsApp -> Register Phone Number.',
             ], 422);
         }
 
