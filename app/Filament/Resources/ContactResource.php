@@ -50,9 +50,9 @@ class ContactResource extends Resource
                     ->maxLength(20),
                 Forms\Components\TextInput::make('phone2')
                     ->tel()
-                    ->label('Secondary Phone Number')
+                    ->label('Secondary Phone Number (Whatsapp Number)')
                     ->placeholder('260973008909')
-                    ->helperText('Include country code, e.g. 260973008909')
+                    ->helperText('WhatsApp number with country code, e.g. 260973008909. Used when sending WhatsApp messages to contacts.')
                     ->prefixIcon('heroicon-o-phone')
                     ->maxLength(20)
                     ->default(null),
@@ -175,6 +175,8 @@ class ContactResource extends Resource
                                 'phone2' => 'phone2',
                                 'phone_2' => 'phone2',
                                 'secondary_phone' => 'phone2',
+                                'whatsapp_number' => 'phone2',
+                                'whatsapp' => 'phone2',
                                 'phone3' => 'phone3',
                                 'phone_3' => 'phone3',
                                 'emergency_phone' => 'phone3',
@@ -365,8 +367,14 @@ class ContactResource extends Resource
                 Tables\Columns\TextColumn::make('last_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone1')
-                    ->label('Phone number')
+                    ->label('Primary Phone')
                     ->badge()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('phone2')
+                    ->label('WhatsApp Number')
+                    ->badge()
+                    ->color('success')
+                    ->placeholder('—')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),

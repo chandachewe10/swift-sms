@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WhatsAppMessageResource\Pages;
+use App\Models\Contact;
+use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppTemplate;
 use Filament\Forms;
@@ -30,6 +32,28 @@ class WhatsAppMessageResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('Send WhatsApp Message')
                 ->schema([
+                    Forms\Components\Placeholder::make('config_notice')
+                        ->label('')
+                        ->content(function (): HtmlString {
+                            $hasOwnConfig = (bool) WhatsAppConfig::forUser(auth()->id());
+
+                            if ($hasOwnConfig) {
+                                return new HtmlString(
+                                    '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;font-size:14px;color:#1e40af;">'
+                                    . 'Sending with your registered company WhatsApp number.'
+                                    . '</div>'
+                                );
+                            }
+
+                            return new HtmlString(
+                                '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;font-size:14px;color:#92400e;">'
+                                . '<strong>Note:</strong> You have not registered a WhatsApp phone number yet. '
+                                . 'Messages will be sent using the admin testing credentials. '
+                                . 'Only approved testing numbers can be used as recipients.'
+                                . '</div>'
+                            );
+                        })
+                        ->columnSpan(2),
 
                     // ── Template selection ────────────────────────────────
                     Forms\Components\Select::make('whatsapp_template_id')
@@ -101,10 +125,56 @@ class WhatsAppMessageResource extends Resource
                         ->columnSpan(2)
                         ->visible(fn (Forms\Get $get) => ! empty($get('template_params'))),
 
+                    Forms\Components\Checkbox::make('send_to_all_contacts')
+                        ->label('Send to all contacts with WhatsApp numbers')
+                        ->helperText('Targets the Secondary Phone Number (Whatsapp Number) saved on each contact.')
+                        ->live()
+                        ->columnSpan(2),
+
+                    Forms\Components\Select::make('contact_tag_filter')
+                        ->label('Filter contacts by tag')
+                        ->options(fn () => Contact::query()
+                            ->where('company_id', auth()->user()->user_id)
+                            ->whereNotNull('phone2')
+                            ->where('phone2', '!=', '')
+                            ->distinct()
+                            ->orderBy('tag')
+                            ->pluck('tag', 'tag')
+                            ->filter())
+                        ->placeholder('All contacts with WhatsApp numbers')
+                        ->native(false)
+                        ->visible(fn (Forms\Get $get) => (bool) $get('send_to_all_contacts'))
+                        ->columnSpan(2),
+
+                    Forms\Components\Placeholder::make('contacts_preview')
+                        ->label('Contacts to receive message')
+                        ->content(function (Forms\Get $get): HtmlString {
+                            if (! $get('send_to_all_contacts')) {
+                                return new HtmlString('<span style="color:#94a3b8;font-size:13px;">Enable the checkbox above to send to saved contacts.</span>');
+                            }
+
+                            $count = Contact::query()
+                                ->where('company_id', auth()->user()->user_id)
+                                ->whereNotNull('phone2')
+                                ->where('phone2', '!=', '')
+                                ->when($get('contact_tag_filter'), fn ($query, $tag) => $query->where('tag', $tag))
+                                ->count();
+
+                            return new HtmlString(
+                                '<span style="font-size:14px;color:#166534;">'
+                                . e("{$count} contact(s) with WhatsApp numbers will receive this message.")
+                                . '</span>'
+                            );
+                        })
+                        ->visible(fn (Forms\Get $get) => (bool) $get('send_to_all_contacts'))
+                        ->columnSpan(2),
+
                     // ── Recipients ────────────────────────────────────────
                     Forms\Components\Repeater::make('recipients')
-                        ->label('Recipients')
-                        ->helperText('Only testing numbers approved by admin in WhatsApp -> Testing Numbers can be used.')
+                        ->label('Manual Recipients')
+                        ->helperText(fn (): string => WhatsAppConfig::forUser(auth()->id())
+                            ? 'Add individual numbers with country code.'
+                            : 'Only testing numbers approved under WhatsApp -> Testing Numbers can be used.')
                         ->schema([
                             Forms\Components\TextInput::make('phone')
                                 ->label('Phone number with country code')
@@ -113,6 +183,7 @@ class WhatsAppMessageResource extends Resource
                         ])
                         ->addActionLabel('Add recipient')
                         ->minItems(1)
+                        ->visible(fn (Forms\Get $get) => ! $get('send_to_all_contacts'))
                         ->columnSpan(2),
                 ])
                 ->columns(2),

@@ -33,9 +33,9 @@ if($data['is_approved'] == 1){
 $status = 'APPROVED';
 
 
- $message = "Congratulations! Your senderID has been approved, you are now ready to use our BulkSMS System. All the best";
+ $message = "Congratulations! Your senderID has been approved on SwiftSMS, you have 2 free SMS to send, top up in our portal to send More.";
  $encodedContacts = urlencode($data['company_phone']);
- $encodedSenderId = 'MACROIT';
+ $encodedSenderId = 'SWIFT';
  $encodedMessage = urlencode($message);
  
  $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;

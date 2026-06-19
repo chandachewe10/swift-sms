@@ -26,12 +26,12 @@ class WhatsAppMessagesAPI extends Controller
         ]);
 
         $user = $request->user();
-        $config = WhatsAppConfig::forUser($user->id);
+        ['config' => $config, 'using_admin' => $usingAdmin] = WhatsAppConfig::resolveForSending($user->id);
 
         if (! $config) {
             return response()->json([
                 'success' => false,
-                'message' => 'WhatsApp phone number not registered. Register under WhatsApp -> Register Phone Number.',
+                'message' => 'WhatsApp is not configured. Register your phone number or contact admin.',
             ], 422);
         }
 
@@ -58,22 +58,24 @@ class WhatsAppMessagesAPI extends Controller
             ], 422);
         }
 
-        $approvedNumbers = WhatsAppTestingNumber::query()
-            ->where('user_id', $user->id)
-            ->where('status', 'approved')
-            ->pluck('phone_number')
-            ->map(fn (string $number) => trim($number))
-            ->all();
+        if ($usingAdmin) {
+            $approvedNumbers = WhatsAppTestingNumber::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->pluck('phone_number')
+                ->map(fn (string $number) => trim($number))
+                ->all();
 
-        $unapprovedRecipients = array_values(array_diff($recipients, $approvedNumbers));
-        if (! empty($unapprovedRecipients)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'All testing recipients must be pre-approved by the admin team.',
-                'data' => [
-                    'unapproved_recipients' => $unapprovedRecipients,
-                ],
-            ], 422);
+            $unapprovedRecipients = array_values(array_diff($recipients, $approvedNumbers));
+            if (! empty($unapprovedRecipients)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are using admin testing credentials. All recipients must be pre-approved testing numbers.',
+                    'data' => [
+                        'unapproved_recipients' => $unapprovedRecipients,
+                    ],
+                ], 422);
+            }
         }
 
         if (! $isFreeTestingTemplate && ! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed) {

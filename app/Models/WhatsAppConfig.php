@@ -28,4 +28,28 @@ class WhatsAppConfig extends Model
     {
         return static::where('user_id', $userId)->first();
     }
+
+    public static function admin(): ?self
+    {
+        return static::query()
+            ->whereHas('user.roles', fn ($query) => $query->where('name', 'super_admin'))
+            ->orderBy('id')
+            ->first();
+    }
+
+    /**
+     * @return array{config: ?self, using_admin: bool}
+     */
+    public static function resolveForSending(int $userId): array
+    {
+        $own = static::forUser($userId);
+
+        if ($own) {
+            return ['config' => $own, 'using_admin' => false];
+        }
+
+        $admin = static::admin();
+
+        return ['config' => $admin, 'using_admin' => $admin !== null];
+    }
 }
