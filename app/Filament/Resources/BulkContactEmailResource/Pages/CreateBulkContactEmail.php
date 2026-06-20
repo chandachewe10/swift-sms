@@ -17,7 +17,7 @@ class CreateBulkContactEmail extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $user   = auth()->user();
+        $user = auth()->user();
         $config = EmailConfig::where('user_id', auth()->id())->first();
 
         if (! $config) {
@@ -29,36 +29,47 @@ class CreateBulkContactEmail extends CreateRecord
             $this->halt();
         }
 
-        $contacts = Contact::where('company_id', $user->user_id)
-            ->whereNotNull('email')
-            ->where('email', '!=', '')
-            ->get();
-
-        if ($contacts->isEmpty()) {
+        if (! ($data['send_to_all_contacts'] ?? false)) {
             Notification::make()
-                ->title('No contacts with email addresses found')
-                ->body('Add email addresses to your contacts first.')
+                ->title('No recipients selected')
+                ->body('Enable "Send to all contacts with email addresses" to choose your recipients.')
                 ->warning()
                 ->send();
             $this->halt();
         }
 
-        $service      = new EmailService($config);
+        $contacts = Contact::query()
+            ->where('company_id', $user->user_id)
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->when($data['contact_tag_filter'] ?? null, fn ($query, $tag) => $query->where('tag', $tag))
+            ->get();
+
+        if ($contacts->isEmpty()) {
+            Notification::make()
+                ->title('No contacts with email addresses found')
+                ->body('Add email addresses to your contacts first, or adjust your tag filter.')
+                ->warning()
+                ->send();
+            $this->halt();
+        }
+
+        $service = new EmailService($config);
         $successCount = 0;
-        $failCount    = 0;
-        $lastRecord   = null;
+        $failCount = 0;
+        $lastRecord = null;
 
         foreach ($contacts as $contact) {
             $success = $service->send($contact->email, $data['subject'], $data['body']);
 
             $lastRecord = EmailMessage::create([
-                'user_id'       => auth()->id(),
-                'to_email'      => $contact->email,
-                'subject'       => $data['subject'],
-                'body'          => $data['body'],
-                'status'        => $success ? 'sent' : 'failed',
+                'user_id' => auth()->id(),
+                'to_email' => $contact->email,
+                'subject' => $data['subject'],
+                'body' => $data['body'],
+                'status' => $success ? 'sent' : 'failed',
                 'error_message' => $success ? null : 'Send failed — check SMTP credentials.',
-                'type'          => 'bulk',
+                'type' => 'bulk',
             ]);
 
             $success ? $successCount++ : $failCount++;

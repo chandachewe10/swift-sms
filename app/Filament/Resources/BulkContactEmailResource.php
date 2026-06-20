@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 
 class BulkContactEmailResource extends Resource
 {
@@ -40,15 +41,54 @@ class BulkContactEmailResource extends Resource
     {
         return $form->schema([
             Forms\Components\Section::make('Compose Bulk Email')
-                ->description(function () {
-                    $count = Contact::where('company_id', auth()->user()?->user_id)
-                        ->whereNotNull('email')
-                        ->where('email', '!=', '')
-                        ->count();
-
-                    return "This email will be sent to all {$count} contact(s) who have an email address.";
-                })
                 ->schema([
+                    Forms\Components\Checkbox::make('send_to_all_contacts')
+                        ->label('Send to all contacts with email addresses')
+                        ->helperText('Targets contacts that have an email saved in your contact list.')
+                        ->default(true)
+                        ->live()
+                        ->columnSpan(2),
+
+                    Forms\Components\Select::make('contact_tag_filter')
+                        ->label('Filter contacts by tag')
+                        ->options(fn () => Contact::query()
+                            ->where('company_id', auth()->user()->user_id)
+                            ->whereNotNull('email')
+                            ->where('email', '!=', '')
+                            ->distinct()
+                            ->orderBy('tag')
+                            ->pluck('tag', 'tag')
+                            ->filter())
+                        ->placeholder('All contacts with email addresses')
+                        ->native(false)
+                        ->visible(fn (Forms\Get $get) => (bool) $get('send_to_all_contacts'))
+                        ->columnSpan(2),
+
+                    Forms\Components\Placeholder::make('contacts_preview')
+                        ->label('Recipients preview')
+                        ->content(function (Forms\Get $get): HtmlString {
+                            if (! $get('send_to_all_contacts')) {
+                                return new HtmlString(
+                                    '<span style="color:#94a3b8;font-size:13px;">Enable the checkbox above to send to your saved contacts.</span>'
+                                );
+                            }
+
+                            $count = Contact::query()
+                                ->where('company_id', auth()->user()->user_id)
+                                ->whereNotNull('email')
+                                ->where('email', '!=', '')
+                                ->when($get('contact_tag_filter'), fn ($query, $tag) => $query->where('tag', $tag))
+                                ->count();
+
+                            return new HtmlString(
+                                '<span style="font-size:14px;color:#166534;">'
+                                . e("{$count} contact(s) with email addresses will receive this message.")
+                                . '</span>'
+                            );
+                        })
+                        ->visible(fn (Forms\Get $get) => (bool) $get('send_to_all_contacts'))
+                        ->columnSpan(2),
+
                     Forms\Components\TextInput::make('subject')
                         ->label('Subject')
                         ->required()
