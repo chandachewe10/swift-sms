@@ -118,6 +118,69 @@ class PaymentResource extends Resource
                         ),
                 ]),
 
+            // ── WhatsApp & Bulk Email subscriptions ───────────────────────
+            \Filament\Forms\Components\Section::make('💬 WhatsApp & 📧 Bulk Email — Monthly Access')
+                ->description('Unlock WhatsApp Business messaging and bulk email to contacts. K500/month each — includes 10 free sends on first sign-up.')
+                ->schema([
+                    \Filament\Forms\Components\Grid::make(['default' => 1, 'md' => 2])
+                        ->schema([
+                            Card::make([
+                                Placeholder::make('whatsapp_subscription')
+                                    ->label(new HtmlString("
+                                        <div style='border:2px solid #25D366;border-radius:12px;padding:4px;'>
+                                            <div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;'>
+                                                <span style='font-size:13px;font-weight:700;color:#25D366;text-transform:uppercase;letter-spacing:0.05em;'>WhatsApp Business</span>
+                                                <span style='background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;'>⭐ Popular</span>
+                                            </div>
+                                            <span style='font-size:30px;font-weight:800;color:#111827;'>K500</span>
+                                            <span style='font-size:14px;color:#6b7280;'>/month</span>
+                                        </div>
+                                    "))
+                                    ->content(new HtmlString("
+                                        <ul style='list-style:none;padding:0;margin:10px 0 0;'>
+                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>💬 Meta WhatsApp Cloud API</li>
+                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📋 Approved message templates</li>
+                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>👥 Bulk send to contacts</li>
+                                            <li style='padding:5px 0;'>🎉 10 free sends on sign-up</li>
+                                        </ul>
+                                    ")),
+                            ])->footerActions([
+                                Action::make('subscribe_whatsapp')
+                                    ->label('Subscribe — K500/month')
+                                    ->button()
+                                    ->color('success')
+                                    ->url(fn () => route('subscription.whatsapp')),
+                            ]),
+
+                            Card::make([
+                                Placeholder::make('email_subscription')
+                                    ->label(new HtmlString("
+                                        <div style='border:2px solid #4285F4;border-radius:12px;padding:4px;'>
+                                            <div style='margin-bottom:8px;'>
+                                                <span style='font-size:13px;font-weight:700;color:#4285F4;text-transform:uppercase;letter-spacing:0.05em;'>Bulk Email</span>
+                                            </div>
+                                            <span style='font-size:30px;font-weight:800;color:#111827;'>K500</span>
+                                            <span style='font-size:14px;color:#6b7280;'>/month</span>
+                                        </div>
+                                    "))
+                                    ->content(new HtmlString("
+                                        <ul style='list-style:none;padding:0;margin:10px 0 0;'>
+                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📧 Send to all contacts with email</li>
+                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>✉️ Your own SMTP (Gmail, Zoho…)</li>
+                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📝 Rich HTML composer</li>
+                                            <li style='padding:5px 0;'>🎉 10 free sends on sign-up</li>
+                                        </ul>
+                                    ")),
+                            ])->footerActions([
+                                Action::make('subscribe_email')
+                                    ->label('Subscribe — K500/month')
+                                    ->button()
+                                    ->color('primary')
+                                    ->url(fn () => route('subscription.email')),
+                            ]),
+                        ]),
+                ]),
+
         ]);
     }
 
