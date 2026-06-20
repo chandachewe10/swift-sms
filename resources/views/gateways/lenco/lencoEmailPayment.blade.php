@@ -25,20 +25,20 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === "success") {
-                        window.location.href = "/app/bulk-contact-emails";
+                        window.location.href = "/admin";
                     } else {
                         alert("Something went wrong: " + (data.message || ''));
-                        window.location.href = "/app";
+                        window.location.href = "/admin";
                     }
                 })
                 .catch(error => {
                     alert("Failed to complete payment. Please try again.");
-                    window.location.href = "/app";
+                    window.location.href = "/admin";
                 });
             },
             onClose: function () {
                 alert('Payment was not completed. Please try again.');
-                window.location.href = "/app/email-subscription";
+                window.location.href = "/admin";
             },
             onConfirmationPending: function () {
                 alert('Your Email subscription will be activated once the payment is confirmed.');

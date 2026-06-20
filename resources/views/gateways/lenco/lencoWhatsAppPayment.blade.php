@@ -28,12 +28,12 @@
                         window.location.href = "/app/whatsapp-subscription";
                     } else {
                         alert("Something went wrong: " + (data.message || ''));
-                        window.location.href = "/app";
+                        window.location.href = "/admin";
                     }
                 })
                 .catch(error => {
                     alert("Failed to complete payment. Please try again.");
-                    window.location.href = "/app";
+                    window.location.href = "/admin";
                 });
             },
             onClose: function () {
