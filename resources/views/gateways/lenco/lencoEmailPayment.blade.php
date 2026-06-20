@@ -5,7 +5,7 @@
             key: "{{ env('LENCO_PUBLIC_KEY') }}",
             reference: 'email-ref-' + Date.now(),
             email: "{{ auth()->user()->email }}",
-            amount: 300,
+            amount: 500,
             currency: "ZMW",
             channels: ["card", "mobile-money"],
             customer: {
@@ -25,7 +25,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === "success") {
-                        window.location.href = "/app/send-emails";
+                        window.location.href = "/app/bulk-contact-emails";
                     } else {
                         alert("Something went wrong: " + (data.message || ''));
                         window.location.href = "/app";

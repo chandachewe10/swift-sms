@@ -178,12 +178,12 @@ public function completeSubscription(Request $request, $amount)
                 'reference'          => $paymentData['reference'] ?? null,
                 'currency'           => $paymentData['currency'] ?? '',
                 'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? '',
-                'amount'             => $paymentData['amount'] ?? 300,
-                'transaction_amount' => $paymentData['amount'] ?? 300,
+                'amount'             => $paymentData['amount'] ?? 500,
+                'transaction_amount' => $paymentData['amount'] ?? 500,
                 'depositId'          => $paymentData['id'] ?? '',
                 'status'             => $paymentData['status'] ?? 'successful',
                 'fee_amount'         => $paymentData['fee'] ?? '',
-                'messages'           => 'Bulk Email subscription — K300/month',
+                'messages'           => 'Bulk Email subscription — K500/month',
             ]);
 
             auth()->user()->update(['email_subscribed' => true]);

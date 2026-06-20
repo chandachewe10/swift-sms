@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BulkContactEmailResource\Pages;
 
+use App\Filament\Pages\EmailSubscriptionPage;
 use App\Filament\Resources\BulkContactEmailResource;
 use App\Models\Contact;
 use App\Models\EmailConfig;
@@ -14,6 +15,18 @@ use Illuminate\Database\Eloquent\Model;
 class CreateBulkContactEmail extends CreateRecord
 {
     protected static string $resource = BulkContactEmailResource::class;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        $user = auth()->user();
+        if (! $user?->hasRole('super_admin')
+            && ! $user?->email_subscribed
+            && ($user?->email_credits ?? 0) <= 0) {
+            $this->redirect(EmailSubscriptionPage::getUrl());
+        }
+    }
 
     protected function handleRecordCreation(array $data): Model
     {
@@ -54,6 +67,19 @@ class CreateBulkContactEmail extends CreateRecord
             $this->halt();
         }
 
+        if (! $user->hasRole('super_admin') && ! $user->email_subscribed) {
+            $needed = $contacts->count();
+            if (($user->email_credits ?? 0) < $needed) {
+                $shortfall = $needed - ($user->email_credits ?? 0);
+                Notification::make()
+                    ->title('Insufficient email credits')
+                    ->body("You need {$shortfall} more credit(s) to send to {$needed} contact(s). Subscribe for unlimited bulk email access.")
+                    ->warning()
+                    ->send();
+                $this->halt();
+            }
+        }
+
         $service = new EmailService($config);
         $successCount = 0;
         $failCount = 0;
@@ -73,6 +99,10 @@ class CreateBulkContactEmail extends CreateRecord
             ]);
 
             $success ? $successCount++ : $failCount++;
+        }
+
+        if (! $user->hasRole('super_admin') && ! $user->email_subscribed && $successCount > 0) {
+            $user->decrement('email_credits', $successCount);
         }
 
         if ($failCount === 0) {

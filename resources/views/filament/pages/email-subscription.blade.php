@@ -19,7 +19,7 @@
 
                 {{-- Price --}}
                 <div class="mb-6 text-center">
-                    <span class="text-4xl font-extrabold text-gray-900 dark:text-white">K300</span>
+                    <span class="text-4xl font-extrabold text-gray-900 dark:text-white">K500</span>
                     <span class="text-gray-500 dark:text-gray-400"> / month</span>
                     <div class="mt-2">
                         <span class="inline-block rounded-full bg-blue-100 px-3 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-300">
@@ -49,7 +49,7 @@
                 {{-- CTA --}}
                 <a href="{{ route('subscription.email') }}"
                    class="block w-full rounded-lg bg-blue-600 px-6 py-3 text-center text-base font-semibold text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                    Subscribe Now — K300/month
+                    Subscribe Now — K500/month
                 </a>
 
                 <p class="mt-4 text-center text-xs text-gray-400">

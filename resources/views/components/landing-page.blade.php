@@ -364,15 +364,15 @@
         <div class="col-md-4" style="padding:12px;" data-aos="fade-up">
           <div style="background:#fff;border-radius:20px;padding:36px 28px;height:100%;box-shadow:0 4px 24px rgba(0,0,0,0.07);border-top:4px solid #4285F4;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="width:56px;height:56px;background:#eff6ff;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:20px;">&#128140;</div>
-            <h3 style="font-size:20px;font-weight:800;color:#0a0f1e;margin-bottom:10px;">Bulk Email <span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;vertical-align:middle;">FREE</span></h3>
-            <p style="color:#64748b;font-size:14px;line-height:1.7;margin-bottom:20px;">Send single or bulk emails using your own SMTP server — Gmail, Zoho, Outlook and more. Compose rich HTML emails and send to your entire contact list in one click. No subscription required.</p>
+            <h3 style="font-size:20px;font-weight:800;color:#0a0f1e;margin-bottom:10px;">Bulk Email</h3>
+            <p style="color:#64748b;font-size:14px;line-height:1.7;margin-bottom:20px;">Send single or bulk emails using your own SMTP server — Gmail, Zoho, Outlook and more. Compose rich HTML emails and send to your entire contact list in one click.</p>
             <ul style="list-style:none;padding:0;font-size:13px;color:#374151;">
               <li style="padding:4px 0;">&#10003; Your own SMTP (Gmail, Zoho…)</li>
               <li style="padding:4px 0;">&#10003; Single &amp; bulk sends</li>
               <li style="padding:4px 0;">&#10003; Full delivery logs</li>
-              <li style="padding:4px 0;color:#22c55e;font-weight:700;">&#10003; Completely FREE</li>
+              <li style="padding:4px 0;">&#10003; K500/month + 10 free sends</li>
             </ul>
-            <a href="/admin/register" style="display:inline-block;margin-top:20px;color:#4285F4;font-weight:700;font-size:14px;text-decoration:none;">Start Sending Free &#8594;</a>
+            <a href="/admin/register" style="display:inline-block;margin-top:20px;color:#4285F4;font-weight:700;font-size:14px;text-decoration:none;">Activate Bulk Email &#8594;</a>
           </div>
         </div>
       </div>
@@ -563,25 +563,24 @@
           </div>
         </div>
         <div class="col-sm-10 col-lg-5" style="padding:12px;">
-          <div style="border-radius:20px;border:2px solid #4285F4;background:rgba(66,133,244,0.05);padding:36px 30px;box-shadow:0 8px 40px rgba(66,133,244,0.15);transition:transform 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-            <div style="position:absolute;top:-14px;right:24px;background:#22c55e;color:#fff;padding:5px 16px;border-radius:20px;font-size:12px;font-weight:700;">&#127881; FREE</div>
+          <div style="border-radius:20px;border:2px solid #4285F4;background:rgba(66,133,244,0.05);padding:36px 30px;box-shadow:0 8px 40px rgba(66,133,244,0.15);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
               <div style="background:#4285F4;border-radius:14px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
               </div>
               <div>
                 <div style="font-size:12px;color:#4285F4;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Bulk Email</div>
-                <div style="font-size:28px;font-weight:900;color:#f1f5f9;">Free<span style="font-size:14px;font-weight:400;color:#64748b;"> — always</span></div>
+                <div style="font-size:28px;font-weight:900;color:#f1f5f9;">K500<span style="font-size:14px;font-weight:400;color:#64748b;">/month</span></div>
               </div>
             </div>
-            <div style="margin-bottom:18px;"><span style="background:rgba(34,197,94,0.15);color:#4ade80;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;">&#9989; No subscription required</span></div>
+            <div style="margin-bottom:18px;"><span style="background:rgba(66,133,244,0.15);color:#93c5fd;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;">&#127881; 10 free sends on sign-up</span></div>
             <ul style="list-style:none;padding:0;font-size:14px;color:#94a3b8;line-height:1.8;">
               <li>&#10003; Single &amp; bulk sends</li>
               <li>&#10003; Gmail, Zoho, Outlook SMTP</li>
               <li>&#10003; Send to all contacts at once</li>
               <li>&#10003; Full delivery logs</li>
             </ul>
-            <a href="/admin/register" style="display:block;text-align:center;margin-top:24px;background:#4285F4;color:#fff;font-weight:700;font-size:14px;padding:13px;border-radius:11px;text-decoration:none;">Start Sending Free &#8594;</a>
+            <a href="/admin/register" style="display:block;text-align:center;margin-top:24px;background:#4285F4;color:#fff;font-weight:700;font-size:14px;padding:13px;border-radius:11px;text-decoration:none;">Activate Bulk Email &#8594;</a>
           </div>
         </div>
       </div>
