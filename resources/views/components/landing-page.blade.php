@@ -736,8 +736,8 @@
                 <div class="footer-links">
                   <h4>Useful Links</h4>
                   <ul>
-                    <li><a href="{{route('terms_and_conditions')}}">Terms and Conditions</a></li>
-                    <li><a href="{{route('privacy_and_policy')}}">Privacy and Policy</a></li>                    
+                    <!-- <li><a href="{{route('terms_and_conditions')}}">Terms and Conditions</a></li>
+                    <li><a href="{{route('privacy_and_policy')}}">Privacy and Policy</a></li>                     -->
                     <li><a href="{{route('api_docs')}}">API</a></li>
                     <!--<li><a href="">Helpdesk</a></li>-->
                   </ul>
