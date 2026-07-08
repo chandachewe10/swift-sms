@@ -226,7 +226,12 @@ class WhatsAppWebhookController extends Controller
 
     /**
      * Create or update the WhatsAppConfig for the identified user, then fetch phone
-     * numbers and subscribe the WABA.  Called when the webhook arrives with full context.
+     * numbers and subscribe the WABA.
+     *
+     * Requires a valid access token — either already stored for the user or configured
+     * as META_SYSTEM_USER_TOKEN.  Without one, we skip config creation entirely and
+     * let the browser callback (MetaEmbeddedSignupController) handle it instead,
+     * preventing a partial row with empty phone_number_id / access_token.
      */
     private function completeOnboardingForUser(
         int $userId,
@@ -237,34 +242,22 @@ class WhatsAppWebhookController extends Controller
     ): void {
         $accessToken = $this->resolveAccessToken($userId);
 
-        // Persist what we know; phone_number_id / phone_number will be filled once
-        // we can call the Graph API.
-        $config = WhatsAppConfig::updateOrCreate(
-            ['user_id' => $userId],
-            [
-                'business_account_id' => $wabaId,
-                'waba_id' => $wabaId,
-                'business_id' => $ownerBusinessId,
-                'app_id' => $appId,
-                // Preserve any access_token that was already stored
-                ...($accessToken ? ['access_token' => $accessToken] : []),
-            ]
-        );
-
-        $this->logOnboarding(
-            $userId,
-            'webhook_config_upserted',
-            compact('wabaId', 'ownerBusinessId', 'appId'),
-            ['config_id' => $config->id],
-            'success',
-            'WhatsAppConfig upserted from PARTNER_APP_INSTALLED webhook'
-        );
-
         if (! $accessToken) {
-            Log::warning('PARTNER_APP_INSTALLED: no access token available; skipping phone fetch and WABA subscription', [
+            // No token available — a partial config row would break message sending.
+            // The browser callback will create the complete config once it fires.
+            Log::info('PARTNER_APP_INSTALLED: no access token available; deferring config creation to browser callback', [
                 'user_id' => $userId,
                 'waba_id' => $wabaId,
             ]);
+
+            $this->logOnboarding(
+                $userId,
+                'webhook_deferred_no_token',
+                compact('wabaId', 'ownerBusinessId', 'appId'),
+                null,
+                'info',
+                'No access token available; browser callback will complete the WhatsAppConfig'
+            );
 
             return;
         }
@@ -280,13 +273,56 @@ class WhatsAppWebhookController extends Controller
             $phones['success'] ? 'success' : 'error'
         );
 
+        $phoneNumberId = null;
+        $phoneNumber   = null;
+
         if ($phones['success'] && ! empty($phones['data'][0])) {
-            $firstPhone = $phones['data'][0];
-            $config->update([
-                'phone_number_id' => $firstPhone['id'] ?? $config->phone_number_id,
-                'phone_number' => $firstPhone['display_phone_number'] ?? $config->phone_number,
-            ]);
+            $phoneNumberId = $phones['data'][0]['id'] ?? null;
+            $phoneNumber   = $phones['data'][0]['display_phone_number'] ?? null;
         }
+
+        // Only persist the config once we have the phone number ID; otherwise a
+        // partial row with phone_number_id=null would still prevent message sending.
+        if (! $phoneNumberId) {
+            Log::warning('PARTNER_APP_INSTALLED: could not fetch phone number ID; deferring config creation', [
+                'user_id' => $userId,
+                'waba_id' => $wabaId,
+                'phones_response' => $phones,
+            ]);
+
+            $this->logOnboarding(
+                $userId,
+                'webhook_phone_fetch_failed',
+                compact('wabaId'),
+                $phones,
+                'error',
+                'Phone number ID not returned; browser callback will complete the WhatsAppConfig'
+            );
+
+            return;
+        }
+
+        $config = WhatsAppConfig::updateOrCreate(
+            ['user_id' => $userId],
+            [
+                'phone_number_id'    => $phoneNumberId,
+                'phone_number'       => $phoneNumber,
+                'business_account_id' => $wabaId,
+                'waba_id'            => $wabaId,
+                'business_id'        => $ownerBusinessId,
+                'access_token'       => $accessToken,
+                'app_id'             => $appId,
+            ]
+        );
+
+        $this->logOnboarding(
+            $userId,
+            'webhook_config_upserted',
+            compact('wabaId', 'ownerBusinessId', 'appId'),
+            ['config_id' => $config->id, 'phone_number_id' => $phoneNumberId],
+            'success',
+            'WhatsAppConfig created/updated from PARTNER_APP_INSTALLED webhook'
+        );
 
         // --- Step 4: Subscribe WABA to receive webhooks ---
         $subscribeResult = $signupService->subscribeWaba($wabaId, $accessToken);

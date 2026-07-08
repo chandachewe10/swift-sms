@@ -45,7 +45,10 @@ class WhatsAppConfig extends Model
     {
         $own = static::forUser($userId);
 
-        if ($own) {
+        // Only use the user's own config when it is fully set up; a partial row
+        // written by the webhook before the browser callback completes will have
+        // an empty phone_number_id and must not be used for sending.
+        if ($own && ! empty($own->phone_number_id)) {
             return ['config' => $own, 'using_admin' => false];
         }
 
