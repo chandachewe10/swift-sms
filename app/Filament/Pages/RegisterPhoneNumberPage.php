@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\WhatsAppConfig;
+use App\Models\WhatsAppPendingOnboarding;
 use Filament\Pages\Page;
 
 class RegisterPhoneNumberPage extends Page
@@ -20,7 +21,17 @@ class RegisterPhoneNumberPage extends Page
 
     public function mount(): void
     {
-        $this->config = WhatsAppConfig::forUser(auth()->id());
+        $userId = auth()->id();
+        $this->config = WhatsAppConfig::forUser($userId);
+
+        // Ensure a pending onboarding session exists so the PARTNER_APP_INSTALLED
+        // webhook can later be matched back to this user via their Meta business ID.
+        if (! $this->config) {
+            WhatsAppPendingOnboarding::updateOrCreate(
+                ['user_id' => $userId, 'status' => 'pending'],
+                ['app_id' => config('services.meta_whatsapp.app_id')]
+            );
+        }
     }
 
     public static function getOnboardUrl(): string

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppEmbeddedSignupLog;
+use App\Models\WhatsAppPendingOnboarding;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -73,6 +74,7 @@ class MetaEmbeddedSignupService
                 'phone_number_id' => $phoneNumberId,
                 'phone_number' => $phoneNumber,
                 'business_account_id' => $wabaId,
+                'waba_id' => $wabaId,
                 'business_id' => $businessId,
                 'access_token' => $accessToken,
                 'app_id' => config('services.meta_whatsapp.app_id'),
@@ -86,16 +88,31 @@ class MetaEmbeddedSignupService
                 'phone_number_id' => $config->phone_number_id,
                 'phone_number' => $config->phone_number,
                 'business_account_id' => $config->business_account_id,
+                'waba_id' => $config->waba_id,
                 'business_id' => $config->business_id,
             ],
         ];
 
         $this->log($user->id, 'config_saved', $payload, $result, 'success', 'Company WhatsApp config saved');
 
+        // Link the pending onboarding session to this Meta business ID so the
+        // PARTNER_APP_INSTALLED webhook can resolve the user even when the webhook
+        // and browser callback arrive in different orders.
+        if ($businessId) {
+            $this->linkPendingOnboarding($user->id, $businessId, $wabaId);
+        }
+
+        // Subscribe the WABA to receive webhook notifications
+        if ($wabaId) {
+            $subscribeResult = $this->subscribeWaba($wabaId, $accessToken);
+            $this->log($user->id, 'waba_subscribe', ['waba_id' => $wabaId], $subscribeResult, $subscribeResult['success'] ? 'success' : 'error');
+        }
+
         Log::info('Meta embedded signup completed', [
             'user_id' => $user->id,
             'phone_number_id' => $config->phone_number_id,
             'business_account_id' => $config->business_account_id,
+            'waba_id' => $config->waba_id,
         ]);
 
         return $result;
@@ -130,6 +147,108 @@ class MetaEmbeddedSignupService
         ];
     }
 
+    /**
+     * Subscribe a WABA to receive webhook notifications from this app.
+     */
+    public function subscribeWaba(string $wabaId, string $accessToken): array
+    {
+        $graphVersion = config('services.meta_whatsapp.graph_version', 'v25.0');
+        $response = Http::withToken($accessToken)
+            ->post("https://graph.facebook.com/{$graphVersion}/{$wabaId}/subscribed_apps");
+
+        $body = $response->json() ?? ['raw' => $response->body()];
+
+        if ($response->failed()) {
+            Log::warning('WABA subscription failed', ['waba_id' => $wabaId, 'response' => $body]);
+
+            return [
+                'success' => false,
+                'message' => $body['error']['message'] ?? 'WABA subscription failed.',
+                'data' => $body,
+            ];
+        }
+
+        Log::info('WABA subscribed to webhook', ['waba_id' => $wabaId]);
+
+        return [
+            'success' => true,
+            'data' => $body,
+        ];
+    }
+
+    /**
+     * Fetch all phone numbers registered under a WABA.
+     */
+    public function fetchWabaPhoneNumbers(string $wabaId, string $accessToken): array
+    {
+        $graphVersion = config('services.meta_whatsapp.graph_version', 'v25.0');
+        $response = Http::withToken($accessToken)
+            ->get("https://graph.facebook.com/{$graphVersion}/{$wabaId}/phone_numbers", [
+                'fields' => 'id,display_phone_number,verified_name',
+            ]);
+
+        $body = $response->json() ?? ['raw' => $response->body()];
+
+        if ($response->failed()) {
+            return [
+                'success' => false,
+                'data' => $body,
+            ];
+        }
+
+        return [
+            'success' => true,
+            'data' => $body['data'] ?? [],
+        ];
+    }
+
+    /**
+     * Update the pending onboarding record with the resolved Meta business ID.
+     * If no pending onboarding exists for the user, also check for a stub created
+     * by the webhook when it arrived before the browser callback.
+     */
+    private function linkPendingOnboarding(int $userId, string $metaBusinessId, ?string $wabaId): void
+    {
+        // First look for a stub created by the webhook (user_id is null, meta_business_id is set)
+        $stub = WhatsAppPendingOnboarding::where('meta_business_id', $metaBusinessId)
+            ->whereNull('user_id')
+            ->whereIn('status', ['pending', 'webhook_received'])
+            ->latest()
+            ->first();
+
+        if ($stub) {
+            $stub->update([
+                'user_id' => $userId,
+                'waba_id' => $wabaId ?? $stub->waba_id,
+                'status' => 'completed',
+            ]);
+
+            return;
+        }
+
+        // Otherwise find or update the user's own pending session
+        $pending = WhatsAppPendingOnboarding::forUser($userId);
+
+        if ($pending) {
+            $pending->update([
+                'meta_business_id' => $metaBusinessId,
+                'waba_id' => $wabaId ?? $pending->waba_id,
+                'status' => 'completed',
+            ]);
+
+            return;
+        }
+
+        // Fallback: create a completed record so the webhook can still find it
+        WhatsAppPendingOnboarding::create([
+            'user_id' => $userId,
+            'meta_business_id' => $metaBusinessId,
+            'waba_id' => $wabaId,
+            'app_id' => config('services.meta_whatsapp.app_id'),
+            'status' => 'completed',
+        ]);
+    }
+
     private function fetchPhoneNumberDetails(string $phoneNumberId, string $accessToken): array
     {
         $graphVersion = config('services.meta_whatsapp.graph_version', 'v25.0');
@@ -150,29 +269,6 @@ class MetaEmbeddedSignupService
         return [
             'success' => true,
             'data' => $body,
-        ];
-    }
-
-    private function fetchWabaPhoneNumbers(string $wabaId, string $accessToken): array
-    {
-        $graphVersion = config('services.meta_whatsapp.graph_version', 'v25.0');
-        $response = Http::withToken($accessToken)
-            ->get("https://graph.facebook.com/{$graphVersion}/{$wabaId}/phone_numbers", [
-                'fields' => 'id,display_phone_number,verified_name',
-            ]);
-
-        $body = $response->json() ?? ['raw' => $response->body()];
-
-        if ($response->failed()) {
-            return [
-                'success' => false,
-                'data' => $body,
-            ];
-        }
-
-        return [
-            'success' => true,
-            'data' => $body['data'] ?? [],
         ];
     }
 
