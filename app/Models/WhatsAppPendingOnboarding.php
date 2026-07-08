@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WhatsAppPendingOnboarding extends Model
 {
+    protected $table = 'whatsapp_pending_onboardings';
+
     protected $fillable = [
         'user_id',
         'meta_business_id',
