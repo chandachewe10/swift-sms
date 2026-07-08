@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WhatsAppEmbeddedSignupLog extends Model
 {
+    protected $table = 'whatsapp_embedded_signup_logs';
+
     protected $fillable = [
         'user_id',
         'step',
