@@ -38,9 +38,13 @@ class WhatsAppMessagesAPI extends Controller
         $template = WhatsAppTemplate::resolveApproved($validated['template_name'], $user->id);
 
         if (! $template) {
+            $hint = WhatsAppConfig::hasOwnConfig($user->id)
+                ? 'Use one of your own approved templates.'
+                : 'Use your own approved template or a shared testing template (opening_our_business_time, system_maintenance).';
+
             return response()->json([
                 'success' => false,
-                'message' => 'Approved template not found. Use your own approved template or a shared testing template (opening_our_business_time, system_maintenance).',
+                'message' => "Approved template not found. {$hint}",
             ], 422);
         }
 

@@ -58,12 +58,7 @@ class WhatsAppMessageResource extends Resource
                     // ── Template selection ────────────────────────────────
                     Forms\Components\Select::make('whatsapp_template_id')
                         ->label('Approved Template')
-                        ->options(fn () => WhatsAppTemplate::query()
-                            ->where('status', 'APPROVED')
-                            ->where(function ($query) {
-                                $query->where('user_id', auth()->id())
-                                    ->orWhereIn('name', WhatsAppTemplate::SHARED_TESTING_TEMPLATES);
-                            })
+                        ->options(fn () => WhatsAppTemplate::availableForUser(auth()->id())
                             ->pluck('name', 'id'))
                         ->required()
                         ->native(false)
