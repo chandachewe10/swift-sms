@@ -43,6 +43,10 @@ return [
         'redirect_uri' => env('META_EMBEDDED_SIGNUP_REDIRECT_URI'),
         'onboard_url' => env('META_EMBEDDED_SIGNUP_URL'),
         'verify_token' => env('META_WHATSAPP_VERIFY_TOKEN'),
+        // Optional: Tech Provider System User access token.
+        // When set, the webhook handler can fetch phone numbers and subscribe the
+        // WABA without needing the end-user's token from the browser callback.
+        'system_user_token' => env('META_SYSTEM_USER_TOKEN'),
     ],
 
 ];
