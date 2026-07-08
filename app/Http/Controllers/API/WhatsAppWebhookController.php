@@ -132,14 +132,17 @@ class WhatsAppWebhookController extends Controller
         $pendingByBusiness = WhatsAppPendingOnboarding::forMetaBusiness($ownerBusinessId);
 
         if ($pendingByBusiness && $pendingByBusiness->user_id) {
-            $this->completeOnboardingForUser(
+            $done = $this->completeOnboardingForUser(
                 $pendingByBusiness->user_id,
                 $wabaId,
                 $ownerBusinessId,
                 $appId,
                 $signupService
             );
-            $pendingByBusiness->update(['waba_id' => $wabaId, 'status' => 'completed']);
+            $pendingByBusiness->update([
+                'waba_id' => $wabaId,
+                'status'  => $done ? 'completed' : 'webhook_received',
+            ]);
 
             return;
         }
@@ -171,14 +174,14 @@ class WhatsAppWebhookController extends Controller
                 'PARTNER_APP_INSTALLED: matched to single pending user session; completing onboarding'
             );
 
-            $this->completeOnboardingForUser(
+            $done = $this->completeOnboardingForUser(
                 $session->user_id,
                 $wabaId,
                 $ownerBusinessId,
                 $appId,
                 $signupService
             );
-            $session->update(['status' => 'completed']);
+            $session->update(['status' => $done ? 'completed' : 'webhook_received']);
 
             return;
         }
@@ -228,10 +231,8 @@ class WhatsAppWebhookController extends Controller
      * Create or update the WhatsAppConfig for the identified user, then fetch phone
      * numbers and subscribe the WABA.
      *
-     * Requires a valid access token — either already stored for the user or configured
-     * as META_SYSTEM_USER_TOKEN.  Without one, we skip config creation entirely and
-     * let the browser callback (MetaEmbeddedSignupController) handle it instead,
-     * preventing a partial row with empty phone_number_id / access_token.
+     * Returns true when the WhatsAppConfig was successfully written, false otherwise.
+     * Callers should only mark the pending onboarding as completed on true.
      */
     private function completeOnboardingForUser(
         int $userId,
@@ -239,13 +240,11 @@ class WhatsAppWebhookController extends Controller
         string $ownerBusinessId,
         string $appId,
         MetaEmbeddedSignupService $signupService
-    ): void {
+    ): bool {
         $accessToken = $this->resolveAccessToken($userId);
 
         if (! $accessToken) {
-            // No token available — a partial config row would break message sending.
-            // The browser callback will create the complete config once it fires.
-            Log::info('PARTNER_APP_INSTALLED: no access token available; deferring config creation to browser callback', [
+            Log::warning('PARTNER_APP_INSTALLED: no access token available; deferring config creation to browser callback', [
                 'user_id' => $userId,
                 'waba_id' => $wabaId,
             ]);
@@ -259,7 +258,7 @@ class WhatsAppWebhookController extends Controller
                 'No access token available; browser callback will complete the WhatsAppConfig'
             );
 
-            return;
+            return false;
         }
 
         // --- Step 3: Fetch phone numbers for the WABA ---
@@ -281,12 +280,10 @@ class WhatsAppWebhookController extends Controller
             $phoneNumber   = $phones['data'][0]['display_phone_number'] ?? null;
         }
 
-        // Only persist the config once we have the phone number ID; otherwise a
-        // partial row with phone_number_id=null would still prevent message sending.
         if (! $phoneNumberId) {
             Log::warning('PARTNER_APP_INSTALLED: could not fetch phone number ID; deferring config creation', [
-                'user_id' => $userId,
-                'waba_id' => $wabaId,
+                'user_id'         => $userId,
+                'waba_id'         => $wabaId,
                 'phones_response' => $phones,
             ]);
 
@@ -299,19 +296,19 @@ class WhatsAppWebhookController extends Controller
                 'Phone number ID not returned; browser callback will complete the WhatsAppConfig'
             );
 
-            return;
+            return false;
         }
 
         $config = WhatsAppConfig::updateOrCreate(
             ['user_id' => $userId],
             [
-                'phone_number_id'    => $phoneNumberId,
-                'phone_number'       => $phoneNumber,
+                'phone_number_id'     => $phoneNumberId,
+                'phone_number'        => $phoneNumber,
                 'business_account_id' => $wabaId,
-                'waba_id'            => $wabaId,
-                'business_id'        => $ownerBusinessId,
-                'access_token'       => $accessToken,
-                'app_id'             => $appId,
+                'waba_id'             => $wabaId,
+                'business_id'         => $ownerBusinessId,
+                'access_token'        => $accessToken,
+                'app_id'              => $appId,
             ]
         );
 
@@ -334,6 +331,8 @@ class WhatsAppWebhookController extends Controller
             $subscribeResult,
             $subscribeResult['success'] ? 'success' : 'error'
         );
+
+        return true;
     }
 
     /**
@@ -368,8 +367,14 @@ class WhatsAppWebhookController extends Controller
     }
 
     /**
-     * Resolve the best available access token for a given user.
-     * Prefers the stored user token; falls back to the system user token if configured.
+     * Resolve the best available access token for Graph API calls.
+     *
+     * Priority:
+     *  1. User's stored access token (from browser OAuth code exchange)
+     *  2. META_SYSTEM_USER_TOKEN env var (Tech Provider system user)
+     *  3. App access token ({app_id}|{app_secret}) — always available for Tech
+     *     Provider apps; valid for fetching phone numbers and subscribing WABAs
+     *     that have installed the app via Embedded Signup.
      */
     private function resolveAccessToken(int $userId): ?string
     {
@@ -379,7 +384,18 @@ class WhatsAppWebhookController extends Controller
             return $config->access_token;
         }
 
-        return config('services.meta_whatsapp.system_user_token') ?: null;
+        if ($token = config('services.meta_whatsapp.system_user_token')) {
+            return $token;
+        }
+
+        $appId     = config('services.meta_whatsapp.app_id');
+        $appSecret = config('services.meta_whatsapp.app_secret');
+
+        if ($appId && $appSecret) {
+            return "{$appId}|{$appSecret}";
+        }
+
+        return null;
     }
 
     private function logOnboarding(
