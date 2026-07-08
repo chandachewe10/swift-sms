@@ -59,14 +59,51 @@
 
     <script>
     (function () {
-        // The pending onboarding session was already recorded by the server when
-        // this page was loaded (RegisterPhoneNumberPage::mount), so we can open
-        // the Meta popup directly without a separate API call.
         const ONBOARD_URL = @json(\App\Filament\Pages\RegisterPhoneNumberPage::getOnboardUrl());
         const CSRF_TOKEN  = @json(csrf_token());
+        const IS_POPUP    = window.opener && window.opener !== window;
 
+        // -----------------------------------------------------------------------
+        // POPUP CHILD mode: this page loaded inside the Meta OAuth popup after
+        // Meta redirected back to our redirect_uri with ?code=...
+        // Send the code to the parent window and close.
+        // -----------------------------------------------------------------------
+        if (IS_POPUP) {
+            const params = new URLSearchParams(window.location.search);
+            const code   = params.get('code');
+
+            if (code) {
+                window.opener.postMessage({
+                    type:             'WA_EMBEDDED_SIGNUP',
+                    event:            'FINISH',
+                    data: {
+                        code:             code,
+                        waba_id:          params.get('waba_id')         || null,
+                        business_id:      params.get('business_id')     || null,
+                        phone_number_id:  params.get('phone_number_id') || null,
+                        phone_number:     params.get('phone_number')    || null,
+                    },
+                }, window.location.origin);
+            } else {
+                // Meta may have returned an error or the user cancelled
+                window.opener.postMessage({
+                    type:  'WA_EMBEDDED_SIGNUP',
+                    event: params.get('error') ? 'ERROR' : 'CANCEL',
+                    data:  { error_message: params.get('error_description') || '' },
+                }, window.location.origin);
+            }
+
+            window.close();
+            return; // stop the rest of the script from running in popup mode
+        }
+
+        // -----------------------------------------------------------------------
+        // PARENT mode: normal Filament page
+        // -----------------------------------------------------------------------
         const btn    = document.getElementById('whatsapp-signup-btn');
         const status = document.getElementById('signup-status');
+
+        if (! btn) return; // page already shows connected state, nothing to do
 
         function showStatus(message, isError) {
             status.textContent = message;
@@ -79,9 +116,9 @@
             return fetch(url, {
                 ...options,
                 headers: {
-                    'Accept':        'application/json',
-                    'Content-Type':  'application/json',
-                    'X-CSRF-TOKEN':  CSRF_TOKEN,
+                    'Accept':       'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
                     ...(options.headers || {}),
                 },
                 credentials: 'same-origin',
@@ -102,16 +139,17 @@
                 `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`
             );
 
-            // Listen for the postMessage callback from Meta
+            // Listen for postMessage from Meta OR from our own popup child page
             const messageHandler = async function (event) {
-                if (!/facebook\.com$/.test(event.origin)) return;
+                // Accept messages from Meta's domain OR our own origin (popup redirect)
+                const isMeta = /facebook\.com$/.test(event.origin);
+                const isSelf = event.origin === window.location.origin;
+                if (! isMeta && ! isSelf) return;
 
                 let msg;
                 try {
                     msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                } catch (e) {
-                    return;
-                }
+                } catch (e) { return; }
 
                 if (msg.type !== 'WA_EMBEDDED_SIGNUP') return;
 
@@ -131,10 +169,8 @@
 
             window.addEventListener('message', messageHandler);
 
-            // If the user closes the popup without finishing, the PARTNER_APP_INSTALLED
-            // webhook will complete the setup server-side.
             const pollTimer = setInterval(function () {
-                if (!popup || popup.closed) {
+                if (! popup || popup.closed) {
                     clearInterval(pollTimer);
                     window.removeEventListener('message', messageHandler);
                     showStatus(
@@ -155,7 +191,7 @@
                 waba_id:             data.waba_id             || null,
                 business_account_id: data.business_account_id || data.waba_id || null,
                 business_id:         data.business_id         || null,
-                phone_number:        data.phone_number         || null,
+                phone_number:        data.phone_number        || null,
                 raw_payload:         data,
             };
 
