@@ -204,12 +204,18 @@ class MetaEmbeddedSignupService
 
     /**
      * Update the pending onboarding record with the resolved Meta business ID.
-     * If no pending onboarding exists for the user, also check for a stub created
-     * by the webhook when it arrived before the browser callback.
+     *
+     * Handles three scenarios:
+     * A) Webhook-first stub exists (user_id=null, meta_business_id set)  → fill in user_id
+     * B) User session exists (user_id set, meta_business_id=null)         → fill in business data
+     * C) Neither found                                                    → create completed record
+     *
+     * In scenario A, we also mark the corresponding user session (if any) as completed
+     * to avoid leaving a dangling pending row behind.
      */
     private function linkPendingOnboarding(int $userId, string $metaBusinessId, ?string $wabaId): void
     {
-        // First look for a stub created by the webhook (user_id is null, meta_business_id is set)
+        // Scenario A: webhook created a stub before the browser callback arrived
         $stub = WhatsAppPendingOnboarding::where('meta_business_id', $metaBusinessId)
             ->whereNull('user_id')
             ->whereIn('status', ['pending', 'webhook_received'])
@@ -220,32 +226,39 @@ class MetaEmbeddedSignupService
             $stub->update([
                 'user_id' => $userId,
                 'waba_id' => $wabaId ?? $stub->waba_id,
-                'status' => 'completed',
+                'status'  => 'completed',
             ]);
+
+            // Clean up the dangling user session row (created on page load) if it
+            // still exists separately — prevents duplicate pending rows for the user.
+            WhatsAppPendingOnboarding::where('user_id', $userId)
+                ->whereNull('meta_business_id')
+                ->where('status', 'pending')
+                ->update(['status' => 'completed']);
 
             return;
         }
 
-        // Otherwise find or update the user's own pending session
+        // Scenario B: user loaded the page (session row exists), webhook not yet processed
         $pending = WhatsAppPendingOnboarding::forUser($userId);
 
         if ($pending) {
             $pending->update([
                 'meta_business_id' => $metaBusinessId,
-                'waba_id' => $wabaId ?? $pending->waba_id,
-                'status' => 'completed',
+                'waba_id'          => $wabaId ?? $pending->waba_id,
+                'status'           => 'completed',
             ]);
 
             return;
         }
 
-        // Fallback: create a completed record so the webhook can still find it
+        // Scenario C: fallback — create a completed record for audit purposes
         WhatsAppPendingOnboarding::create([
-            'user_id' => $userId,
+            'user_id'          => $userId,
             'meta_business_id' => $metaBusinessId,
-            'waba_id' => $wabaId,
-            'app_id' => config('services.meta_whatsapp.app_id'),
-            'status' => 'completed',
+            'waba_id'          => $wabaId,
+            'app_id'           => config('services.meta_whatsapp.app_id'),
+            'status'           => 'completed',
         ]);
     }
 
