@@ -42,6 +42,7 @@ return [
         'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
         'redirect_uri' => env('META_EMBEDDED_SIGNUP_REDIRECT_URI'),
         'onboard_url' => env('META_EMBEDDED_SIGNUP_URL'),
+        'verify_token' => env('META_WHATSAPP_VERIFY_TOKEN'),
     ],
 
 ];

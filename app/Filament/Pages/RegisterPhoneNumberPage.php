@@ -25,7 +25,20 @@ class RegisterPhoneNumberPage extends Page
 
     public static function getOnboardUrl(): string
     {
-        return config('services.meta_whatsapp.onboard_url')
-            ?? 'https://business.facebook.com/messaging/whatsapp/onboard/?app_id=1573778724345266&config_id=866319909357587&extras=%7B%22sessionInfoVersion%22%3A%223%22%2C%22version%22%3A%22v4%22%7D';
+        $appId = config('services.meta_whatsapp.app_id', '1573778724345266');
+        $configId = config('services.meta_whatsapp.config_id', '866319909357587');
+
+        $extras = urlencode(json_encode([
+            'featureType' => 'whatsapp_business_app_onboarding',
+            'sessionInfoVersion' => '3',
+            'version' => 'v4',
+            'features' => [
+                [
+                    'name' => 'app_only_install',
+                ],
+            ],
+        ]));
+
+        return "https://business.facebook.com/messaging/whatsapp/onboard/?app_id={$appId}&config_id={$configId}&extras={$extras}";
     }
 }
