@@ -48,16 +48,42 @@ class WhatsAppTemplate extends Model
         return in_array($name, self::SHARED_TESTING_TEMPLATES, true);
     }
 
+    /**
+     * Return an approved template visible to the user.
+     *
+     * Shared testing templates are only included when the user has no own
+     * WhatsApp config (i.e. they are using the admin sender for testing).
+     * Once a user has their own registered number the testing templates are
+     * excluded — they were created on a different WABA and will not work.
+     */
     public static function resolveApproved(string $name, int $userId): ?self
     {
         return static::query()
             ->where('name', $name)
             ->where('status', 'APPROVED')
             ->where(function ($query) use ($userId) {
-                $query->where('user_id', $userId)
-                    ->orWhereIn('name', self::SHARED_TESTING_TEMPLATES);
+                $query->where('user_id', $userId);
+                if (! WhatsAppConfig::hasOwnConfig($userId)) {
+                    $query->orWhereIn('name', self::SHARED_TESTING_TEMPLATES);
+                }
             })
             ->first();
+    }
+
+    /**
+     * Base query returning all templates visible to the user for selection UI.
+     * Shared testing templates are excluded once the user has their own sender.
+     */
+    public static function availableForUser(int $userId): \Illuminate\Database\Eloquent\Builder
+    {
+        return static::query()
+            ->where('status', 'APPROVED')
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+                if (! WhatsAppConfig::hasOwnConfig($userId)) {
+                    $query->orWhereIn('name', self::SHARED_TESTING_TEMPLATES);
+                }
+            });
     }
 
     public function user(): BelongsTo

@@ -30,6 +30,17 @@ class WhatsAppConfig extends Model
         return static::where('user_id', $userId)->first();
     }
 
+    /**
+     * True when the user has a fully configured WhatsApp sender
+     * (own config row with a valid phone_number_id).
+     */
+    public static function hasOwnConfig(int $userId): bool
+    {
+        $config = static::forUser($userId);
+
+        return $config !== null && ! empty($config->phone_number_id);
+    }
+
     public static function admin(): ?self
     {
         return static::query()
