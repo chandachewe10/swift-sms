@@ -18,6 +18,11 @@ Route::middleware([
     Route::post('meta_embedded_signup', [MetaEmbeddedSignupController::class, 'store'])
         ->name('meta.embedded-signup');
 
+    // Called by the frontend before opening Meta Embedded Signup so a pending
+    // onboarding session is recorded for webhook-to-user matching.
+    Route::post('whatsapp/start-onboarding', [MetaEmbeddedSignupController::class, 'startOnboarding'])
+        ->name('whatsapp.start-onboarding');
+
 });
 
 
