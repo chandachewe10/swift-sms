@@ -81,9 +81,6 @@ class RegisterPhoneNumberPage extends Page
             'featureType'        => 'whatsapp_business_app_onboarding',
             'sessionInfoVersion' => '3',
             'version'            => 'v4',
-            'features'           => [
-                ['name' => 'app_only_install'],
-            ],
         ]));
 
         return "https://business.facebook.com/messaging/whatsapp/onboard/?app_id={$appId}&config_id={$configId}&extras={$extras}";
