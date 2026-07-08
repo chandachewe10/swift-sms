@@ -144,16 +144,56 @@ class WhatsAppWebhookController extends Controller
             return;
         }
 
-        // --- Step 2: Webhook arrived before the browser callback updated the pending record ---
-        // Store the webhook data as a stub so that when the frontend callback eventually fires,
-        // linkPendingOnboarding() in MetaEmbeddedSignupService can match and complete it.
+        // --- Step 2: Webhook arrived before the browser callback set meta_business_id ---
+        // Try to match the single user session that was recorded when the page loaded.
+        // We look for pending sessions for this app that have no meta_business_id yet.
+        // If exactly one such session exists it unambiguously belongs to this signup.
+        $userSessions = WhatsAppPendingOnboarding::where('app_id', $appId)
+            ->whereNotNull('user_id')
+            ->whereNull('meta_business_id')
+            ->where('status', 'pending')
+            ->get();
 
-        Log::warning('PARTNER_APP_INSTALLED: no pending onboarding found for owner_business_id, creating stub', [
-            'owner_business_id' => $ownerBusinessId,
-            'waba_id' => $wabaId,
+        if ($userSessions->count() === 1) {
+            $session = $userSessions->first();
+            $session->update([
+                'meta_business_id' => $ownerBusinessId,
+                'waba_id'          => $wabaId,
+                'status'           => 'webhook_received',
+            ]);
+
+            $this->logOnboarding(
+                $session->user_id,
+                'webhook_partner_app_installed',
+                compact('wabaId', 'ownerBusinessId', 'partnerAppId'),
+                ['matched_by' => 'single_pending_session', 'session_id' => $session->id],
+                'info',
+                'PARTNER_APP_INSTALLED: matched to single pending user session; completing onboarding'
+            );
+
+            $this->completeOnboardingForUser(
+                $session->user_id,
+                $wabaId,
+                $ownerBusinessId,
+                $appId,
+                $signupService
+            );
+            $session->update(['status' => 'completed']);
+
+            return;
+        }
+
+        // --- Step 3: Ambiguous or no pending session found ---
+        // Multiple users signing up simultaneously, or the user never loaded the page.
+        // Store a webhook-received stub so linkPendingOnboarding() in
+        // MetaEmbeddedSignupService can merge it when the browser callback fires.
+
+        Log::warning('PARTNER_APP_INSTALLED: cannot unambiguously resolve user, storing stub', [
+            'owner_business_id'   => $ownerBusinessId,
+            'waba_id'             => $wabaId,
+            'pending_session_count' => $userSessions->count(),
         ]);
 
-        // Upsert: update any existing stub for this business, or create a new one
         $stub = WhatsAppPendingOnboarding::where('meta_business_id', $ownerBusinessId)
             ->whereNull('user_id')
             ->first();
@@ -161,16 +201,16 @@ class WhatsAppWebhookController extends Controller
         if ($stub) {
             $stub->update([
                 'waba_id' => $wabaId,
-                'app_id' => $appId,
-                'status' => 'webhook_received',
+                'app_id'  => $appId,
+                'status'  => 'webhook_received',
             ]);
         } else {
             WhatsAppPendingOnboarding::create([
-                'user_id' => null,
+                'user_id'          => null,
                 'meta_business_id' => $ownerBusinessId,
-                'waba_id' => $wabaId,
-                'app_id' => $appId,
-                'status' => 'webhook_received',
+                'waba_id'          => $wabaId,
+                'app_id'           => $appId,
+                'status'           => 'webhook_received',
             ]);
         }
 
@@ -178,9 +218,9 @@ class WhatsAppWebhookController extends Controller
             null,
             'webhook_partner_app_installed_stub',
             compact('wabaId', 'ownerBusinessId', 'partnerAppId'),
-            ['stub_created' => true],
+            ['stub_created' => true, 'pending_count' => $userSessions->count()],
             'info',
-            'PARTNER_APP_INSTALLED stub created; awaiting browser callback to resolve user'
+            'PARTNER_APP_INSTALLED stub stored; awaiting browser callback to resolve user'
         );
     }
 
