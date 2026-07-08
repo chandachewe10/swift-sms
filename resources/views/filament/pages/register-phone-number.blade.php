@@ -59,84 +59,69 @@
 
     <script>
     (function () {
-        const btn = document.getElementById('whatsapp-signup-btn');
+        // The pending onboarding session was already recorded by the server when
+        // this page was loaded (RegisterPhoneNumberPage::mount), so we can open
+        // the Meta popup directly without a separate API call.
+        const ONBOARD_URL = @json(\App\Filament\Pages\RegisterPhoneNumberPage::getOnboardUrl());
+        const CSRF_TOKEN  = @json(csrf_token());
+
+        const btn    = document.getElementById('whatsapp-signup-btn');
         const status = document.getElementById('signup-status');
 
         function showStatus(message, isError) {
             status.textContent = message;
-            status.className = 'mt-4 text-sm font-medium ' + (isError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400');
+            status.className   = 'mt-4 text-sm font-medium ' +
+                (isError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400');
             status.classList.remove('hidden');
-        }
-
-        function getMetaToken() {
-            // Retrieve the Sanctum token stored by Filament/Jetstream
-            const sanctum = document.cookie.split('; ').find(r => r.startsWith('XSRF-TOKEN='));
-            return null; // token is sent via cookie automatically for same-origin requests
         }
 
         function apiFetch(url, options) {
             return fetch(url, {
                 ...options,
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-XSRF-TOKEN': decodeURIComponent(
-                        (document.cookie.match(/XSRF-TOKEN=([^;]+)/) || [])[1] || ''
-                    ),
+                    'Accept':        'application/json',
+                    'Content-Type':  'application/json',
+                    'X-CSRF-TOKEN':  CSRF_TOKEN,
                     ...(options.headers || {}),
                 },
                 credentials: 'same-origin',
             });
         }
 
-        async function startOnboarding() {
+        function openSignupPopup() {
             btn.disabled = true;
-            showStatus('Preparing your onboarding session…', false);
-
-            let onboardUrl;
-
-            try {
-                const res = await apiFetch('/api/whatsapp/start-onboarding', { method: 'POST' });
-                const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                    throw new Error(data.message || 'Failed to start onboarding.');
-                }
-
-                onboardUrl = data.onboard_url;
-            } catch (err) {
-                showStatus('Could not start onboarding: ' + err.message, true);
-                btn.disabled = false;
-                return;
-            }
-
             showStatus('Opening Meta signup…', false);
 
-            // Open Meta Embedded Signup in a centred popup
-            const width = 600, height = 700;
-            const left = Math.round(window.screenX + (window.outerWidth - width) / 2);
-            const top = Math.round(window.screenY + (window.outerHeight - height) / 2);
+            const width  = 600, height = 700;
+            const left   = Math.round(window.screenX + (window.outerWidth  - width)  / 2);
+            const top    = Math.round(window.screenY + (window.outerHeight - height) / 2);
+
             const popup = window.open(
-                onboardUrl,
+                ONBOARD_URL,
                 'MetaEmbeddedSignup',
                 `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`
             );
 
             // Listen for the postMessage callback from Meta
             const messageHandler = async function (event) {
-                // Accept messages from facebook.com domains only
                 if (!/facebook\.com$/.test(event.origin)) return;
 
-                const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                let msg;
+                try {
+                    msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                } catch (e) {
+                    return;
+                }
 
                 if (msg.type !== 'WA_EMBEDDED_SIGNUP') return;
 
                 window.removeEventListener('message', messageHandler);
+                clearInterval(pollTimer);
 
                 if (msg.event === 'FINISH') {
                     await handleSignupFinished(msg.data);
                 } else if (msg.event === 'CANCEL') {
-                    showStatus('Signup cancelled.', true);
+                    showStatus('Signup cancelled. You can try again.', true);
                     btn.disabled = false;
                 } else if (msg.event === 'ERROR') {
                     showStatus('Meta returned an error: ' + (msg.data?.error_message || 'Unknown error'), true);
@@ -146,12 +131,12 @@
 
             window.addEventListener('message', messageHandler);
 
-            // Poll for popup close (user navigated away without finishing)
+            // If the user closes the popup without finishing, the PARTNER_APP_INSTALLED
+            // webhook will complete the setup server-side.
             const pollTimer = setInterval(function () {
                 if (!popup || popup.closed) {
                     clearInterval(pollTimer);
                     window.removeEventListener('message', messageHandler);
-                    // The PARTNER_APP_INSTALLED webhook will handle completion server-side.
                     showStatus(
                         'Popup closed. Your WhatsApp connection will appear here once Meta confirms the setup.',
                         false
@@ -162,30 +147,23 @@
         }
 
         async function handleSignupFinished(data) {
-            /*
-             * data from Meta may contain:
-             *   phone_number_id, waba_id, business_id, phone_number, code, etc.
-             *
-             * The authorization code (data.code) must be exchanged server-side.
-             */
             showStatus('Finalising your registration…', false);
 
             const payload = {
-                code: data.code,
-                phone_number_id: data.phone_number_id || null,
-                waba_id: data.waba_id || null,
+                code:                data.code                || null,
+                phone_number_id:     data.phone_number_id     || null,
+                waba_id:             data.waba_id             || null,
                 business_account_id: data.business_account_id || data.waba_id || null,
-                business_id: data.business_id || null,
-                phone_number: data.phone_number || null,
-                raw_payload: data,
+                business_id:         data.business_id         || null,
+                phone_number:        data.phone_number         || null,
+                raw_payload:         data,
             };
 
             try {
-                const res = await apiFetch('/api/meta_embedded_signup', {
+                const res    = await apiFetch('/api/meta_embedded_signup', {
                     method: 'POST',
-                    body: JSON.stringify(payload),
+                    body:   JSON.stringify(payload),
                 });
-
                 const result = await res.json();
 
                 if (res.ok && result.success) {
@@ -203,7 +181,7 @@
 
         btn.addEventListener('click', function (e) {
             e.preventDefault();
-            startOnboarding();
+            openSignupPopup();
         });
     })();
     </script>
