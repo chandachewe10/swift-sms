@@ -8,6 +8,7 @@ use App\Services\MetaEmbeddedSignupService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class RegisterPhoneNumberPage extends Page
 {
@@ -22,17 +23,29 @@ class RegisterPhoneNumberPage extends Page
 
     public ?WhatsAppConfig $config = null;
     public bool $justConnected = false;
+    public string $onboardUrl = '';
 
     public function mount(Request $request, MetaEmbeddedSignupService $service): void
     {
         $userId = auth()->id();
         $this->config = WhatsAppConfig::forUser($userId);
 
-        // Handle OAuth redirect callback: Meta redirects back to this page with
-        // ?code=... after the user completes Embedded Signup.
-        $code = $request->query('code');
+        // ── Handle OAuth redirect callback ────────────────────────────────────
+        // Meta redirects the popup back to this page with ?code=...&state=...
+        // The state token lets us resolve which pending session belongs to this user.
+        $code  = $request->query('code');
+        $state = $request->query('state');
 
         if ($code && ! $this->config) {
+            // Resolve user via state token (definitive) or fall back to auth user
+            $user = auth()->user();
+            if ($state) {
+                $pending = WhatsAppPendingOnboarding::where('state_token', $state)->first();
+                if ($pending && $pending->user_id) {
+                    $user = $pending->user ?? $user;
+                }
+            }
+
             $payload = [
                 'code'                => $code,
                 'waba_id'             => $request->query('waba_id'),
@@ -43,7 +56,7 @@ class RegisterPhoneNumberPage extends Page
                 'raw_payload'         => $request->query(),
             ];
 
-            $result = $service->handle(auth()->user(), $payload);
+            $result = $service->handle($user, $payload);
 
             if ($result['success']) {
                 $this->config = WhatsAppConfig::forUser($userId);
@@ -62,17 +75,32 @@ class RegisterPhoneNumberPage extends Page
             }
         }
 
-        // Ensure a pending onboarding session exists so the PARTNER_APP_INSTALLED
-        // webhook can later be matched back to this user via their Meta business ID.
+        // ── Prepare pending onboarding session ────────────────────────────────
         if (! $this->config) {
+            // Generate a unique state token that will be embedded in the Meta URL.
+            // When Meta redirects back with the code, the state token is echoed,
+            // allowing us to definitively resolve which user completed the signup —
+            // eliminating the ambiguity that occurs when multiple users are in the
+            // pending state at the same time.
+            $stateToken = Str::uuid()->toString();
+
             WhatsAppPendingOnboarding::updateOrCreate(
                 ['user_id' => $userId, 'status' => 'pending'],
-                ['app_id' => config('services.meta_whatsapp.app_id')]
+                [
+                    'app_id'      => config('services.meta_whatsapp.app_id'),
+                    'state_token' => $stateToken,
+                ]
             );
+
+            $this->onboardUrl = static::buildOnboardUrl($stateToken);
         }
     }
 
-    public static function getOnboardUrl(): string
+    /**
+     * Build the Meta Embedded Signup URL, embedding the state token so Meta
+     * echoes it back in the OAuth redirect for definitive user matching.
+     */
+    public static function buildOnboardUrl(string $stateToken = ''): string
     {
         $appId    = config('services.meta_whatsapp.app_id', '1573778724345266');
         $configId = config('services.meta_whatsapp.config_id', '866319909357587');
@@ -83,6 +111,18 @@ class RegisterPhoneNumberPage extends Page
             'version'            => 'v4',
         ]));
 
-        return "https://business.facebook.com/messaging/whatsapp/onboard/?app_id={$appId}&config_id={$configId}&extras={$extras}";
+        $url = "https://business.facebook.com/messaging/whatsapp/onboard/?app_id={$appId}&config_id={$configId}&extras={$extras}";
+
+        if ($stateToken) {
+            $url .= '&state=' . urlencode($stateToken);
+        }
+
+        return $url;
+    }
+
+    /** @deprecated Use buildOnboardUrl() with a state token */
+    public static function getOnboardUrl(): string
+    {
+        return static::buildOnboardUrl();
     }
 }

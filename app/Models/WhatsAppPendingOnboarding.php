@@ -14,6 +14,7 @@ class WhatsAppPendingOnboarding extends Model
         'meta_business_id',
         'waba_id',
         'app_id',
+        'state_token',
         'status',
     ];
 
