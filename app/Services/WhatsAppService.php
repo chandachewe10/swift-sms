@@ -26,8 +26,9 @@ class WhatsAppService
             ->post("{$this->baseUrl}/{$accountId}/message_templates", $data);
 
         if ($response->failed()) {
-            Log::error('WhatsApp createTemplate error', ['body' => $response->body()]);
-            return ['error' => true, 'message' => $response->body()];
+            $body = $response->json() ?? ['error' => ['message' => $response->body()]];
+            Log::error('WhatsApp createTemplate error', ['body' => $body]);
+            return ['error' => true, 'meta_error' => $body['error'] ?? []];
         }
 
         return $response->json();
