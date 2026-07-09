@@ -27,6 +27,25 @@ class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmai
     use HasPanelShield;
 
     /**
+     * Override to prevent a mail-delivery failure from surfacing as a 500.
+     * If the verification email cannot be sent (e.g. the address does not
+     * exist on the mail server) the account is still created and the user
+     * can request a new verification link from their dashboard.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        try {
+            parent::sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Verification email could not be delivered', [
+                'user_id' => $this->id,
+                'email'   => $this->email,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
