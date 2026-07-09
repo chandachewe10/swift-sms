@@ -187,9 +187,14 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (\Illuminate\Database\Eloquent\Builder $query) {
+                // Super-admins see all payments; regular users see only their own.
+                if (! auth()->user()->hasRole('super_admin')) {
+                    $query->where('company_id', auth()->id());
+                }
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('reference')->searchable(),
-                //Tables\Columns\TextColumn::make('customer_wallet')->searchable(),
                 Tables\Columns\TextColumn::make('amount')->badge()->numeric()->sortable(),
                 Tables\Columns\TextColumn::make('status')->badge()->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
