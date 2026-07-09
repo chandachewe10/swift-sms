@@ -148,30 +148,35 @@ class WhatsAppWebhookController extends Controller
         }
 
         // --- Step 2: Webhook arrived before the browser callback set meta_business_id ---
-        // Try to match the single user session that was recorded when the page loaded.
-        // We look for pending sessions for this app that have no meta_business_id yet.
-        // If exactly one such session exists it unambiguously belongs to this signup.
+        // Look for pending sessions for this app that have no meta_business_id yet.
         $userSessions = WhatsAppPendingOnboarding::where('app_id', $appId)
             ->whereNotNull('user_id')
             ->whereNull('meta_business_id')
             ->where('status', 'pending')
+            ->latest()   // most recently created = most likely the active signup
             ->get();
 
-        if ($userSessions->count() === 1) {
+        if ($userSessions->isNotEmpty()) {
+            // Use the most recently created session. When exactly one exists it is
+            // unambiguous; when multiple exist we pick the most recent as the best
+            // heuristic (the user who just completed Meta's flow opened the page last).
             $session = $userSessions->first();
+
             $session->update([
                 'meta_business_id' => $ownerBusinessId,
                 'waba_id'          => $wabaId,
                 'status'           => 'webhook_received',
             ]);
 
+            $matchedBy = $userSessions->count() === 1 ? 'single_pending_session' : 'most_recent_pending_session';
+
             $this->logOnboarding(
                 $session->user_id,
                 'webhook_partner_app_installed',
                 compact('wabaId', 'ownerBusinessId', 'partnerAppId'),
-                ['matched_by' => 'single_pending_session', 'session_id' => $session->id],
+                ['matched_by' => $matchedBy, 'session_id' => $session->id, 'total_sessions' => $userSessions->count()],
                 'info',
-                'PARTNER_APP_INSTALLED: matched to single pending user session; completing onboarding'
+                "PARTNER_APP_INSTALLED: matched via {$matchedBy}; completing onboarding"
             );
 
             $done = $this->completeOnboardingForUser(
@@ -186,15 +191,13 @@ class WhatsAppWebhookController extends Controller
             return;
         }
 
-        // --- Step 3: Ambiguous or no pending session found ---
-        // Multiple users signing up simultaneously, or the user never loaded the page.
-        // Store a webhook-received stub so linkPendingOnboarding() in
-        // MetaEmbeddedSignupService can merge it when the browser callback fires.
+        // --- Step 3: No pending session found at all ---
+        // The user never loaded the Register page, or all sessions are already matched.
+        // Store a stub so linkPendingOnboarding() can merge it when the browser callback fires.
 
-        Log::warning('PARTNER_APP_INSTALLED: cannot unambiguously resolve user, storing stub', [
-            'owner_business_id'   => $ownerBusinessId,
-            'waba_id'             => $wabaId,
-            'pending_session_count' => $userSessions->count(),
+        Log::warning('PARTNER_APP_INSTALLED: no pending user session found, storing stub', [
+            'owner_business_id' => $ownerBusinessId,
+            'waba_id'           => $wabaId,
         ]);
 
         $stub = WhatsAppPendingOnboarding::where('meta_business_id', $ownerBusinessId)

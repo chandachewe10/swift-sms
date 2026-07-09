@@ -13,6 +13,15 @@ class MetaEmbeddedSignupService
 {
     public function handle(User $user, array $payload): array
     {
+        // If a state token was relayed from the OAuth redirect, resolve the
+        // definitive user — important when multiple users are in pending state.
+        if (! empty($payload['state'])) {
+            $pending = WhatsAppPendingOnboarding::where('state_token', $payload['state'])->first();
+            if ($pending && $pending->user_id && $pending->user) {
+                $user = $pending->user;
+            }
+        }
+
         $this->log($user->id, 'incoming_request', $payload, null, 'info', 'Embedded signup callback received');
 
         $code = $payload['code'] ?? null;

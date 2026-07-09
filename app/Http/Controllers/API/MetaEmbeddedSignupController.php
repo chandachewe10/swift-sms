@@ -18,6 +18,7 @@ class MetaEmbeddedSignupController extends Controller
     {
         $validated = $request->validate([
             'code' => ['required', 'string'],
+            'state' => ['nullable', 'string'],
             'phone_number_id' => ['nullable', 'string'],
             'waba_id' => ['nullable', 'string'],
             'business_account_id' => ['nullable', 'string'],

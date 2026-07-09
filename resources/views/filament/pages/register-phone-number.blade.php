@@ -59,7 +59,7 @@
 
     <script>
     (function () {
-        const ONBOARD_URL = @json(\App\Filament\Pages\RegisterPhoneNumberPage::getOnboardUrl());
+        const ONBOARD_URL = @json($onboardUrl);
         const CSRF_TOKEN  = @json(csrf_token());
         const IS_POPUP    = window.opener && window.opener !== window;
 
@@ -78,6 +78,7 @@
                     event:            'FINISH',
                     data: {
                         code:             code,
+                        state:            params.get('state')           || null,
                         waba_id:          params.get('waba_id')         || null,
                         business_id:      params.get('business_id')     || null,
                         phone_number_id:  params.get('phone_number_id') || null,
@@ -187,6 +188,7 @@
 
             const payload = {
                 code:                data.code                || null,
+                state:               data.state               || null,
                 phone_number_id:     data.phone_number_id     || null,
                 waba_id:             data.waba_id             || null,
                 business_account_id: data.business_account_id || data.waba_id || null,
