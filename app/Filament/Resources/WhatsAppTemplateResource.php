@@ -204,7 +204,7 @@ class WhatsAppTemplateResource extends Resource
                         } else {
                             $err   = $result['meta_error'] ?? [];
                             $title = $err['error_user_title'] ?? 'Could not fetch template status';
-                            $body  = $err['error_user_msg']  ?? $err['message'] ?? 'Please check your WhatsApp configuration and try again.';
+                            $body  = WhatsAppService::friendlyError($err, 'Please check your WhatsApp configuration and try again.');
                             Notification::make()->title($title)->body($body)->danger()->persistent()->send();
                         }
                     }),

@@ -71,9 +71,8 @@ class CreateWhatsAppTemplate extends CreateRecord
 
         if (isset($result['error'])) {
             $err   = $result['meta_error'] ?? [];
-            // Prefer Meta's human-readable fields; fall back to the technical message
             $title = $err['error_user_title'] ?? 'Template rejected by Meta';
-            $body  = $err['error_user_msg']   ?? $err['message'] ?? 'Unknown error from WhatsApp API';
+            $body  = WhatsAppService::friendlyError($err, 'Unknown error from WhatsApp API. Please check your template and try again.');
 
             Notification::make()
                 ->title($title)

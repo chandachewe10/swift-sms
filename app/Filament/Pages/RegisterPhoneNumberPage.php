@@ -75,25 +75,20 @@ class RegisterPhoneNumberPage extends Page
             }
         }
 
-        // ── Prepare pending onboarding session ────────────────────────────────
-        if (! $this->config) {
-            // Generate a unique state token that will be embedded in the Meta URL.
-            // When Meta redirects back with the code, the state token is echoed,
-            // allowing us to definitively resolve which user completed the signup —
-            // eliminating the ambiguity that occurs when multiple users are in the
-            // pending state at the same time.
-            $stateToken = Str::uuid()->toString();
+        // ── Always build the onboard URL so the button always works ─────────
+        // Generate a unique state token regardless of whether a config already
+        // exists — the user might want to re-connect or update their number.
+        $stateToken = Str::uuid()->toString();
 
-            WhatsAppPendingOnboarding::updateOrCreate(
-                ['user_id' => $userId, 'status' => 'pending'],
-                [
-                    'app_id'      => config('services.meta_whatsapp.app_id'),
-                    'state_token' => $stateToken,
-                ]
-            );
+        WhatsAppPendingOnboarding::updateOrCreate(
+            ['user_id' => $userId, 'status' => 'pending'],
+            [
+                'app_id'      => config('services.meta_whatsapp.app_id'),
+                'state_token' => $stateToken,
+            ]
+        );
 
-            $this->onboardUrl = static::buildOnboardUrl($stateToken);
-        }
+        $this->onboardUrl = static::buildOnboardUrl($stateToken);
     }
 
     /**
