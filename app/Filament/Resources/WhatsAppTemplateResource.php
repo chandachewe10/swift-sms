@@ -188,9 +188,12 @@ class WhatsAppTemplateResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->action(function (WhatsAppTemplate $record): void {
-                        ['config' => $config] = WhatsAppConfig::resolveForSending(auth()->id());
-                        if (! $config) {
-                            Notification::make()->title('WhatsApp not configured')->danger()->send();
+                        $config = WhatsAppConfig::forUser(auth()->id());
+                        if (! $config || empty($config->phone_number_id) || empty($config->access_token)) {
+                            Notification::make()
+                                ->title('WhatsApp number not registered')
+                                ->body('Register your own WhatsApp Business number before managing templates.')
+                                ->danger()->send();
                             return;
                         }
                         $service = new WhatsAppService($config->phone_number_id, $config->access_token, $config->business_account_id);
