@@ -9,6 +9,49 @@ class WhatsAppService
 {
     protected string $baseUrl = 'https://graph.facebook.com/v22.0';
 
+    /**
+     * Convert a Meta API error array into a user-readable string.
+     * Prefers Meta's own user-facing fields; falls back to friendly
+     * descriptions of common error codes.
+     */
+    public static function friendlyError(array $metaError, string $default = 'An unexpected error occurred. Please try again.'): string
+    {
+        if (! empty($metaError['error_user_msg'])) {
+            return $metaError['error_user_msg'];
+        }
+
+        $code    = $metaError['code']         ?? null;
+        $subcode = $metaError['error_subcode'] ?? null;
+        $msg     = $metaError['message']       ?? '';
+
+        // Permission / object not found
+        if ($code === 100 && $subcode === 33) {
+            return 'Your WhatsApp account does not have permission to perform this action. Please reconnect your WhatsApp number from the Register Phone Number page.';
+        }
+
+        // Invalid access token
+        if ($code === 190) {
+            return 'Your WhatsApp access token has expired or is invalid. Please reconnect your WhatsApp number from the Register Phone Number page.';
+        }
+
+        // Rate limit
+        if ($code === 4 || $code === 32 || $code === 613) {
+            return 'Too many requests to WhatsApp. Please wait a few minutes and try again.';
+        }
+
+        // Template-specific errors
+        if ($code === 100 && $subcode === 2388299) {
+            return $msg ?: 'Template variables cannot be at the start or end of the message body.';
+        }
+
+        // Generic fallback — strip the developer-facing URL from Meta's message
+        if ($msg) {
+            return preg_replace('/\s*Please read the Graph API documentation.*$/i', '', $msg);
+        }
+
+        return $default;
+    }
+
     public function __construct(
         protected string $phoneNumberId,
         protected string $accessToken,
