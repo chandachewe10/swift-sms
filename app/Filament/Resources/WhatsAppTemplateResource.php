@@ -188,9 +188,12 @@ class WhatsAppTemplateResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->action(function (WhatsAppTemplate $record): void {
-                        ['config' => $config] = WhatsAppConfig::resolveForSending(auth()->id());
-                        if (! $config) {
-                            Notification::make()->title('WhatsApp not configured')->danger()->send();
+                        $config = WhatsAppConfig::forUser(auth()->id());
+                        if (! $config || empty($config->phone_number_id) || empty($config->access_token)) {
+                            Notification::make()
+                                ->title('WhatsApp number not registered')
+                                ->body('Register your own WhatsApp Business number before managing templates.')
+                                ->danger()->send();
                             return;
                         }
                         $service = new WhatsAppService($config->phone_number_id, $config->access_token, $config->business_account_id);
@@ -199,7 +202,10 @@ class WhatsAppTemplateResource extends Resource
                             $record->update(['status' => $result['data'][0]['status']]);
                             Notification::make()->title('Status updated to: ' . $result['data'][0]['status'])->success()->send();
                         } else {
-                            Notification::make()->title('Could not fetch template status')->body(json_encode($result))->danger()->send();
+                            $err   = $result['meta_error'] ?? [];
+                            $title = $err['error_user_title'] ?? 'Could not fetch template status';
+                            $body  = $err['error_user_msg']  ?? $err['message'] ?? 'Please check your WhatsApp configuration and try again.';
+                            Notification::make()->title($title)->body($body)->danger()->persistent()->send();
                         }
                     }),
                 Tables\Actions\EditAction::make(),

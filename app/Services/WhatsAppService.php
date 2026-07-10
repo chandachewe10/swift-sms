@@ -47,7 +47,9 @@ class WhatsAppService
             ]);
 
         if ($response->failed()) {
-            return ['error' => true, 'message' => $response->body()];
+            $body = $response->json() ?? ['error' => ['message' => $response->body()]];
+            Log::error('WhatsApp getTemplateStatus error', ['body' => $body]);
+            return ['error' => true, 'meta_error' => $body['error'] ?? []];
         }
 
         return $response->json();

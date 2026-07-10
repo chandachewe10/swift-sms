@@ -16,13 +16,15 @@ class CreateWhatsAppTemplate extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        ['config' => $config] = WhatsAppConfig::resolveForSending(auth()->id());
+        $config = WhatsAppConfig::forUser(auth()->id());
 
-        if (! $config) {
+        if (! $config || empty($config->phone_number_id) || empty($config->access_token)) {
             Notification::make()
-                ->title('WhatsApp not configured')
-                ->body('No company or admin WhatsApp credentials are available yet.')
-                ->danger()->send();
+                ->title('WhatsApp number not registered')
+                ->body('You must register your own WhatsApp Business number before creating templates. Go to Register Phone Number to connect your account.')
+                ->danger()
+                ->persistent()
+                ->send();
             $this->halt();
         }
 
