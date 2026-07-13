@@ -46,29 +46,30 @@ class PaymentResource extends Resource
             $save    = $bundle['save'];
             $popular = $bundle['highlight'];
 
-            $saveBadge    = $save ? "<span style='background:#dcfce7;color:#166534;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;'>{$save}</span>" : '';
-            $popularBadge = $popular ? "<span style='background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-left:6px;'>⭐ Popular</span>" : '';
+            $saveBadge    = $save ? "<span class='bundle-save-badge' style='background:#dcfce7;color:#166534;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;'>{$save}</span>" : '';
+            $popularBadge = $popular ? "<span class='bundle-popular-badge' style='background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-left:6px;'>⭐ Popular</span>" : '';
+            $borderClass  = $popular ? 'bundle-border-popular' : 'bundle-border';
             $borderStyle  = $popular ? "border:2px solid #f59e0b;border-radius:12px;" : "border:1px solid #e5e7eb;border-radius:12px;";
 
             return Card::make([
                 Placeholder::make("bundle_{$routeName}_{$price}")
                     ->label(new HtmlString("
-                        <div style='{$borderStyle}padding:4px;'>
+                        <div class='{$borderClass}' style='{$borderStyle}padding:4px;'>
                             <div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;'>
-                                <span style='font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;'>{$label}</span>
+                                <span class='bundle-label' style='font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;'>{$label}</span>
                                 {$popularBadge}
                             </div>
-                            <span style='font-size:30px;font-weight:800;color:#111827;'>K{$price}</span>
+                            <span class='bundle-price' style='font-size:30px;font-weight:800;color:#111827;'>K{$price}</span>
                             <div style='margin:4px 0 8px;display:flex;align-items:center;gap:8px;'>
-                                <span style='font-size:13px;color:#6b7280;'>{$perSms}/SMS</span>
+                                <span class='bundle-muted' style='font-size:13px;color:#6b7280;'>{$perSms}/SMS</span>
                                 {$saveBadge}
                             </div>
                         </div>
                     "))
                     ->content(new HtmlString("
                         <ul style='list-style:none;padding:0;margin:10px 0 0;'>
-                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📨 <strong>{$sms} SMS</strong> credits</li>
-                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>♾️ Credits never expire</li>
+                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📨 <strong>{$sms} SMS</strong> credits</li>
+                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>♾️ Credits never expire</li>
                             <li style='padding:5px 0;'>✅ Delivery reports included</li>
                         </ul>
                     ")),
@@ -81,7 +82,29 @@ class PaymentResource extends Resource
             ])->columnSpan(1);
         };
 
+        $darkModeStyles = new HtmlString("
+            <style>
+                .dark .bundle-price        { color: #f9fafb !important; }
+                .dark .bundle-label        { color: #9ca3af !important; }
+                .dark .bundle-muted        { color: #9ca3af !important; }
+                .dark .bundle-border       { border-color: #374151 !important; }
+                .dark .bundle-border-popular { border-color: #f59e0b !important; }
+                .dark .bundle-divider      { border-bottom-color: #374151 !important; }
+                .dark .bundle-save-badge   { background: #14532d !important; color: #86efac !important; }
+                .dark .bundle-popular-badge { background: #78350f !important; color: #fde68a !important; }
+                .dark .bundle-feature-green  { background: #052e16 !important; border-color: #166534 !important; color: #86efac !important; }
+                .dark .bundle-feature-blue   { background: #0f2744 !important; border-color: #1d4ed8 !important; color: #93c5fd !important; }
+                .dark .bundle-feature-yellow { background: #431407 !important; border-color: #92400e !important; color: #fde68a !important; }
+                .dark .bundle-feature-purple { background: #2e1065 !important; border-color: #6b21a8 !important; color: #d8b4fe !important; }
+            </style>
+        ");
+
         return $form->schema([
+
+            Placeholder::make('bundle_dark_mode_styles')
+                ->label('')
+                ->content($darkModeStyles)
+                ->columnSpanFull(),
 
             // ── Local SMS ────────────────────────────────────────────────
             \Filament\Forms\Components\Section::make('📶 Local SMS — MTN, Airtel & Zamtel')
@@ -106,10 +129,10 @@ class PaymentResource extends Resource
                                 ->columnSpanFull()
                                 ->content(new HtmlString("
                                     <div style='display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px;'>
-                                        <span style='background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>🌍 Any country</span>
-                                        <span style='background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>👤 Free Sender ID</span>
-                                        <span style='background:#fef9c3;border:1px solid #fde68a;color:#854d0e;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>⚡ Flash SMS included</span>
-                                        <span style='background:#fdf4ff;border:1px solid #e9d5ff;color:#7e22ce;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>♾️ Credits never expire</span>
+                                        <span class='bundle-feature-green' style='background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>🌍 Any country</span>
+                                        <span class='bundle-feature-blue' style='background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>👤 Free Sender ID</span>
+                                        <span class='bundle-feature-yellow' style='background:#fef9c3;border:1px solid #fde68a;color:#854d0e;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>⚡ Flash SMS included</span>
+                                        <span class='bundle-feature-purple' style='background:#fdf4ff;border:1px solid #e9d5ff;color:#7e22ce;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;'>♾️ Credits never expire</span>
                                     </div>
                                 ")),
                         ] + collect($intlBundles)
@@ -130,17 +153,17 @@ class PaymentResource extends Resource
                                         <div style='border:2px solid #25D366;border-radius:12px;padding:4px;'>
                                             <div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;'>
                                                 <span style='font-size:13px;font-weight:700;color:#25D366;text-transform:uppercase;letter-spacing:0.05em;'>WhatsApp Business</span>
-                                                <span style='background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;'>⭐ Popular</span>
+                                                <span class='bundle-popular-badge' style='background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;'>⭐ Popular</span>
                                             </div>
-                                            <span style='font-size:30px;font-weight:800;color:#111827;'>K500</span>
-                                            <span style='font-size:14px;color:#6b7280;'>/month</span>
+                                            <span class='bundle-price' style='font-size:30px;font-weight:800;color:#111827;'>K500</span>
+                                            <span class='bundle-muted' style='font-size:14px;color:#6b7280;'>/month</span>
                                         </div>
                                     "))
                                     ->content(new HtmlString("
                                         <ul style='list-style:none;padding:0;margin:10px 0 0;'>
-                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>💬 Meta WhatsApp Cloud API</li>
-                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📋 Approved message templates</li>
-                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>👥 Bulk send to contacts</li>
+                                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>💬 Meta WhatsApp Cloud API</li>
+                                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📋 Approved message templates</li>
+                                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>👥 Bulk send to contacts</li>
                                             <li style='padding:5px 0;'>🎉 10 free sends on sign-up</li>
                                         </ul>
                                     ")),
@@ -159,15 +182,15 @@ class PaymentResource extends Resource
                                             <div style='margin-bottom:8px;'>
                                                 <span style='font-size:13px;font-weight:700;color:#4285F4;text-transform:uppercase;letter-spacing:0.05em;'>Bulk Email</span>
                                             </div>
-                                            <span style='font-size:30px;font-weight:800;color:#111827;'>K500</span>
-                                            <span style='font-size:14px;color:#6b7280;'>/month</span>
+                                            <span class='bundle-price' style='font-size:30px;font-weight:800;color:#111827;'>K500</span>
+                                            <span class='bundle-muted' style='font-size:14px;color:#6b7280;'>/month</span>
                                         </div>
                                     "))
                                     ->content(new HtmlString("
                                         <ul style='list-style:none;padding:0;margin:10px 0 0;'>
-                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📧 Send to all contacts with email</li>
-                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>✉️ Your own SMTP (Gmail, Zoho…)</li>
-                                            <li style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📝 Rich HTML composer</li>
+                                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📧 Send to all contacts with email</li>
+                                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>✉️ Your own SMTP (Gmail, Zoho…)</li>
+                                            <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>📝 Rich HTML composer</li>
                                             <li style='padding:5px 0;'>🎉 10 free sends on sign-up</li>
                                         </ul>
                                     ")),
