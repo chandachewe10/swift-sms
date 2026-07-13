@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 
 class SubscriptionsController extends Controller
@@ -74,10 +74,10 @@ class SubscriptionsController extends Controller
 public function completeSubscription(Request $request, $amount)
 {
     try {
-        $paymentData = json_decode($request->input('data'), true);
+        $paymentData = json_decode($request->input('data'), true) ?? [];
         $reference = $paymentData['reference'] ?? null;
 
-     Log::info('Subscription payment completed', $request->all());
+        Log::info('Subscription payment completed', $request->all());
 
         // Map amount (ZMW) to SMS credits — Local pricing tiers
         $bundles = [
@@ -96,12 +96,12 @@ public function completeSubscription(Request $request, $amount)
             'company_id'         => auth()->user()->user_id,
             'reference'          => $reference,
             'currency'           => $paymentData['currency'] ?? '',
-            'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? '',
+            'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? null,
             'amount'             => $paymentData['amount'] ?? '',
             'transaction_amount' => $paymentData['amount'] ?? '',
-            'depositId'          => $paymentData['id'] ?? '',
+            'depositId'          => $paymentData['id'] ?: null,
             'status'             => $paymentData['status'] ?? '',
-            'fee_amount'         => $paymentData['fee'] ?? '',
+            'fee_amount'         => isset($paymentData['fee']) ? $paymentData['fee'] : null,
             'messages'           => 'Payment for ' . $numberOfSms . ' SMSes',
         ]);
 
@@ -127,7 +127,7 @@ public function completeSubscription(Request $request, $amount)
     public function completeInternationalSubscription(Request $request, $amount)
     {
         try {
-            $paymentData = json_decode($request->input('data'), true);
+            $paymentData = json_decode($request->input('data'), true) ?? [];
             $reference   = $paymentData['reference'] ?? null;
 
             Log::info('International SMS subscription payment completed', $request->all());
@@ -146,12 +146,12 @@ public function completeSubscription(Request $request, $amount)
                 'company_id'         => auth()->user()->user_id,
                 'reference'          => $reference,
                 'currency'           => $paymentData['currency'] ?? '',
-                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? '',
+                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? null,
                 'amount'             => $paymentData['amount'] ?? '',
                 'transaction_amount' => $paymentData['amount'] ?? '',
-                'depositId'          => $paymentData['id'] ?? '',
+                'depositId'          => $paymentData['id'] ?: null,
                 'status'             => $paymentData['status'] ?? '',
-                'fee_amount'         => $paymentData['fee'] ?? '',
+                'fee_amount'         => isset($paymentData['fee']) ? $paymentData['fee'] : null,
                 'messages'           => 'International SMS — ' . $credits . ' credits',
             ]);
 
@@ -169,7 +169,7 @@ public function completeSubscription(Request $request, $amount)
     public function completeEmailSubscription(Request $request)
     {
         try {
-            $paymentData = json_decode($request->input('data'), true);
+            $paymentData = json_decode($request->input('data'), true) ?? [];
 
             Log::info('Email subscription payment received', $request->all());
 
@@ -177,16 +177,18 @@ public function completeSubscription(Request $request, $amount)
                 'company_id'         => auth()->user()->user_id,
                 'reference'          => $paymentData['reference'] ?? null,
                 'currency'           => $paymentData['currency'] ?? '',
-                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? '',
+                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? null,
                 'amount'             => $paymentData['amount'] ?? 500,
                 'transaction_amount' => $paymentData['amount'] ?? 500,
-                'depositId'          => $paymentData['id'] ?? '',
+                'depositId'          => $paymentData['id'] ?: null,
                 'status'             => $paymentData['status'] ?? 'successful',
-                'fee_amount'         => $paymentData['fee'] ?? '',
+                'fee_amount'         => isset($paymentData['fee']) ? $paymentData['fee'] : null,
                 'messages'           => 'Bulk Email subscription — K500/month',
             ]);
 
-            auth()->user()->update(['email_subscribed' => true]);
+            $user = auth()->user();
+            $user->email_subscribed = true;
+            $user->save();
 
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
@@ -198,7 +200,7 @@ public function completeSubscription(Request $request, $amount)
     public function completeWhatsAppSubscription(Request $request)
     {
         try {
-            $paymentData = json_decode($request->input('data'), true);
+            $paymentData = json_decode($request->input('data'), true) ?? [];
 
             Log::info('WhatsApp subscription payment received', $request->all());
 
@@ -206,16 +208,18 @@ public function completeSubscription(Request $request, $amount)
                 'company_id'         => auth()->user()->user_id,
                 'reference'          => $paymentData['reference'] ?? null,
                 'currency'           => $paymentData['currency'] ?? '',
-                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? '',
+                'customer_wallet'    => $paymentData['mobileMoneyDetails']['phone'] ?? null,
                 'amount'             => $paymentData['amount'] ?? 500,
                 'transaction_amount' => $paymentData['amount'] ?? 500,
-                'depositId'          => $paymentData['id'] ?? '',
+                'depositId'          => $paymentData['id'] ?: null,
                 'status'             => $paymentData['status'] ?? 'successful',
-                'fee_amount'         => $paymentData['fee'] ?? '',
+                'fee_amount'         => isset($paymentData['fee']) ? $paymentData['fee'] : null,
                 'messages'           => 'WhatsApp Business subscription — K500/month',
             ]);
 
-            auth()->user()->update(['whatsapp_subscribed' => true]);
+            $user = auth()->user();
+            $user->whatsapp_subscribed = true;
+            $user->save();
 
             return response()->json([
                 'status'  => 'success',
@@ -229,5 +233,22 @@ public function completeSubscription(Request $request, $amount)
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Render a printable HTML receipt for a single payment.
+     * Users can only view their own receipts; super_admins can view any.
+     */
+    public function downloadReceipt(Payment $payment): \Illuminate\View\View
+    {
+        $authUser = auth()->user();
+
+        if (! $authUser->hasRole('super_admin') && $payment->company_id !== $authUser->user_id) {
+            abort(403, 'You are not authorised to download this receipt.');
+        }
+
+        $customer = User::where('user_id', $payment->company_id)->first();
+
+        return view('payments.receipt', compact('payment', 'customer'));
     }
 }

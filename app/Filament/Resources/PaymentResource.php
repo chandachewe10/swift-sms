@@ -4,14 +4,21 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Models\Payment;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables\Table;
-use Filament\Tables;
+use App\Models\User;
+use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Section as FormSection;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class PaymentResource extends Resource
 {
@@ -19,7 +26,178 @@ class PaymentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Form
+    // ─────────────────────────────────────────────────────────────────────────
+
     public static function form(Form $form): Form
+    {
+        if (auth()->user()?->hasRole('super_admin')) {
+            return static::adminForm($form);
+        }
+
+        return static::userForm($form);
+    }
+
+    /**
+     * Admin manual-payment form.
+     * Used for both Create (new record) and Edit (existing record) pages.
+     * The "Subscription / Service" section is hidden during Edit because the
+     * subscription was already activated when the payment was created.
+     */
+    public static function adminForm(Form $form): Form
+    {
+        $localOptions = [
+            340   => '1,000 SMS — K340 (Starter)',
+            1340  => '5,000 SMS — K1,340 (Bronze)',
+            2000  => '9,000 SMS — K2,000 (Silver)',
+            4750  => '25,000 SMS — K4,750 (Gold)',
+            9000  => '50,000 SMS — K9,000 (Platinum)',
+            17000 => '100,000 SMS — K17,000 (Enterprise)',
+        ];
+
+        $intlOptions = [
+            1050  => '100 International SMS — K1,050',
+            2625  => '250 International SMS — K2,625',
+            5250  => '500 International SMS — K5,250',
+            10500 => '1,000 International SMS — K10,500',
+        ];
+
+        return $form->schema([
+
+            // ── Customer selector ─────────────────────────────────────────
+            FormSection::make('Customer')
+                ->icon('heroicon-o-user')
+                ->schema([
+                    Select::make('company_id')
+                        ->label('Customer')
+                        ->options(fn () => User::orderBy('name')->pluck('name', 'user_id'))
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->columnSpanFull(),
+                ]),
+
+            // ── Subscription type (create only) ───────────────────────────
+            FormSection::make('Subscription / Service')
+                ->icon('heroicon-o-shopping-bag')
+                ->description('Select the service to activate after saving (only for Successful payments).')
+                ->schema([
+                    Select::make('subscription_type')
+                        ->label('Service')
+                        ->options([
+                            'whatsapp'          => '💬 WhatsApp Business — K500/month',
+                            'email'             => '📧 Bulk Email — K500/month',
+                            'local_sms'         => '📶 Local SMS Credits',
+                            'international_sms' => '🌍 International SMS Credits',
+                        ])
+                        ->live()
+                        ->placeholder('— choose a service (optional) —')
+                        ->afterStateUpdated(function (Set $set, ?string $state): void {
+                            if (in_array($state, ['whatsapp', 'email'])) {
+                                $set('amount', 500);
+                                $set('transaction_amount', 500);
+                            }
+                            if (! $state || in_array($state, ['whatsapp', 'email'])) {
+                                $set('sms_bundle', null);
+                                $set('intl_bundle', null);
+                            }
+                        })
+                        ->helperText('Choosing a service auto-fills the amount and activates the subscription on save.'),
+
+                    Select::make('sms_bundle')
+                        ->label('SMS Bundle')
+                        ->options($localOptions)
+                        ->live()
+                        ->afterStateUpdated(function (Set $set, ?string $state): void {
+                            if ($state) {
+                                $set('amount', (int) $state);
+                                $set('transaction_amount', (int) $state);
+                            }
+                        })
+                        ->visible(fn (Get $get) => $get('subscription_type') === 'local_sms')
+                        ->required(fn (Get $get) => $get('subscription_type') === 'local_sms'),
+
+                    Select::make('intl_bundle')
+                        ->label('International SMS Bundle')
+                        ->options($intlOptions)
+                        ->live()
+                        ->afterStateUpdated(function (Set $set, ?string $state): void {
+                            if ($state) {
+                                $set('amount', (int) $state);
+                                $set('transaction_amount', (int) $state);
+                            }
+                        })
+                        ->visible(fn (Get $get) => $get('subscription_type') === 'international_sms')
+                        ->required(fn (Get $get) => $get('subscription_type') === 'international_sms'),
+                ])
+                // Hide on edit — subscription was already activated when created.
+                ->hidden(fn ($record) => $record !== null),
+
+            // ── Payment details ────────────────────────────────────────────
+            FormSection::make('Payment Details')
+                ->icon('heroicon-o-credit-card')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('reference')
+                        ->label('Payment Reference')
+                        ->default(fn () => 'MANUAL-' . strtoupper(Str::random(8)))
+                        ->required(),
+
+                    TextInput::make('amount')
+                        ->label('Amount (ZMW)')
+                        ->numeric()
+                        ->prefix('K')
+                        ->required(),
+
+                    TextInput::make('transaction_amount')
+                        ->label('Total Transaction Amount')
+                        ->numeric()
+                        ->prefix('K')
+                        ->helperText('Leave blank to copy Amount'),
+
+                    TextInput::make('currency')
+                        ->label('Currency')
+                        ->default('ZMW')
+                        ->required(),
+
+                    TextInput::make('customer_wallet')
+                        ->label('Customer Phone (Mobile Money)')
+                        ->tel()
+                        ->helperText('Optional'),
+
+                    Select::make('status')
+                        ->label('Payment Status')
+                        ->options([
+                            'successful' => '✅ Successful',
+                            'pending'    => '⏳ Pending',
+                            'failed'     => '❌ Failed',
+                        ])
+                        ->default('successful')
+                        ->required()
+                        ->helperText('Only "Successful" payments activate the subscription or credits'),
+
+                    TextInput::make('depositId')
+                        ->label('Lenco Transaction ID')
+                        ->helperText('Optional — from Lenco\'s dashboard'),
+
+                    TextInput::make('merchant_reference')
+                        ->label('Merchant Reference')
+                        ->helperText('Optional'),
+
+                    TextInput::make('messages')
+                        ->label('Description / Notes')
+                        ->helperText('Auto-generated when creating via the Service selector above')
+                        ->columnSpanFull(),
+                ]),
+        ]);
+    }
+
+    /**
+     * User-facing bundle catalog (read-only links to the Lenco checkout pages).
+     * Preserved from the original resource; not a submission form.
+     */
+    public static function userForm(Form $form): Form
     {
         // ── Local SMS bundles ─────────────────────────────────────────────
         $localBundles = [
@@ -31,7 +209,7 @@ class PaymentResource extends Resource
             17000 => ['sms' => 100000, 'label' => 'Enterprise', 'per_sms' => 'K0.17', 'highlight' => false, 'save' => 'Save K17,000'],
         ];
 
-        // ── International SMS bundles ($0.389/SMS @ ~K27/USD) ─────────────
+        // ── International SMS bundles ─────────────────────────────────────
         $intlBundles = [
             1050  => ['sms' => 100,  'label' => 'Explorer', 'per_sms' => '$0.389', 'highlight' => false, 'save' => null],
             2625  => ['sms' => 250,  'label' => 'Connect',  'per_sms' => '$0.389', 'highlight' => false, 'save' => null],
@@ -49,7 +227,7 @@ class PaymentResource extends Resource
             $saveBadge    = $save ? "<span class='bundle-save-badge' style='background:#dcfce7;color:#166534;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;'>{$save}</span>" : '';
             $popularBadge = $popular ? "<span class='bundle-popular-badge' style='background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-left:6px;'>⭐ Popular</span>" : '';
             $borderClass  = $popular ? 'bundle-border-popular' : 'bundle-border';
-            $borderStyle  = $popular ? "border:2px solid #f59e0b;border-radius:12px;" : "border:1px solid #e5e7eb;border-radius:12px;";
+            $borderStyle  = $popular ? 'border:2px solid #f59e0b;border-radius:12px;' : 'border:1px solid #e5e7eb;border-radius:12px;';
 
             return Card::make([
                 Placeholder::make("bundle_{$routeName}_{$price}")
@@ -74,7 +252,7 @@ class PaymentResource extends Resource
                         </ul>
                     ")),
             ])->footerActions([
-                Action::make("buy_{$routeName}_{$price}")
+                FormAction::make("buy_{$routeName}_{$price}")
                     ->label('Buy Now')
                     ->button()
                     ->color($popular ? 'warning' : 'success')
@@ -82,7 +260,7 @@ class PaymentResource extends Resource
             ])->columnSpan(1);
         };
 
-        $darkModeStyles = new HtmlString("
+        $darkModeStyles = new HtmlString('
             <style>
                 .dark .bundle-price        { color: #f9fafb !important; }
                 .dark .bundle-label        { color: #9ca3af !important; }
@@ -97,7 +275,7 @@ class PaymentResource extends Resource
                 .dark .bundle-feature-yellow { background: #431407 !important; border-color: #92400e !important; color: #fde68a !important; }
                 .dark .bundle-feature-purple { background: #2e1065 !important; border-color: #6b21a8 !important; color: #d8b4fe !important; }
             </style>
-        ");
+        ');
 
         return $form->schema([
 
@@ -106,7 +284,7 @@ class PaymentResource extends Resource
                 ->content($darkModeStyles)
                 ->columnSpanFull(),
 
-            // ── Local SMS ────────────────────────────────────────────────
+            // ── Local SMS ─────────────────────────────────────────────────
             \Filament\Forms\Components\Section::make('📶 Local SMS — MTN, Airtel & Zamtel')
                 ->description('Credits for sending to Zambian numbers via local networks. Balance shown as "SMS Credits" in your dashboard.')
                 ->schema([
@@ -141,7 +319,7 @@ class PaymentResource extends Resource
                         ),
                 ]),
 
-            // ── WhatsApp & Bulk Email subscriptions ───────────────────────
+            // ── WhatsApp & Bulk Email ─────────────────────────────────────
             \Filament\Forms\Components\Section::make('💬 WhatsApp & 📧 Bulk Email — Monthly Access')
                 ->description('Unlock WhatsApp Business messaging and bulk email to contacts. K500/month each — includes 10 free sends on first sign-up.')
                 ->schema([
@@ -168,7 +346,7 @@ class PaymentResource extends Resource
                                         </ul>
                                     ")),
                             ])->footerActions([
-                                Action::make('subscribe_whatsapp')
+                                FormAction::make('subscribe_whatsapp')
                                     ->label('Subscribe — K500/month')
                                     ->button()
                                     ->color('success')
@@ -195,7 +373,7 @@ class PaymentResource extends Resource
                                         </ul>
                                     ")),
                             ])->footerActions([
-                                Action::make('subscribe_email')
+                                FormAction::make('subscribe_email')
                                     ->label('Subscribe — K500/month')
                                     ->button()
                                     ->color('primary')
@@ -203,9 +381,12 @@ class PaymentResource extends Resource
                             ]),
                         ]),
                 ]),
-
         ]);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Table
+    // ─────────────────────────────────────────────────────────────────────────
 
     public static function table(Table $table): Table
     {
@@ -213,23 +394,72 @@ class PaymentResource extends Resource
             ->modifyQueryUsing(function (\Illuminate\Database\Eloquent\Builder $query) {
                 // Super-admins see all payments; regular users see only their own.
                 if (! auth()->user()->hasRole('super_admin')) {
-                    $query->where('company_id', auth()->id());
+                    $query->where('company_id', auth()->user()->user_id);
                 }
             })
             ->columns([
-                Tables\Columns\TextColumn::make('reference')->searchable(),
-                Tables\Columns\TextColumn::make('amount')->badge()->numeric()->sortable(),
-                Tables\Columns\TextColumn::make('status')->badge()->sortable(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+
+                Tables\Columns\TextColumn::make('messages')
+                    ->label('Description')
+                    ->searchable()
+                    ->limit(45)
+                    ->tooltip(fn ($record) => $record->messages),
+
+                Tables\Columns\TextColumn::make('amount')
+                    ->label('Amount')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => 'K ' . number_format((float) $state, 2))
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'successful' => 'success',
+                        'pending'    => 'warning',
+                        'failed'     => 'danger',
+                        default      => 'gray',
+                    })
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('reference')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Date')
+                    ->dateTime('M j, Y g:i A')
+                    ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([])
-            ->actions([])
+            ->actions([
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('download_receipt')
+                        ->label('Download Receipt')
+                        ->icon('heroicon-o-document-text')
+                        ->color('info')
+                        ->url(fn (Payment $record) => route('payment.receipt', $record))
+                        ->openUrlInNewTab(),
+
+                    Tables\Actions\EditAction::make()
+                        ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                ]),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Pages
+    // ─────────────────────────────────────────────────────────────────────────
 
     public static function getRelations(): array
     {
@@ -239,9 +469,9 @@ class PaymentResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPayments::route('/'),
+            'index'  => Pages\ListPayments::route('/'),
             'create' => Pages\CreatePayment::route('/create'),
-            'edit' => Pages\EditPayment::route('/{record}/edit'),
+            'edit'   => Pages\EditPayment::route('/{record}/edit'),
         ];
     }
 }

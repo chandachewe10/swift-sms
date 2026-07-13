@@ -55,6 +55,10 @@ class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmai
         'email',
         'password',
         'international_sms_credits',
+        'whatsapp_subscribed',
+        'email_subscribed',
+        'whatsapp_credits',
+        'email_credits',
     ];
 
     /**
