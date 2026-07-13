@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 
 class SubscriptionsController extends Controller
@@ -233,5 +233,22 @@ public function completeSubscription(Request $request, $amount)
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Render a printable HTML receipt for a single payment.
+     * Users can only view their own receipts; super_admins can view any.
+     */
+    public function downloadReceipt(Payment $payment): \Illuminate\View\View
+    {
+        $authUser = auth()->user();
+
+        if (! $authUser->hasRole('super_admin') && $payment->company_id !== $authUser->user_id) {
+            abort(403, 'You are not authorised to download this receipt.');
+        }
+
+        $customer = User::where('user_id', $payment->company_id)->first();
+
+        return view('payments.receipt', compact('payment', 'customer'));
     }
 }

@@ -59,6 +59,10 @@ Route::post('completeInternationalSubscription/{amount}', [SubscriptionsControll
     ->middleware(['auth'])
     ->name('completeInternationalSubscription');
 
+Route::get('/payments/{payment}/receipt', [SubscriptionsController::class, 'downloadReceipt'])
+    ->middleware(['auth'])
+    ->name('payment.receipt');
+
 
 Route::get('/team-invitations/{invitation}', [TeamInvitationController::class, 'accept'])
     ->middleware(['signed', 'verified', 'auth', AuthenticateSession::class])
