@@ -35,6 +35,49 @@ class WhatsAppTemplateResource extends Resource
         return array_unique($matches[1] ?? []);
     }
 
+    private static function approvalNotesHtml(): HtmlString
+    {
+        return new HtmlString(
+            '<div style="font-size:13px;line-height:1.6;color:#374151;">
+
+                <div style="margin-bottom:14px;">
+                    <div style="font-weight:700;font-size:13.5px;color:#b45309;margin-bottom:6px;">
+                        ⚠️ Message Template Approval Criteria
+                    </div>
+                    <p style="margin:0 0 6px;">WhatsApp generally rejects a template for one of the following reasons:</p>
+                    <ul style="margin:0 0 0 18px;padding:0;">
+                        <li>The format is incorrect (for example, misplaced or malformed placeholders).</li>
+                        <li>The content violates WhatsApp\'s Terms of Service, Commerce Policy, or Business Policy, or is considered abusive.</li>
+                        <li>The template is too generic and includes placeholders that could be used for abuse.</li>
+                        <li><strong>Because placeholders can resolve to many words, WhatsApp does not allow a placeholder at the beginning or end of the message. Such placement results in automatic rejection.</strong></li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom:14px;">
+                    <div style="font-weight:700;font-size:13.5px;color:#1d4ed8;margin-bottom:6px;">
+                        🕐 Approval Period
+                    </div>
+                    <p style="margin:0 0 6px;">After you submit a template, WhatsApp typically approves or rejects it within <strong>minutes</strong> through a machine-learning assisted process. Templates that cannot be triaged automatically are routed for human review and can take <strong>up to 48 hours</strong>.</p>
+                    <p style="margin:0;">If a template remains in the <em>Pending</em> state for more than 48 hours, open a Twilio support ticket and include the template name.</p>
+                </div>
+
+                <div>
+                    <div style="font-weight:700;font-size:13.5px;color:#166534;margin-bottom:6px;">
+                        📋 Template Statuses
+                    </div>
+                    <ul style="margin:0 0 0 18px;padding:0;">
+                        <li><strong>Pending:</strong> The template is under review. Review can take up to 48 hours.</li>
+                        <li><strong>Approved:</strong> The template was approved and can be sent to customers.</li>
+                        <li><strong>Rejected:</strong> The template was rejected during review.</li>
+                        <li><strong>Paused:</strong> The template was paused because of recurring negative user feedback (for example, blocks or spam reports). Messages that use this template cannot be sent.</li>
+                        <li><strong>Disabled:</strong> The template was disabled because of repeated negative feedback or a policy violation. Messages that use this template cannot be sent.</li>
+                    </ul>
+                </div>
+
+            </div>'
+        );
+    }
+
     private static function paramHint(string $format): HtmlString
     {
         if ($format === 'named') {
@@ -58,6 +101,21 @@ class WhatsAppTemplateResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+
+            Forms\Components\Section::make('Important Notes Before Submitting')
+                ->description('Please read these guidelines carefully before creating your template.')
+                ->icon('heroicon-o-information-circle')
+                ->iconColor('warning')
+                ->collapsible()
+                ->schema([
+                    Forms\Components\Placeholder::make('approval_notes')
+                        ->label('')
+                        ->content(fn () => self::approvalNotesHtml())
+                        ->columnSpan(2),
+                ])
+                ->columns(2)
+                ->extraAttributes(['style' => 'background:#fffbeb;border:1px solid #fde68a;'])
+                ->visibleOn('create'),
 
             Forms\Components\Section::make('Template Details')
                 ->schema([
