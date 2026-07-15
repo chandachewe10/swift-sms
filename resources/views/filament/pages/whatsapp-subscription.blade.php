@@ -45,6 +45,39 @@
                     @endforeach
                 </ul>
 
+                {{-- Billing structure note --}}
+                <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-700/50 dark:bg-amber-900/20">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">How Billing Works</p>
+                    <p class="mb-2 text-xs text-gray-600 dark:text-gray-400">
+                        The <strong class="text-gray-800 dark:text-gray-200">K500/month</strong> fee is paid to SwiftSMS and covers your service access — including API integration, system infrastructure, contact management, and embedded signup.
+                    </p>
+                    <p class="mb-3 text-xs text-gray-600 dark:text-gray-400">
+                        Message delivery costs are billed <strong class="text-gray-800 dark:text-gray-200">directly by Meta</strong> based on your actual usage. Meta's rates for messages sent to Zambian WhatsApp users:
+                    </p>
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="border-b border-amber-200 dark:border-amber-700/50">
+                                <th class="pb-1.5 text-left font-semibold text-gray-700 dark:text-gray-300">Category</th>
+                                <th class="pb-1.5 text-right font-semibold text-gray-700 dark:text-gray-300">Price (USD/message)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-1.5 text-gray-600 dark:text-gray-400">Marketing</td>
+                                <td class="py-1.5 text-right font-semibold text-gray-800 dark:text-gray-200">$0.0225</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-1.5 text-gray-600 dark:text-gray-400">Utility</td>
+                                <td class="py-1.5 text-right font-semibold text-gray-800 dark:text-gray-200">$0.0040</td>
+                            </tr>
+                            <tr>
+                                <td class="py-1.5 text-gray-600 dark:text-gray-400">Authentication</td>
+                                <td class="py-1.5 text-right font-semibold text-gray-800 dark:text-gray-200">$0.0040</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 {{-- CTA --}}
                 <a href="{{ route('subscription.whatsapp') }}"
                    class="block w-full rounded-lg bg-green-600 px-6 py-3 text-center text-base font-semibold text-white shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">

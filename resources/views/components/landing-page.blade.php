@@ -356,7 +356,18 @@
               <li style="padding:4px 0;">&#10003; Bulk multi-recipient sends</li>
               <li style="padding:4px 0;">&#10003; K500/month + 10 free sends</li>
             </ul>
-            <a href="/admin/register" style="display:inline-block;margin-top:20px;color:#25D366;font-weight:700;font-size:14px;text-decoration:none;">Activate WhatsApp &#8594;</a>
+            <div style="margin-top:16px;padding:10px 14px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;font-size:12px;color:#6b7280;">
+              <div style="font-weight:700;color:#b45309;margin-bottom:4px;">How Billing Works</div>
+              <p style="margin:0 0 4px;"><strong style="color:#374151;">K500/month</strong> goes to SwiftSMS — covers API access, system, contact management &amp; embedded signup.</p>
+              <p style="margin:0 0 8px;">Message costs are billed <strong style="color:#374151;">directly by Meta</strong>. Zambia rates:</p>
+              <table style="width:100%;font-size:11px;border-collapse:collapse;">
+                <tr style="border-bottom:1px solid #fde68a;"><th style="padding:2px 0;text-align:left;color:#6b7280;">Category</th><th style="padding:2px 0;text-align:right;color:#6b7280;">USD/msg</th></tr>
+                <tr style="border-bottom:1px solid #fef3c7;"><td style="padding:3px 0;">Marketing</td><td style="padding:3px 0;text-align:right;font-weight:700;color:#374151;">$0.0225</td></tr>
+                <tr style="border-bottom:1px solid #fef3c7;"><td style="padding:3px 0;">Utility</td><td style="padding:3px 0;text-align:right;font-weight:700;color:#374151;">$0.0040</td></tr>
+                <tr><td style="padding:3px 0;">Authentication</td><td style="padding:3px 0;text-align:right;font-weight:700;color:#374151;">$0.0040</td></tr>
+              </table>
+            </div>
+            <a href="/admin/register" style="display:inline-block;margin-top:16px;color:#25D366;font-weight:700;font-size:14px;text-decoration:none;">Activate WhatsApp &#8594;</a>
           </div>
         </div>
 
@@ -559,7 +570,18 @@
               <li>&#10003; Bulk multi-recipient sends</li>
               <li>&#10003; Delivery status tracking</li>
             </ul>
-            <a href="/admin/register" style="display:block;text-align:center;margin-top:24px;background:#25D366;color:#fff;font-weight:700;font-size:14px;padding:13px;border-radius:11px;text-decoration:none;">Activate WhatsApp &#8594;</a>
+            <div style="margin-top:18px;padding:12px 14px;border-radius:10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);font-size:12px;color:#94a3b8;">
+              <div style="font-weight:700;color:#fbbf24;margin-bottom:5px;">How Billing Works</div>
+              <p style="margin:0 0 4px;"><strong style="color:#f1f5f9;">K500/month</strong> goes to SwiftSMS — covers API access, system, contact management &amp; embedded signup.</p>
+              <p style="margin:0 0 10px;">Message costs are billed <strong style="color:#f1f5f9;">directly by Meta</strong>. Rates for Zambian users:</p>
+              <table style="width:100%;font-size:11px;border-collapse:collapse;">
+                <tr style="border-bottom:1px solid rgba(251,191,36,0.25);"><th style="padding:2px 0;text-align:left;color:#94a3b8;">Category</th><th style="padding:2px 0;text-align:right;color:#94a3b8;">USD/msg</th></tr>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.06);"><td style="padding:3px 0;">Marketing</td><td style="padding:3px 0;text-align:right;font-weight:700;color:#f1f5f9;">$0.0225</td></tr>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.06);"><td style="padding:3px 0;">Utility</td><td style="padding:3px 0;text-align:right;font-weight:700;color:#f1f5f9;">$0.0040</td></tr>
+                <tr><td style="padding:3px 0;">Authentication</td><td style="padding:3px 0;text-align:right;font-weight:700;color:#f1f5f9;">$0.0040</td></tr>
+              </table>
+            </div>
+            <a href="/admin/register" style="display:block;text-align:center;margin-top:20px;background:#25D366;color:#fff;font-weight:700;font-size:14px;padding:13px;border-radius:11px;text-decoration:none;">Activate WhatsApp &#8594;</a>
           </div>
         </div>
         <div class="col-sm-10 col-lg-5" style="padding:12px;">
