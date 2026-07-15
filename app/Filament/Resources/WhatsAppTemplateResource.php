@@ -39,18 +39,28 @@ class WhatsAppTemplateResource extends Resource
     {
         return new HtmlString(
             '<style>
-                .wa-notes { font-size:13px; line-height:1.6; }
+                .wa-notes-wrap {
+                    font-size:13px; line-height:1.6;
+                    background:#fffbeb; border:1px solid #fde68a;
+                    border-radius:10px; padding:14px 16px;
+                }
+                .dark .wa-notes-wrap {
+                    background:rgba(120,53,15,0.18) !important;
+                    border-color:rgba(251,191,36,0.3) !important;
+                    color:#e5e7eb !important;
+                }
                 .wa-notes-title-amber { font-weight:700; font-size:13.5px; margin-bottom:6px; color:#b45309; }
                 .wa-notes-title-blue  { font-weight:700; font-size:13.5px; margin-bottom:6px; color:#1d4ed8; }
                 .wa-notes-title-green { font-weight:700; font-size:13.5px; margin-bottom:6px; color:#166534; }
-                .wa-notes a           { color:#1d4ed8; }
-                .dark .wa-notes-title-amber { color:#fbbf24; }
-                .dark .wa-notes-title-blue  { color:#93c5fd; }
-                .dark .wa-notes-title-green { color:#4ade80; }
-                .dark .wa-notes a           { color:#93c5fd; }
+                .wa-notes-wrap a { color:#1d4ed8; }
+                .dark .wa-notes-title-amber { color:#fbbf24 !important; }
+                .dark .wa-notes-title-blue  { color:#93c5fd !important; }
+                .dark .wa-notes-title-green { color:#4ade80 !important; }
+                .dark .wa-notes-wrap a { color:#93c5fd !important; }
+                .dark .wa-notes-wrap strong { color:#f9fafb !important; }
             </style>
 
-            <div class="wa-notes">
+            <div class="wa-notes-wrap">
 
                 <div style="margin-bottom:14px;">
                     <div class="wa-notes-title-amber">Message Template Approval Criteria</div>
@@ -120,7 +130,6 @@ class WhatsAppTemplateResource extends Resource
                         ->columnSpan(2),
                 ])
                 ->columns(2)
-                ->extraAttributes(['style' => 'background:#fffbeb;border:1px solid #fde68a;'])
                 ->visibleOn('create'),
 
             Forms\Components\Section::make('Template Details')
