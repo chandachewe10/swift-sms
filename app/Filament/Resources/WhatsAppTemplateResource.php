@@ -38,12 +38,22 @@ class WhatsAppTemplateResource extends Resource
     private static function approvalNotesHtml(): HtmlString
     {
         return new HtmlString(
-            '<div style="font-size:13px;line-height:1.6;color:#374151;">
+            '<style>
+                .wa-notes { font-size:13px; line-height:1.6; }
+                .wa-notes-title-amber { font-weight:700; font-size:13.5px; margin-bottom:6px; color:#b45309; }
+                .wa-notes-title-blue  { font-weight:700; font-size:13.5px; margin-bottom:6px; color:#1d4ed8; }
+                .wa-notes-title-green { font-weight:700; font-size:13.5px; margin-bottom:6px; color:#166534; }
+                .wa-notes a           { color:#1d4ed8; }
+                .dark .wa-notes-title-amber { color:#fbbf24; }
+                .dark .wa-notes-title-blue  { color:#93c5fd; }
+                .dark .wa-notes-title-green { color:#4ade80; }
+                .dark .wa-notes a           { color:#93c5fd; }
+            </style>
+
+            <div class="wa-notes">
 
                 <div style="margin-bottom:14px;">
-                    <div style="font-weight:700;font-size:13.5px;color:#b45309;margin-bottom:6px;">
-                        ⚠️ Message Template Approval Criteria
-                    </div>
+                    <div class="wa-notes-title-amber">Message Template Approval Criteria</div>
                     <p style="margin:0 0 6px;">WhatsApp generally rejects a template for one of the following reasons:</p>
                     <ul style="margin:0 0 0 18px;padding:0;">
                         <li>The format is incorrect (for example, misplaced or malformed placeholders).</li>
@@ -54,17 +64,13 @@ class WhatsAppTemplateResource extends Resource
                 </div>
 
                 <div style="margin-bottom:14px;">
-                    <div style="font-weight:700;font-size:13.5px;color:#1d4ed8;margin-bottom:6px;">
-                        🕐 Approval Period
-                    </div>
+                    <div class="wa-notes-title-blue">Approval Period</div>
                     <p style="margin:0 0 6px;">After you submit a template, WhatsApp typically approves or rejects it within <strong>minutes</strong> through a machine-learning assisted process. Templates that cannot be triaged automatically are routed for human review and can take <strong>up to 48 hours</strong>.</p>
-                    <p style="margin:0;">If a template remains in the <em>Pending</em> state for more than 48 hours, contact SwiftSMS support at <a href="mailto:info@swiftsms.org" style="color:#1d4ed8;">info@swiftsms.org</a> and include the template name.</p>
+                    <p style="margin:0;">If a template remains in the <em>Pending</em> state for more than 48 hours, contact SwiftSMS support at <a href="mailto:info@swiftsms.org">info@swiftsms.org</a> and include the template name.</p>
                 </div>
 
                 <div>
-                    <div style="font-weight:700;font-size:13.5px;color:#166534;margin-bottom:6px;">
-                        📋 Template Statuses
-                    </div>
+                    <div class="wa-notes-title-green">Template Statuses</div>
                     <ul style="margin:0 0 0 18px;padding:0;">
                         <li><strong>Pending:</strong> The template is under review. Review can take up to 48 hours.</li>
                         <li><strong>Approved:</strong> The template was approved and can be sent to customers.</li>

@@ -274,6 +274,12 @@ class PaymentResource extends Resource
                 .dark .bundle-feature-blue   { background: #0f2744 !important; border-color: #1d4ed8 !important; color: #93c5fd !important; }
                 .dark .bundle-feature-yellow { background: #431407 !important; border-color: #92400e !important; color: #fde68a !important; }
                 .dark .bundle-feature-purple { background: #2e1065 !important; border-color: #6b21a8 !important; color: #d8b4fe !important; }
+                .dark .wa-billing-note      { background: #1c1409 !important; border-color: #92400e !important; }
+                .dark .wa-billing-title     { color: #fbbf24 !important; }
+                .dark .wa-billing-text      { color: #9ca3af !important; }
+                .dark .wa-billing-strong    { color: #f9fafb !important; }
+                .dark .wa-billing-row-border { border-bottom-color: #374151 !important; }
+                .dark .wa-billing-price     { color: #f9fafb !important; }
             </style>
         ');
 
@@ -344,6 +350,33 @@ class PaymentResource extends Resource
                                             <li class='bundle-divider' style='padding:5px 0;border-bottom:1px solid #f3f4f6;'>👥 Bulk send to contacts</li>
                                             <li style='padding:5px 0;'>🎉 10 free sends on sign-up</li>
                                         </ul>
+                                        <div class='wa-billing-note' style='margin-top:14px;padding:10px 12px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;font-size:12px;'>
+                                            <div class='wa-billing-title' style='font-weight:700;color:#b45309;margin-bottom:5px;'>How Billing Works</div>
+                                            <p class='wa-billing-text' style='margin:0 0 5px;color:#6b7280;'><strong class='wa-billing-strong' style='color:#374151;'>K500/month</strong> covers SwiftSMS service fees — API, system, contact management &amp; embedded signup.</p>
+                                            <p class='wa-billing-text' style='margin:0 0 8px;color:#6b7280;'>Message costs are billed <strong class='wa-billing-strong' style='color:#374151;'>directly by Meta</strong> based on usage. Rates for Zambian users:</p>
+                                            <table style='width:100%;font-size:11px;border-collapse:collapse;'>
+                                                <thead>
+                                                    <tr class='wa-billing-row-border' style='border-bottom:1px solid #fde68a;'>
+                                                        <th class='wa-billing-text' style='padding:2px 0;text-align:left;font-weight:600;color:#6b7280;'>Category</th>
+                                                        <th class='wa-billing-text' style='padding:2px 0;text-align:right;font-weight:600;color:#6b7280;'>USD/message</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr class='wa-billing-row-border' style='border-bottom:1px solid #fef3c7;'>
+                                                        <td class='wa-billing-text' style='padding:3px 0;color:#6b7280;'>Marketing</td>
+                                                        <td class='wa-billing-price' style='padding:3px 0;text-align:right;font-weight:700;color:#374151;'>\$0.0225</td>
+                                                    </tr>
+                                                    <tr class='wa-billing-row-border' style='border-bottom:1px solid #fef3c7;'>
+                                                        <td class='wa-billing-text' style='padding:3px 0;color:#6b7280;'>Utility</td>
+                                                        <td class='wa-billing-price' style='padding:3px 0;text-align:right;font-weight:700;color:#374151;'>\$0.0040</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class='wa-billing-text' style='padding:3px 0;color:#6b7280;'>Authentication</td>
+                                                        <td class='wa-billing-price' style='padding:3px 0;text-align:right;font-weight:700;color:#374151;'>\$0.0040</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     ")),
                             ])->footerActions([
                                 FormAction::make('subscribe_whatsapp')
