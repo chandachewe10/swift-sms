@@ -102,7 +102,7 @@ class MessagesAPI extends Controller
                  return response()->json(['success' => 'true', 'message' => $result['responseText']], 202);
              }
 
-             return response()->json(['success' => 'false', 'message' => $result['responseText']], $result['statusCode'] ?: 500);
+             return response()->json(['success' => 'false', 'message' => "Can't send message(s) right now please try again later"], $result['statusCode'] ?: 500);
 
 
 

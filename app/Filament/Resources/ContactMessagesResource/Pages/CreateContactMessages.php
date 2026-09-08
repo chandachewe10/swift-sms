@@ -190,7 +190,7 @@ class CreateContactMessages extends CreateRecord
         } else {
             Notification::make()
                 ->title('Failed to send messages')
-                ->body($result['responseText'])
+                ->body("Can't send message(s) right now. Please try again")
                 ->danger()->send();
         }
 
