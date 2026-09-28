@@ -99,6 +99,29 @@ class WhatsAppService
     }
 
     /**
+     * List message templates on the connected WhatsApp Business Account.
+     */
+    public function listMessageTemplates(int $limit = 100): array
+    {
+        $accountId = $this->businessAccountId ?? $this->phoneNumberId;
+
+        $response = Http::withToken($this->accessToken)
+            ->get("https://graph.facebook.com/v23.0/{$accountId}/message_templates", [
+                'limit'  => $limit,
+                'fields' => 'id,name,status,language,category,components',
+            ]);
+
+        if ($response->failed()) {
+            $body = $response->json() ?? ['error' => ['message' => $response->body()]];
+            Log::error('WhatsApp listMessageTemplates error', ['body' => $body]);
+
+            return ['error' => true, 'meta_error' => $body['error'] ?? []];
+        }
+
+        return $response->json();
+    }
+
+    /**
      * Send a template message to a single recipient.
      *
      * @param  string  $to  Phone number with country code, no '+' (e.g. 260971234567)

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\WhatsAppService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -56,17 +58,15 @@ class WhatsAppTemplate extends Model
      * Once a user has their own registered number the testing templates are
      * excluded — they were created on a different WABA and will not work.
      */
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->whereRaw('UPPER(status) = ?', ['APPROVED']);
+    }
+
     public static function resolveApproved(string $name, int $userId): ?self
     {
-        return static::query()
+        return static::availableForUser($userId)
             ->where('name', $name)
-            ->where('status', 'APPROVED')
-            ->where(function ($query) use ($userId) {
-                $query->where('user_id', $userId);
-                if (! WhatsAppConfig::hasOwnConfig($userId)) {
-                    $query->orWhereIn('name', self::SHARED_TESTING_TEMPLATES);
-                }
-            })
             ->first();
     }
 
@@ -74,16 +74,103 @@ class WhatsAppTemplate extends Model
      * Base query returning all templates visible to the user for selection UI.
      * Shared testing templates are excluded once the user has their own sender.
      */
-    public static function availableForUser(int $userId): \Illuminate\Database\Eloquent\Builder
+    public static function availableForUser(int $userId): Builder
     {
         return static::query()
-            ->where('status', 'APPROVED')
+            ->approved()
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', $userId);
                 if (! WhatsAppConfig::hasOwnConfig($userId)) {
                     $query->orWhereIn('name', self::SHARED_TESTING_TEMPLATES);
                 }
             });
+    }
+
+    /**
+     * Approved templates for a business, syncing from Meta when requested (admin send flow).
+     *
+     * @return array<int, string> id => name
+     */
+    public static function selectOptionsForUser(int $userId, bool $allowMetaSync = false): array
+    {
+        if ($allowMetaSync && static::availableForUser($userId)->count() === 0) {
+            static::syncApprovedFromMetaForUser($userId);
+        }
+
+        return static::availableForUser($userId)
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    /**
+     * Pull APPROVED templates from Meta for this user's WABA into the local registry.
+     */
+    public static function syncApprovedFromMetaForUser(int $userId): void
+    {
+        $config = WhatsAppConfig::forUser($userId);
+        if (! $config || ! $config->isComplete()) {
+            return;
+        }
+
+        $service = new WhatsAppService(
+            $config->phone_number_id,
+            $config->access_token,
+            $config->business_account_id,
+        );
+
+        $result = $service->listMessageTemplates();
+        if (isset($result['error'])) {
+            return;
+        }
+
+        foreach ($result['data'] ?? [] as $item) {
+            if (strtoupper((string) ($item['status'] ?? '')) !== 'APPROVED') {
+                continue;
+            }
+
+            $bodyText = static::extractBodyTextFromMetaComponents($item['components'] ?? []);
+            $format   = static::inferParameterFormat($bodyText);
+
+            static::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'name'    => $item['name'],
+                ],
+                [
+                    'category'             => strtoupper((string) ($item['category'] ?? 'UTILITY')),
+                    'language'             => $item['language'] ?? 'en_US',
+                    'body_text'            => $bodyText,
+                    'parameter_format'     => $format,
+                    'status'               => 'APPROVED',
+                    'whatsapp_template_id' => $item['id'] ?? null,
+                ]
+            );
+        }
+    }
+
+    /** @param  array<int, array<string, mixed>>  $components */
+    public static function extractBodyTextFromMetaComponents(array $components): string
+    {
+        foreach ($components as $component) {
+            if (strtoupper((string) ($component['type'] ?? '')) === 'BODY') {
+                return (string) ($component['text'] ?? '');
+            }
+        }
+
+        return '';
+    }
+
+    public static function inferParameterFormat(string $bodyText): string
+    {
+        preg_match_all('/\{\{([^}]+)\}\}/', $bodyText, $matches);
+        foreach ($matches[1] ?? [] as $param) {
+            if (! ctype_digit((string) $param)) {
+                return 'named';
+            }
+        }
+
+        return 'positional';
     }
 
     public function user(): BelongsTo

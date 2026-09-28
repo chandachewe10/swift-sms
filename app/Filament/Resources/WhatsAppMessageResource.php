@@ -72,6 +72,10 @@ class WhatsAppMessageResource extends Resource
                             $set('template_preview', null);
                             $set('template_params', []);
                             $set('contact_tag_filter', null);
+
+                            if ($state && self::isSuperAdmin()) {
+                                WhatsAppTemplate::syncApprovedFromMetaForUser((int) $state);
+                            }
                         })
                         ->helperText('Only businesses with a registered WhatsApp number are listed.')
                         ->columnSpanFull(),
@@ -132,11 +136,16 @@ class WhatsAppMessageResource extends Resource
                                 return [];
                             }
 
-                            return WhatsAppTemplate::availableForUser($ownerId)->pluck('name', 'id');
+                            return WhatsAppTemplate::selectOptionsForUser(
+                                $ownerId,
+                                self::isSuperAdmin(),
+                            );
                         })
+                        ->key(fn (Get $get) => 'wa-template-select-' . (self::resolveOwnerUserId($get) ?: 'none'))
                         ->required()
                         ->native(false)
                         ->live()
+                        ->searchable()
                         ->disabled(fn (Get $get) => self::isSuperAdmin() && self::resolveOwnerUserId($get) <= 0)
                         ->afterStateUpdated(function ($state, Forms\Set $set) {
                             if (! $state) {

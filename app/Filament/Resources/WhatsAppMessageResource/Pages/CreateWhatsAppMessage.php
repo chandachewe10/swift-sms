@@ -64,6 +64,10 @@ class CreateWhatsAppMessage extends CreateRecord
             }
         }
 
+        if ($actingAsAdmin) {
+            WhatsAppTemplate::syncApprovedFromMetaForUser($ownerUserId);
+        }
+
         $template = WhatsAppTemplate::findOrFail($data['whatsapp_template_id']);
         $isFreeTestingTemplate = WhatsAppTemplate::isSharedTestingTemplate($template->name);
 
