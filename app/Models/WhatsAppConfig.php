@@ -30,6 +30,25 @@ class WhatsAppConfig extends Model
         return ! empty($this->phone_number_id) && ! empty($this->access_token);
     }
 
+    /**
+     * WhatsApp Business Account ID used for template management API calls.
+     */
+    public function templateAccountId(): ?string
+    {
+        $id = $this->waba_id ?: $this->business_account_id;
+
+        return $id !== null && $id !== '' ? $id : null;
+    }
+
+    public function makeWhatsAppService(): \App\Services\WhatsAppService
+    {
+        return new \App\Services\WhatsAppService(
+            $this->phone_number_id,
+            $this->access_token,
+            $this->templateAccountId(),
+        );
+    }
+
     public static function forUser(int $userId): ?self
     {
         return static::where('user_id', $userId)->first();
