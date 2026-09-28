@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsAppService;
-use App\Support\WhatsAppSubscriptionStatus;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -116,15 +115,6 @@ class WhatsAppTemplateResource extends Resource
 
     // ── Form ───────────────────────────────────────────────────────────────────
 
-    public static function businessOptionsForAdmin(): array
-    {
-        return User::withCompleteWhatsAppConfig()
-            ->orderBy('name')
-            ->get()
-            ->mapWithKeys(fn (User $user) => [$user->id => WhatsAppSubscriptionStatus::labelForUser($user)])
-            ->all();
-    }
-
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -135,7 +125,7 @@ class WhatsAppTemplateResource extends Resource
                 ->schema([
                     Forms\Components\Select::make('target_user_id')
                         ->label('Business')
-                        ->options(fn () => self::businessOptionsForAdmin())
+                        ->options(fn () => User::adminWhatsAppBusinessSelectOptions())
                         ->searchable()
                         ->preload()
                         ->required()

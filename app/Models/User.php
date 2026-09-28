@@ -13,6 +13,7 @@ use Filament\Panel;
 use Filament\Models\Contracts\FilamentUser;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Support\WhatsAppSubscriptionStatus;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -120,6 +121,16 @@ class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmai
                 ->where('phone_number_id', '!=', '')
                 ->whereNotNull('access_token')
                 ->where('access_token', '!=', ''));
+    }
+
+    /** @return array<int, string> */
+    public static function adminWhatsAppBusinessSelectOptions(): array
+    {
+        return static::withCompleteWhatsAppConfig()
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (self $user) => [$user->id => WhatsAppSubscriptionStatus::labelForUser($user)])
+            ->all();
     }
 
 }
