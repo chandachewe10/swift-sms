@@ -4,11 +4,13 @@ namespace App\Filament\Resources\WhatsAppMessageResource\Pages;
 
 use App\Filament\Resources\WhatsAppMessageResource;
 use App\Models\Contact;
+use App\Models\User;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppTestingNumber;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsAppService;
+use App\Support\WhatsAppSubscriptionStatus;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -20,20 +22,61 @@ class CreateWhatsAppMessage extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $user = auth()->user();
-        ['config' => $config, 'using_admin' => $usingAdmin] = WhatsAppConfig::resolveForSending($user->id);
+        $actingAsAdmin = $user->hasRole('super_admin');
+        $ownerUserId = $actingAsAdmin
+            ? (int) ($data['target_user_id'] ?? 0)
+            : $user->id;
 
-        if (! $config) {
+        unset($data['target_user_id']);
+
+        if ($actingAsAdmin && $ownerUserId <= 0) {
             Notification::make()
-                ->title('WhatsApp not configured')
-                ->body('No company or admin WhatsApp credentials are available yet. Please contact support.')
-                ->danger()->send();
+                ->title('Business required')
+                ->body('Select the business you are testing WhatsApp sends for.')
+                ->danger()
+                ->send();
             $this->halt();
+        }
+
+        $owner = User::find($ownerUserId);
+
+        if ($actingAsAdmin) {
+            $config = WhatsAppConfig::forUser($ownerUserId);
+            $usingAdmin = false;
+
+            if (! $config || ! $config->isComplete()) {
+                Notification::make()
+                    ->title('WhatsApp not configured')
+                    ->body('The selected business does not have a complete WhatsApp configuration.')
+                    ->danger()
+                    ->send();
+                $this->halt();
+            }
+        } else {
+            ['config' => $config, 'using_admin' => $usingAdmin] = WhatsAppConfig::resolveForSending($user->id);
+
+            if (! $config) {
+                Notification::make()
+                    ->title('WhatsApp not configured')
+                    ->body('No company or admin WhatsApp credentials are available yet. Please contact support.')
+                    ->danger()->send();
+                $this->halt();
+            }
         }
 
         $template = WhatsAppTemplate::findOrFail($data['whatsapp_template_id']);
         $isFreeTestingTemplate = WhatsAppTemplate::isSharedTestingTemplate($template->name);
 
-        $recipients = $this->resolveRecipients($data);
+        if ($actingAsAdmin && ! WhatsAppTemplate::availableForUser($ownerUserId)->where('id', $template->id)->exists()) {
+            Notification::make()
+                ->title('Invalid template')
+                ->body('This template is not available for the selected business.')
+                ->danger()
+                ->send();
+            $this->halt();
+        }
+
+        $recipients = $this->resolveRecipients($data, $ownerUserId, $owner);
 
         if (empty($recipients)) {
             Notification::make()
@@ -45,7 +88,6 @@ class CreateWhatsAppMessage extends CreateRecord
             $this->halt();
         }
 
-        // Credit check for non-subscribers (shared testing templates are free)
         if (! $isFreeTestingTemplate && ! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed) {
             if (($user->whatsapp_credits ?? 0) < count($recipients)) {
                 $needed = count($recipients) - ($user->whatsapp_credits ?? 0);
@@ -114,7 +156,7 @@ class CreateWhatsAppMessage extends CreateRecord
             $result = $service->sendMessage($phone, $template->name, $template->language, $components);
 
             $lastRecord = WhatsAppMessage::create([
-                'user_id' => auth()->id(),
+                'user_id' => $ownerUserId,
                 'whatsapp_template_id' => $template->id,
                 'recipient_phone' => $phone,
                 'status' => isset($result['error']) ? 'failed' : 'queued',
@@ -130,7 +172,14 @@ class CreateWhatsAppMessage extends CreateRecord
         }
 
         if ($failCount === 0) {
-            $suffix = $usingAdmin ? ' (sent via admin testing credentials)' : '';
+            if ($actingAsAdmin && $owner) {
+                $suffix = ' (test send as ' . $owner->name . ')';
+                if (WhatsAppSubscriptionStatus::isExpired($owner)) {
+                    $suffix .= ' — note: this business\'s WhatsApp subscription payment is expired';
+                }
+            } else {
+                $suffix = $usingAdmin ? ' (sent via admin testing credentials)' : '';
+            }
             Notification::make()->title("{$successCount} message(s) sent successfully{$suffix}")->success()->send();
         } else {
             Notification::make()->title("Sent: {$successCount} | Failed: {$failCount}")->warning()->send();
@@ -139,11 +188,13 @@ class CreateWhatsAppMessage extends CreateRecord
         return $lastRecord;
     }
 
-    private function resolveRecipients(array $data): array
+    private function resolveRecipients(array $data, int $ownerUserId, ?User $owner): array
     {
         if ($data['send_to_all_contacts'] ?? false) {
+            $companyId = $owner?->user_id ?? auth()->user()->user_id;
+
             return Contact::query()
-                ->where('company_id', auth()->user()->user_id)
+                ->where('company_id', $companyId)
                 ->whereNotNull('phone2')
                 ->where('phone2', '!=', '')
                 ->when($data['contact_tag_filter'] ?? null, fn ($query, $tag) => $query->where('tag', $tag))
