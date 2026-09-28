@@ -105,20 +105,41 @@ class WhatsAppService
     {
         $accountId = $this->businessAccountId ?? $this->phoneNumberId;
 
-        $response = Http::withToken($this->accessToken)
-            ->get("https://graph.facebook.com/v23.0/{$accountId}/message_templates", [
-                'limit'  => $limit,
-                'fields' => 'id,name,status,language,category,components',
-            ]);
-
-        if ($response->failed()) {
-            $body = $response->json() ?? ['error' => ['message' => $response->body()]];
-            Log::error('WhatsApp listMessageTemplates error', ['body' => $body]);
-
-            return ['error' => true, 'meta_error' => $body['error'] ?? []];
+        if (empty($accountId)) {
+            return [
+                'error'      => true,
+                'meta_error' => ['message' => 'WhatsApp Business Account ID (WABA) is not configured.'],
+            ];
         }
 
-        return $response->json();
+        $allData  = [];
+        $nextUrl  = "https://graph.facebook.com/v23.0/{$accountId}/message_templates";
+        $query    = [
+            'limit'  => $limit,
+            'fields' => 'id,name,status,language,category,components',
+        ];
+        $pages    = 0;
+
+        while ($nextUrl && $pages < 20) {
+            $pages++;
+            $response = str_contains($nextUrl, 'access_token=')
+                ? Http::get($nextUrl)
+                : Http::withToken($this->accessToken)->get($nextUrl, $query);
+
+            if ($response->failed()) {
+                $body = $response->json() ?? ['error' => ['message' => $response->body()]];
+                Log::error('WhatsApp listMessageTemplates error', ['body' => $body]);
+
+                return ['error' => true, 'meta_error' => $body['error'] ?? []];
+            }
+
+            $json     = $response->json();
+            $allData  = array_merge($allData, $json['data'] ?? []);
+            $nextUrl  = $json['paging']['next'] ?? null;
+            $query    = [];
+        }
+
+        return ['data' => $allData];
     }
 
     /**

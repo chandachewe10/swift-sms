@@ -11,6 +11,8 @@ use App\Models\WhatsAppTemplate;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -67,17 +69,45 @@ class WhatsAppMessageResource extends Resource
                         ->preload()
                         ->required()
                         ->live()
-                        ->afterStateUpdated(function ($state, Forms\Set $set) {
+                        ->afterStateUpdated(function ($state, Set $set) {
                             $set('whatsapp_template_id', null);
                             $set('template_preview', null);
                             $set('template_params', []);
                             $set('contact_tag_filter', null);
 
                             if ($state && self::isSuperAdmin()) {
-                                WhatsAppTemplate::syncApprovedFromMetaForUser((int) $state);
+                                self::notifyTemplateSyncResult(
+                                    WhatsAppTemplate::syncApprovedFromMetaForUser((int) $state)
+                                );
                             }
                         })
-                        ->helperText('Only businesses with a registered WhatsApp number are listed.')
+                        ->helperText('Only businesses with a registered WhatsApp number are listed. Templates reload from Meta when you pick a business.')
+                        ->columnSpanFull(),
+
+                    Forms\Components\Actions::make([
+                        Forms\Components\Actions\Action::make('reloadTemplatesFromMeta')
+                            ->label('Reload approved templates from Meta')
+                            ->icon('heroicon-o-arrow-path')
+                            ->action(function (Get $get, Set $set): void {
+                                $ownerId = (int) ($get('target_user_id') ?? 0);
+                                if ($ownerId <= 0) {
+                                    Notification::make()
+                                        ->title('Select a business first')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                $set('whatsapp_template_id', null);
+                                $set('template_preview', null);
+                                $set('template_params', []);
+
+                                self::notifyTemplateSyncResult(
+                                    WhatsAppTemplate::syncApprovedFromMetaForUser($ownerId)
+                                );
+                            }),
+                    ])
                         ->columnSpanFull(),
                 ])
                 ->visible(fn () => self::isSuperAdmin()),
@@ -165,8 +195,14 @@ class WhatsAppMessageResource extends Resource
                             ));
                         })
                         ->helperText(fn (Get $get) => self::isSuperAdmin()
-                            ? 'Approved templates for the selected business (plus shared testing templates when applicable).'
+                            ? self::adminTemplateHelperText($get)
                             : 'Your approved templates plus shared testing templates (opening_our_business_time, system_maintenance)')
+                        ->columnSpan(2),
+
+                    Forms\Components\Placeholder::make('admin_template_count')
+                        ->label('')
+                        ->content(fn (Get $get): HtmlString => self::adminTemplateCountHtml($get))
+                        ->visible(fn () => self::isSuperAdmin())
                         ->columnSpan(2),
 
                     Forms\Components\Placeholder::make('template_preview')
@@ -332,5 +368,67 @@ class WhatsAppMessageResource extends Resource
             'index'  => Pages\ListWhatsAppMessages::route('/'),
             'create' => Pages\CreateWhatsAppMessage::route('/create'),
         ];
+    }
+
+    /** @param  array{synced: int, error: ?string, message: ?string}  $result */
+    private static function notifyTemplateSyncResult(array $result): void
+    {
+        if ($result['error']) {
+            Notification::make()
+                ->title('Could not load templates from Meta')
+                ->body($result['message'] ?? 'Unknown error.')
+                ->warning()
+                ->persistent()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title('Templates updated')
+            ->body($result['message'] ?? 'Done.')
+            ->success()
+            ->send();
+    }
+
+    private static function adminTemplateHelperText(Get $get): string
+    {
+        $ownerId = self::resolveOwnerUserId($get);
+        if ($ownerId <= 0) {
+            return 'Select a business above, then choose an approved template.';
+        }
+
+        $count = count(WhatsAppTemplate::approvedOptionsForBusiness($ownerId));
+
+        return $count > 0
+            ? "{$count} approved template(s) available for this business in SwiftSMS."
+            : 'No approved templates yet — use “Reload approved templates from Meta” or create one under Templates.';
+    }
+
+    private static function adminTemplateCountHtml(Get $get): HtmlString
+    {
+        $ownerId = self::resolveOwnerUserId($get);
+        if ($ownerId <= 0) {
+            return new HtmlString('');
+        }
+
+        $count = count(WhatsAppTemplate::approvedOptionsForBusiness($ownerId));
+
+        if ($count > 0) {
+            return new HtmlString(
+                '<div style="font-size:13px;color:#166534;">'
+                . e("{$count} approved template(s) ready for this business.")
+                . '</div>'
+            );
+        }
+
+        return new HtmlString(
+            '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;color:#92400e;">'
+            . '<strong>No approved templates in the list.</strong> '
+            . 'Run <em>php artisan migrate</em> if this is a fresh install (WhatsApp tables must exist). '
+            . 'Then use <strong>Reload approved templates from Meta</strong>, or create templates under WhatsApp → Templates for this business. '
+            . 'Ensure Company WA Configs has a valid <strong>WABA ID</strong> and access token.'
+            . '</div>'
+        );
     }
 }

@@ -93,11 +93,25 @@ class WhatsAppTemplate extends Model
      */
     public static function selectOptionsForUser(int $userId, bool $allowMetaSync = false): array
     {
-        if ($allowMetaSync && static::availableForUser($userId)->count() === 0) {
+        if ($allowMetaSync) {
             static::syncApprovedFromMetaForUser($userId);
         }
 
-        return static::availableForUser($userId)
+        return static::approvedOptionsForBusiness($userId);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function approvedOptionsForBusiness(int $userId): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        return static::query()
+            ->approved()
+            ->where('user_id', $userId)
             ->orderBy('name')
             ->pluck('name', 'id')
             ->all();
@@ -105,24 +119,53 @@ class WhatsAppTemplate extends Model
 
     /**
      * Pull APPROVED templates from Meta for this user's WABA into the local registry.
+     *
+     * @return array{synced: int, error: ?string, message: ?string}
      */
-    public static function syncApprovedFromMetaForUser(int $userId): void
+    public static function syncApprovedFromMetaForUser(int $userId): array
     {
         $config = WhatsAppConfig::forUser($userId);
         if (! $config || ! $config->isComplete()) {
-            return;
+            return [
+                'synced'  => 0,
+                'error'   => 'incomplete_config',
+                'message' => 'This business does not have a complete WhatsApp configuration.',
+            ];
         }
 
-        $service = new WhatsAppService(
-            $config->phone_number_id,
-            $config->access_token,
-            $config->business_account_id,
-        );
+        if (! $config->templateAccountId()) {
+            return [
+                'synced'  => 0,
+                'error'   => 'missing_waba',
+                'message' => 'WABA ID is missing for this business. Edit the row under WhatsApp → Company WA Configs and set WABA / Business Account ID (or re-run Register Phone Number).',
+            ];
+        }
 
-        $result = $service->listMessageTemplates();
+        try {
+            $service = $config->makeWhatsAppService();
+            $result  = $service->listMessageTemplates();
+        } catch (\Throwable $e) {
+            return [
+                'synced'  => 0,
+                'error'   => 'exception',
+                'message' => $e->getMessage(),
+            ];
+        }
+
         if (isset($result['error'])) {
-            return;
+            $meta = $result['meta_error'] ?? [];
+
+            return [
+                'synced'  => 0,
+                'error'   => 'meta_api',
+                'message' => WhatsAppService::friendlyError(
+                    is_array($meta) ? $meta : [],
+                    'Could not fetch templates from Meta. Check the access token and WABA ID.',
+                ),
+            ];
         }
+
+        $synced = 0;
 
         foreach ($result['data'] ?? [] as $item) {
             if (strtoupper((string) ($item['status'] ?? '')) !== 'APPROVED') {
@@ -140,13 +183,23 @@ class WhatsAppTemplate extends Model
                 [
                     'category'             => strtoupper((string) ($item['category'] ?? 'UTILITY')),
                     'language'             => $item['language'] ?? 'en_US',
-                    'body_text'            => $bodyText,
+                    'body_text'            => $bodyText !== '' ? $bodyText : ' ',
                     'parameter_format'     => $format,
                     'status'               => 'APPROVED',
                     'whatsapp_template_id' => $item['id'] ?? null,
                 ]
             );
+
+            $synced++;
         }
+
+        return [
+            'synced'  => $synced,
+            'error'   => null,
+            'message' => $synced > 0
+                ? "Synced {$synced} approved template(s) from Meta."
+                : 'Meta returned no approved templates for this WhatsApp Business Account.',
+        ];
     }
 
     /** @param  array<int, array<string, mixed>>  $components */

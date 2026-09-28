@@ -65,13 +65,21 @@ class CreateWhatsAppMessage extends CreateRecord
         }
 
         if ($actingAsAdmin) {
-            WhatsAppTemplate::syncApprovedFromMetaForUser($ownerUserId);
+            $sync = WhatsAppTemplate::syncApprovedFromMetaForUser($ownerUserId);
+            if ($sync['error']) {
+                Notification::make()
+                    ->title('Could not load templates from Meta')
+                    ->body($sync['message'] ?? 'Unknown error.')
+                    ->warning()
+                    ->persistent()
+                    ->send();
+            }
         }
 
         $template = WhatsAppTemplate::findOrFail($data['whatsapp_template_id']);
         $isFreeTestingTemplate = WhatsAppTemplate::isSharedTestingTemplate($template->name);
 
-        if ($actingAsAdmin && ! WhatsAppTemplate::availableForUser($ownerUserId)->where('id', $template->id)->exists()) {
+        if ($actingAsAdmin && ! WhatsAppTemplate::query()->approved()->where('user_id', $ownerUserId)->where('id', $template->id)->exists()) {
             Notification::make()
                 ->title('Invalid template')
                 ->body('This template is not available for the selected business.')
