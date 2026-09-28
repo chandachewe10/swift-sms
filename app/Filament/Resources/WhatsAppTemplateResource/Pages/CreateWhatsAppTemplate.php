@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsAppService;
+use App\Support\WhatsAppAdminAuthorization;
 use App\Support\WhatsAppSubscriptionStatus;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -18,17 +19,19 @@ class CreateWhatsAppTemplate extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $actingAsAdmin = auth()->user()?->hasRole('super_admin') ?? false;
-        $ownerUserId   = $actingAsAdmin
-            ? (int) ($data['target_user_id'] ?? 0)
-            : auth()->id();
+        $actingAsAdmin = auth()->user()?->isSuperAdmin() ?? false;
+        $owner         = WhatsAppAdminAuthorization::resolveOwnerUserId($data);
+        $ownerUserId   = $owner['user_id'];
 
-        unset($data['target_user_id']);
-
-        if ($actingAsAdmin && $ownerUserId <= 0) {
+        if ($owner['error']) {
             Notification::make()
-                ->title('Business required')
-                ->body('Select the business you are creating this template for.')
+                ->title(match ($owner['error']) {
+                    'forbidden'          => 'Not allowed',
+                    'business_required'  => 'Business required',
+                    'invalid_business' => 'Invalid business',
+                    default              => 'Unable to continue',
+                })
+                ->body($owner['message'] ?? '')
                 ->danger()
                 ->send();
             $this->halt();

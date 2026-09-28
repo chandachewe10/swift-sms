@@ -10,6 +10,7 @@ use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppTestingNumber;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsAppService;
+use App\Support\WhatsAppAdminAuthorization;
 use App\Support\WhatsAppSubscriptionStatus;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -22,17 +23,19 @@ class CreateWhatsAppMessage extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $user = auth()->user();
-        $actingAsAdmin = $user->hasRole('super_admin');
-        $ownerUserId = $actingAsAdmin
-            ? (int) ($data['target_user_id'] ?? 0)
-            : $user->id;
+        $actingAsAdmin = $user->isSuperAdmin();
+        $resolved      = WhatsAppAdminAuthorization::resolveOwnerUserId($data);
+        $ownerUserId   = $resolved['user_id'];
 
-        unset($data['target_user_id']);
-
-        if ($actingAsAdmin && $ownerUserId <= 0) {
+        if ($resolved['error']) {
             Notification::make()
-                ->title('Business required')
-                ->body('Select the business you are testing WhatsApp sends for.')
+                ->title(match ($resolved['error']) {
+                    'forbidden'          => 'Not allowed',
+                    'business_required'  => 'Business required',
+                    'invalid_business' => 'Invalid business',
+                    default              => 'Unable to continue',
+                })
+                ->body($resolved['message'] ?? '')
                 ->danger()
                 ->send();
             $this->halt();
@@ -100,7 +103,7 @@ class CreateWhatsAppMessage extends CreateRecord
             $this->halt();
         }
 
-        if (! $isFreeTestingTemplate && ! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed) {
+        if (! $isFreeTestingTemplate && ! $user->isSuperAdmin() && ! $user->whatsapp_subscribed) {
             if (($user->whatsapp_credits ?? 0) < count($recipients)) {
                 $needed = count($recipients) - ($user->whatsapp_credits ?? 0);
                 Notification::make()

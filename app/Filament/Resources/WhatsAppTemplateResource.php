@@ -117,9 +117,10 @@ class WhatsAppTemplateResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form->schema([
+        $schema = [];
 
-            Forms\Components\Section::make('Business')
+        if (User::currentIsSuperAdmin()) {
+            $schema[] = Forms\Components\Section::make('Business')
                 ->description('Create this template on the selected company\'s WhatsApp Business account.')
                 ->icon('heroicon-o-building-office-2')
                 ->schema([
@@ -132,8 +133,11 @@ class WhatsAppTemplateResource extends Resource
                         ->helperText('Only businesses with a registered WhatsApp number are listed. Expired subscriptions are marked so you can follow up.')
                         ->columnSpanFull(),
                 ])
-                ->visible(fn () => auth()->user()?->hasRole('super_admin'))
-                ->visibleOn('create'),
+                ->visibleOn('create');
+        }
+
+        return $form->schema([
+            ...$schema,
 
             Forms\Components\Section::make('Important Notes Before Submitting')
                 ->description('Please read these guidelines carefully before creating your template.')
@@ -255,7 +259,7 @@ class WhatsAppTemplateResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                if (auth()->user()?->hasRole('super_admin')) {
+                if (User::currentIsSuperAdmin()) {
                     $query->with('user');
                 } else {
                     $query->where('user_id', auth()->id());
@@ -266,7 +270,7 @@ class WhatsAppTemplateResource extends Resource
                     ->label('Business')
                     ->searchable()
                     ->sortable()
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                    ->visible(fn () => User::currentIsSuperAdmin()),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable()->weight('bold'),
                 Tables\Columns\TextColumn::make('category')->badge(),
                 Tables\Columns\TextColumn::make('parameter_format')
@@ -289,7 +293,7 @@ class WhatsAppTemplateResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->action(function (WhatsAppTemplate $record): void {
-                        $ownerId = auth()->user()?->hasRole('super_admin')
+                        $ownerId = User::currentIsSuperAdmin()
                             ? $record->user_id
                             : auth()->id();
                         $config = WhatsAppConfig::forUser($ownerId);
