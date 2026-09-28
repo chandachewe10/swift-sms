@@ -108,6 +108,16 @@ class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmai
         return $this->roles->pluck('name');
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
+    public static function currentIsSuperAdmin(): bool
+    {
+        return auth()->user()?->isSuperAdmin() ?? false;
+    }
+
     public function whatsappConfig(): HasOne
     {
         return $this->hasOne(WhatsAppConfig::class);

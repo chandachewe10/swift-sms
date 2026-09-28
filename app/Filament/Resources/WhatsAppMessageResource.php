@@ -33,7 +33,7 @@ class WhatsAppMessageResource extends Resource
 
     private static function isSuperAdmin(): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return User::currentIsSuperAdmin();
     }
 
     private static function resolveOwnerUserId(Get $get): int
@@ -57,8 +57,10 @@ class WhatsAppMessageResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form->schema([
-            Forms\Components\Section::make('Business (testing)')
+        $schema = [];
+
+        if (User::currentIsSuperAdmin()) {
+            $schema[] = Forms\Components\Section::make('Business (testing)')
                 ->description('Choose which company\'s WhatsApp number and templates to use for this test send.')
                 ->icon('heroicon-o-building-office-2')
                 ->schema([
@@ -75,7 +77,7 @@ class WhatsAppMessageResource extends Resource
                             $set('template_params', []);
                             $set('contact_tag_filter', null);
 
-                            if ($state && self::isSuperAdmin()) {
+                            if ($state) {
                                 self::notifyTemplateSyncResult(
                                     WhatsAppTemplate::syncApprovedFromMetaForUser((int) $state)
                                 );
@@ -109,8 +111,11 @@ class WhatsAppMessageResource extends Resource
                             }),
                     ])
                         ->columnSpanFull(),
-                ])
-                ->visible(fn () => self::isSuperAdmin()),
+                ]);
+        }
+
+        return $form->schema([
+            ...$schema,
 
             Forms\Components\Section::make('Send WhatsApp Message')
                 ->schema([
