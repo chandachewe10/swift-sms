@@ -14,6 +14,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmail 
 {
@@ -104,6 +105,21 @@ class User extends Authenticatable implements FilamentUser,Wallet,MustVerifyEmai
     public function getFilamentRoles()
     {
         return $this->roles->pluck('name');
+    }
+
+    public function whatsappConfig(): HasOne
+    {
+        return $this->hasOne(WhatsAppConfig::class);
+    }
+
+    public static function withCompleteWhatsAppConfig(): \Illuminate\Database\Eloquent\Builder
+    {
+        return static::query()
+            ->whereHas('whatsappConfig', fn ($query) => $query
+                ->whereNotNull('phone_number_id')
+                ->where('phone_number_id', '!=', '')
+                ->whereNotNull('access_token')
+                ->where('access_token', '!=', ''));
     }
 
 }

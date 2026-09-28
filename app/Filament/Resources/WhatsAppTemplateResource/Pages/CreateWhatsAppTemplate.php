@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\WhatsAppTemplateResource\Pages;
 
 use App\Filament\Resources\WhatsAppTemplateResource;
+use App\Models\User;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsAppService;
+use App\Support\WhatsAppSubscriptionStatus;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -16,12 +18,30 @@ class CreateWhatsAppTemplate extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $config = WhatsAppConfig::forUser(auth()->id());
+        $actingAsAdmin = auth()->user()?->hasRole('super_admin') ?? false;
+        $ownerUserId   = $actingAsAdmin
+            ? (int) ($data['target_user_id'] ?? 0)
+            : auth()->id();
 
-        if (! $config || empty($config->phone_number_id) || empty($config->access_token)) {
+        unset($data['target_user_id']);
+
+        if ($actingAsAdmin && $ownerUserId <= 0) {
+            Notification::make()
+                ->title('Business required')
+                ->body('Select the business you are creating this template for.')
+                ->danger()
+                ->send();
+            $this->halt();
+        }
+
+        $config = WhatsAppConfig::forUser($ownerUserId);
+
+        if (! $config || ! $config->isComplete()) {
             Notification::make()
                 ->title('WhatsApp number not registered')
-                ->body('You must register your own WhatsApp Business number before creating templates. Go to Register Phone Number to connect your account.')
+                ->body($actingAsAdmin
+                    ? 'The selected business does not have a complete WhatsApp configuration.'
+                    : 'You must register your own WhatsApp Business number before creating templates. Go to Register Phone Number to connect your account.')
                 ->danger()
                 ->persistent()
                 ->send();
@@ -84,7 +104,7 @@ class CreateWhatsAppTemplate extends CreateRecord
         }
 
         $template = WhatsAppTemplate::create([
-            'user_id'              => auth()->id(),
+            'user_id'              => $ownerUserId,
             'name'                 => $data['name'],
             'category'             => $data['category'],
             'language'             => $data['language'],
@@ -94,9 +114,15 @@ class CreateWhatsAppTemplate extends CreateRecord
             'whatsapp_template_id' => $result['id'] ?? null,
         ]);
 
+        $successBody = 'Approval usually takes a few minutes. Use "Refresh Status" to check.';
+        $owner = User::find($ownerUserId);
+        if ($actingAsAdmin && $owner && WhatsAppSubscriptionStatus::isExpired($owner)) {
+            $successBody .= ' Note: this business\'s WhatsApp subscription payment is expired — they may need to renew after the template is approved.';
+        }
+
         Notification::make()
             ->title('Template submitted for Meta approval')
-            ->body('Approval usually takes a few minutes. Use "Refresh Status" to check.')
+            ->body($successBody)
             ->success()->send();
 
         return $template;

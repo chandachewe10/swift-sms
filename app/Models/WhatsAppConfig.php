@@ -25,6 +25,11 @@ class WhatsAppConfig extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function isComplete(): bool
+    {
+        return ! empty($this->phone_number_id) && ! empty($this->access_token);
+    }
+
     public static function forUser(int $userId): ?self
     {
         return static::where('user_id', $userId)->first();

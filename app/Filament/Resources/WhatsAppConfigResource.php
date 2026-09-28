@@ -3,7 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WhatsAppConfigResource\Pages;
+use App\Models\User;
 use App\Models\WhatsAppConfig;
+use App\Support\WhatsAppSubscriptionStatus;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -33,6 +35,25 @@ class WhatsAppConfigResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        if (! auth()->user()?->hasRole('super_admin')) {
+            return null;
+        }
+
+        $expired = User::withCompleteWhatsAppConfig()
+            ->get()
+            ->filter(fn (User $user) => WhatsAppSubscriptionStatus::isExpired($user))
+            ->count();
+
+        return $expired > 0 ? (string) $expired : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'danger';
     }
 
     public static function form(Form $form): Form
@@ -74,6 +95,28 @@ class WhatsAppConfigResource extends Resource
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Company User')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('subscription_status')
+                    ->label('WA Subscription')
+                    ->badge()
+                    ->state(fn (WhatsAppConfig $record) => $record->user
+                        ? WhatsAppSubscriptionStatus::badgeLabel($record->user)
+                        : '—')
+                    ->color(fn (WhatsAppConfig $record) => $record->user
+                        ? WhatsAppSubscriptionStatus::badgeColor($record->user)
+                        : 'gray')
+                    ->description(function (WhatsAppConfig $record) {
+                        if (! $record->user) {
+                            return null;
+                        }
+                        if (WhatsAppSubscriptionStatus::hasActivePayment($record->user)) {
+                            return 'Paid until ' . WhatsAppSubscriptionStatus::expiresAt($record->user)?->format('M j, Y');
+                        }
+                        $payment = WhatsAppSubscriptionStatus::latestPayment($record->user);
+
+                        return $payment
+                            ? 'Last paid ' . $payment->created_at->format('M j, Y')
+                            : null;
+                    }),
                 Tables\Columns\TextColumn::make('phone_number')
                     ->label('Business Phone')
                     ->placeholder('—'),
@@ -93,6 +136,34 @@ class WhatsAppConfigResource extends Resource
                     ->label('Last Updated')
                     ->dateTime()
                     ->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('subscription_status')
+                    ->label('WA subscription')
+                    ->options([
+                        'active'  => 'Active (paid this month)',
+                        'expired' => 'Expired',
+                        'unpaid'  => 'No payment on record',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        $value = $data['value'] ?? null;
+                        if (! $value) {
+                            return $query;
+                        }
+
+                        $ids = User::withCompleteWhatsAppConfig()
+                            ->get()
+                            ->filter(fn (User $user) => match ($value) {
+                                'active'  => WhatsAppSubscriptionStatus::hasActivePayment($user),
+                                'expired' => WhatsAppSubscriptionStatus::isExpired($user),
+                                'unpaid'  => ! WhatsAppSubscriptionStatus::hasActivePayment($user)
+                                    && ! WhatsAppSubscriptionStatus::isExpired($user),
+                                default   => false,
+                            })
+                            ->pluck('id');
+
+                        return $query->whereIn('user_id', $ids);
+                    }),
             ])
             ->actions([
                 Tables\Actions\DeleteAction::make(),

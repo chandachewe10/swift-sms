@@ -3,9 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WhatsAppTemplateResource\Pages;
+use App\Models\User;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsAppService;
+use App\Support\WhatsAppSubscriptionStatus;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -114,9 +116,34 @@ class WhatsAppTemplateResource extends Resource
 
     // ── Form ───────────────────────────────────────────────────────────────────
 
+    public static function businessOptionsForAdmin(): array
+    {
+        return User::withCompleteWhatsAppConfig()
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (User $user) => [$user->id => WhatsAppSubscriptionStatus::labelForUser($user)])
+            ->all();
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
+
+            Forms\Components\Section::make('Business')
+                ->description('Create this template on the selected company\'s WhatsApp Business account.')
+                ->icon('heroicon-o-building-office-2')
+                ->schema([
+                    Forms\Components\Select::make('target_user_id')
+                        ->label('Business')
+                        ->options(fn () => self::businessOptionsForAdmin())
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->helperText('Only businesses with a registered WhatsApp number are listed. Expired subscriptions are marked so you can follow up.')
+                        ->columnSpanFull(),
+                ])
+                ->visible(fn () => auth()->user()?->hasRole('super_admin'))
+                ->visibleOn('create'),
 
             Forms\Components\Section::make('Important Notes Before Submitting')
                 ->description('Please read these guidelines carefully before creating your template.')
@@ -237,8 +264,19 @@ class WhatsAppTemplateResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('user_id', auth()->id()))
+            ->modifyQueryUsing(function (Builder $query) {
+                if (auth()->user()?->hasRole('super_admin')) {
+                    $query->with('user');
+                } else {
+                    $query->where('user_id', auth()->id());
+                }
+            })
             ->columns([
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Business')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable()->weight('bold'),
                 Tables\Columns\TextColumn::make('category')->badge(),
                 Tables\Columns\TextColumn::make('parameter_format')
@@ -261,11 +299,14 @@ class WhatsAppTemplateResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->action(function (WhatsAppTemplate $record): void {
-                        $config = WhatsAppConfig::forUser(auth()->id());
+                        $ownerId = auth()->user()?->hasRole('super_admin')
+                            ? $record->user_id
+                            : auth()->id();
+                        $config = WhatsAppConfig::forUser($ownerId);
                         if (! $config || empty($config->phone_number_id) || empty($config->access_token)) {
                             Notification::make()
                                 ->title('WhatsApp number not registered')
-                                ->body('Register your own WhatsApp Business number before managing templates.')
+                                ->body('This business must have a registered WhatsApp Business number before managing templates.')
                                 ->danger()->send();
                             return;
                         }
