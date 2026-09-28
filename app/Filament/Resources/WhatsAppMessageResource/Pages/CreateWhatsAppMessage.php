@@ -103,7 +103,7 @@ class CreateWhatsAppMessage extends CreateRecord
             $this->halt();
         }
 
-        if (! $isFreeTestingTemplate && ! $user->hasRole('super_admin') && ! $user->whatsapp_subscribed) {
+        if (! $isFreeTestingTemplate && ! $user->isSuperAdmin() && ! $user->whatsapp_subscribed) {
             if (($user->whatsapp_credits ?? 0) < count($recipients)) {
                 $needed = count($recipients) - ($user->whatsapp_credits ?? 0);
                 Notification::make()
