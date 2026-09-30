@@ -113,14 +113,29 @@ class SmsDispatcher
             $parts[] = "International: " . ($intlResult['success'] ? "{$intlCount} sent" : "failed — " . $intlResult['responseText']);
         }
 
-        return [
-            'success'            => $localCount > 0 || $intlCount > 0,
+        $success = $localCount > 0 || $intlCount > 0;
+
+        $result = [
+            'success'            => $success,
             'responseText'       => implode(' | ', $parts) ?: 'No numbers to send.',
             'statusCode'         => $localResult['statusCode'] ?: $intlResult['statusCode'],
             'localCount'         => $localCount,
             'internationalCount' => $intlCount,
             'raw'                => ['local' => $localResult['raw'], 'international' => $intlResult['raw']],
         ];
+
+        if (! $success) {
+            Log::warning('SmsDispatcher send failed', [
+                'company_id'              => $companyId,
+                'responseText'            => $result['responseText'],
+                'statusCode'              => $result['statusCode'],
+                'raw'                     => $result['raw'],
+                'local_numbers'           => count($split['local']),
+                'international_numbers'   => count($split['international']),
+            ]);
+        }
+
+        return $result;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -155,8 +170,19 @@ class SmsDispatcher
             $statusCode   = $responseData['statusCode'] ?? 0;
             $responseText = $responseData['responseText'] ?? 'No response from network.';
 
+            $success = $statusCode == 202;
+
+            if (! $success) {
+                Log::warning('Zamtel SMS send failed', [
+                    'company_id'  => $companyId,
+                    'http_status' => $response->status(),
+                    'response'    => $responseData,
+                    'body'        => $response->body(),
+                ]);
+            }
+
             return [
-                'success'      => $statusCode == 202,
+                'success'      => $success,
                 'responseText' => $responseText,
                 'statusCode'   => $response->status(),
                 'raw'          => $responseData,

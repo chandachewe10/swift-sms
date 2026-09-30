@@ -54,13 +54,24 @@ class MoceanService
                 ->post("{$this->baseUrl}/sms", $payload);
 
             $data = $response->json() ?? [];
-            Log::info('Mocean SMS response', ['status' => $response->status(), 'body' => $data]);
 
             $firstMessage = $data['messages'][0] ?? [];
             $moceanStatus = $firstMessage['status'] ?? -1;
+            $success      = $moceanStatus === 0;
+
+            if ($success) {
+                Log::info('Mocean SMS response', ['status' => $response->status(), 'body' => $data]);
+            } else {
+                Log::warning('Mocean SMS send failed', [
+                    'status'        => $response->status(),
+                    'mocean_status' => $moceanStatus,
+                    'body'          => $data,
+                    'raw_body'      => $response->body(),
+                ]);
+            }
 
             return [
-                'success'      => $moceanStatus === 0,
+                'success'      => $success,
                 'responseText' => $this->statusDescription($moceanStatus),
                 'statusCode'   => $response->status(),
                 'msgid'        => $firstMessage['msgid'] ?? null,
