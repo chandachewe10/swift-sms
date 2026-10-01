@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SenderIdResource\Pages;
 use App\Filament\Resources\SenderIdResource\RelationManagers;
 use App\Models\SenderId;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -24,9 +25,14 @@ class SenderIdResource extends Resource
     {
         return $form
             ->schema([
-                // Forms\Components\TextInput::make('company_id')
-                //     ->required()
-                //     ->numeric(),
+                Forms\Components\Select::make('company_id')
+                    ->label('Business')
+                    ->options(fn () => User::orderBy('name')->pluck('name', 'user_id'))
+                    ->searchable()
+                    ->preload()
+                    ->required(fn () => auth()->user()->hasRole('super_admin'))
+                    ->visible(fn () => auth()->user()->hasRole('super_admin'))
+                    ->helperText('Select the customer account this sender ID belongs to.'),
                 Forms\Components\TextInput::make('name')
                 ->prefixIcon('heroicon-o-user-group')
                 ->label('Create Sender ID')
