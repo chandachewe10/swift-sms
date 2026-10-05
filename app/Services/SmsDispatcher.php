@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 class SmsDispatcher
 {
+    /** Max contacts per Zamtel GET request (contacts are in the URL path). */
+    public const ZAMTEL_CONTACT_BATCH_SIZE = 50;
+
     /**
      * Detect whether a (normalized) number is a local Zambian number.
      * Zambian numbers after normalization: 12 digits starting with 260.
@@ -92,9 +95,7 @@ class SmsDispatcher
             // ── Production: route by number type ─────────────────────────
             if (! empty($split['local'])) {
                 $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
-                if ($localResult['success']) {
-                    $localCount = count($split['local']);
-                }
+                $localCount  = $localResult['sentCount'] ?? 0;
             }
 
             if (! empty($split['international'])) {
@@ -157,48 +158,71 @@ class SmsDispatcher
                 'responseText' => 'No approved Sender ID found.',
                 'statusCode'   => 422,
                 'raw'          => [],
+                'sentCount'    => 0,
             ];
         }
 
-        $contactsString = implode(',', $numbers);
-        $url = env('BULK_SMS_BASE_URI')
-            . '/api_key/'  . urlencode(env('BULK_SMS_TOKEN'))
-            . '/contacts/' . urlencode($contactsString)
-            . '/senderId/' . urlencode($senderId)
-            . '/message/'  . urlencode($message);
+        $batches      = array_chunk($numbers, self::ZAMTEL_CONTACT_BATCH_SIZE);
+        $successCount = 0;
+        $lastResponseText = 'No response from network.';
+        $lastStatusCode   = 500;
+        $rawResponses     = [];
 
-        try {
-            $response     = Http::timeout(300)->get($url);
-            $responseData = $response->json() ?? [];
-            $statusCode   = $responseData['statusCode'] ?? 0;
-            $responseText = $responseData['responseText'] ?? 'No response from network.';
+        foreach ($batches as $batchIndex => $batch) {
+            $contactsString = implode(',', $batch);
+            $url = env('BULK_SMS_BASE_URI')
+                . '/api_key/'  . urlencode(env('BULK_SMS_TOKEN'))
+                . '/contacts/' . urlencode($contactsString)
+                . '/senderId/' . urlencode($senderId)
+                . '/message/'  . urlencode($message);
 
-            $success = $statusCode == 202;
+            try {
+                $response     = Http::timeout(300)->get($url);
+                $responseData = $response->json() ?? [];
+                $statusCode   = $responseData['statusCode'] ?? 0;
+                $responseText = $responseData['responseText'] ?? 'No response from network.';
 
-            if (! $success) {
-                Log::warning('Zamtel SMS send failed', [
-                    'company_id'  => $companyId,
-                    'http_status' => $response->status(),
-                    'response'    => $responseData,
-                    'body'        => $response->body(),
+                $batchSuccess = $statusCode == 202;
+
+                if ($batchSuccess) {
+                    $successCount += count($batch);
+                } else {
+                    Log::warning('Zamtel SMS batch send failed', [
+                        'company_id'   => $companyId,
+                        'batch'        => $batchIndex + 1,
+                        'batch_size'   => count($batch),
+                        'http_status'  => $response->status(),
+                        'response'     => $responseData,
+                        'body'         => $response->body(),
+                    ]);
+                }
+
+                $lastResponseText = $responseText;
+                $lastStatusCode   = $response->status();
+                $rawResponses[]   = $responseData;
+            } catch (\Throwable $e) {
+                Log::error('Zamtel SMS batch error', [
+                    'company_id' => $companyId,
+                    'batch'      => $batchIndex + 1,
+                    'message'    => $e->getMessage(),
                 ]);
+                $lastResponseText = 'Zamtel request failed: ' . $e->getMessage();
+                $lastStatusCode   = 500;
             }
-
-            return [
-                'success'      => $success,
-                'responseText' => $responseText,
-                'statusCode'   => $response->status(),
-                'raw'          => $responseData,
-            ];
-        } catch (\Throwable $e) {
-            Log::error('Zamtel SMS error: ' . $e->getMessage());
-            return [
-                'success'      => false,
-                'responseText' => 'Zamtel request failed: ' . $e->getMessage(),
-                'statusCode'   => 500,
-                'raw'          => [],
-            ];
         }
+
+        $total = count($numbers);
+        $responseSummary = $successCount === $total
+            ? ($lastResponseText ?: "{$successCount} sent")
+            : "{$successCount} of {$total} sent. Last: {$lastResponseText}";
+
+        return [
+            'success'      => $successCount > 0,
+            'responseText' => $responseSummary,
+            'statusCode'   => $lastStatusCode,
+            'raw'          => $rawResponses,
+            'sentCount'    => $successCount,
+        ];
     }
 
     // ──────────────────────────────────────────────────────────────────────────
