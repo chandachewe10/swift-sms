@@ -216,7 +216,12 @@ class MessagesResource extends Resource
                                 
                                 // Format contact number
                                 $contacts = sprintf('0%d', $messageData['contact']);
-                                $senderId = SenderId::where('company_id',"=",auth()->user()->user_id)->where('is_approved',"=",1)->first()?->name;
+                                $senderId = SenderId::normalizeName(
+                                    SenderId::where('company_id', auth()->user()->user_id)
+                                        ->where('is_approved', 1)
+                                        ->first()
+                                        ?->getRawOriginal('name')
+                                );
                                 
 if (!$senderId) {
     Notification::make()

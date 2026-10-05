@@ -36,10 +36,11 @@ class SenderIdResource extends Resource
                 Forms\Components\TextInput::make('name')
                 ->prefixIcon('heroicon-o-user-group')
                 ->label('Create Sender ID')
-                ->helperText('This is the name which is going to appear to your clients when you send them the message. The name is supposed to be short with a maximum of 12 characters. Upon submitting it will then be approved before it is used.')
+                ->helperText('This is the name which is going to appear to your clients when you send them the message. The name is supposed to be short with a maximum of 12 characters. Upon submitting it will then be approved before it is used. Spaces are removed automatically.')
                     ->required()
                     ->minLength(2)
                     ->maxLength(12)
+                    ->dehydrateStateUsing(fn (?string $state) => SenderId::normalizeName($state))
                   ,
                 Forms\Components\TextInput::make('company_phone')
                     ->required()
@@ -89,6 +90,11 @@ class SenderIdResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('contacts_count')
+                    ->label('Contacts')
+                    ->counts('contacts')
+                    ->sortable()
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin') ?? false),
                 Tables\Columns\TextColumn::make('is_approved')
 
                     ->badge()
@@ -108,6 +114,17 @@ class SenderIdResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('testSendSms')
+                    ->label('Test SMS')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('warning')
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin') ?? false)
+                    ->form(fn () => \App\Support\SuperadminSmsTest::testSendFormSchema())
+                    ->action(function (SenderId $record, array $data): void {
+                        \App\Support\SuperadminSmsTest::notifyResult(
+                            \App\Support\SuperadminSmsTest::send($record, $data['numbers'], $data['message'])
+                        );
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -119,7 +136,7 @@ class SenderIdResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ContactsRelationManager::class,
         ];
     }
 

@@ -40,9 +40,8 @@ class MessagesAPI extends Controller
 
 
              $contacts = $request->numbers;
-             $senderId = $request->sender_id;
              $message = $request->message;
-             $user = SenderId::where('name',"=",$senderId)->where('is_approved',"=",1)->first();
+             $user = SenderId::findApprovedByName((string) $request->sender_id);
              $numbersArray = explode(',', $request->numbers);
              $count = count($numbersArray);
 

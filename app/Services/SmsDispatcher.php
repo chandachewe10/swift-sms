@@ -144,9 +144,12 @@ class SmsDispatcher
 
     private static function sendViaZamtel(string $companyId, array $numbers, string $message): array
     {
-        $senderId = SenderId::where('company_id', $companyId)
-            ->where('is_approved', 1)
-            ->first()?->name;
+        $senderId = SenderId::normalizeName(
+            SenderId::where('company_id', $companyId)
+                ->where('is_approved', 1)
+                ->first()
+                ?->getRawOriginal('name')
+        );
 
         if (empty($senderId)) {
             return [
@@ -210,9 +213,12 @@ class SmsDispatcher
     ): array {
         $token = SystemSetting::get('mocean_api_token');
 
-        $senderId = SenderId::where('company_id', $companyId)
-            ->where('is_approved', 1)
-            ->first()?->name;
+        $senderId = SenderId::normalizeName(
+            SenderId::where('company_id', $companyId)
+                ->where('is_approved', 1)
+                ->first()
+                ?->getRawOriginal('name')
+        );
 
         if (empty($token)) {
             return [
