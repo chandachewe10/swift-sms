@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\SenderId;
 use App\Models\User;
 use App\Services\SmsDispatcher;
+use App\Services\SmsSendSettlement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -83,22 +84,18 @@ class MessagesAPI extends Controller
                  $options
              );
 
+             $settlement = SmsSendSettlement::settle($company, $result, $localCount, $intlCount);
+
              Messages::create([
                  'message'      => $message,
-                 'responseText' => $result['responseText'],
+                 'responseText' => $settlement['client_message'] ?: $result['responseText'],
                  'contact'      => $contacts,
-                 'status'       => $result['statusCode'],
+                 'status'       => $settlement['success'] ? 202 : ($result['statusCode'] ?: 500),
                  'company_id'   => $company->user_id,
              ]);
 
-             if ($result['success']) {
-                 if ($result['localCount'] > 0) {
-                     $company->wallet->withdraw($result['localCount'], ['description' => 'Local SMS sent via API']);
-                 }
-                 if ($result['internationalCount'] > 0) {
-                     $company->decrement('international_sms_credits', $result['internationalCount']);
-                 }
-                 return response()->json(['success' => 'true', 'message' => $result['responseText']], 202);
+             if ($settlement['success']) {
+                 return response()->json(['success' => 'true', 'message' => $settlement['client_message']], 202);
              }
 
              return response()->json(['success' => 'false', 'message' => "Can't send message(s) right now please try again later"], $result['statusCode'] ?: 500);

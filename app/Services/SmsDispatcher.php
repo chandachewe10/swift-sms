@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\SenderId;
+use App\Models\SmsDeliveryQueue;
 use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -51,7 +52,9 @@ class SmsDispatcher
      *   responseText       string — combined status message
      *   statusCode         int
      *   localCount         int    — number of local numbers successfully sent
+     *   localFailedCount   int    — local numbers queued after Zamtel rejection
      *   internationalCount int    — number of international numbers successfully sent
+     *   clientFacingMessage string|null — safe message for end users when set
      *   raw                array
      */
     public static function send(
@@ -65,8 +68,9 @@ class SmsDispatcher
         $localResult = ['success' => true, 'responseText' => '', 'statusCode' => 200, 'raw' => []];
         $intlResult  = ['success' => true, 'responseText' => '', 'statusCode' => 200, 'raw' => []];
 
-        $localCount  = 0;
-        $intlCount   = 0;
+        $localCount       = 0;
+        $localFailedCount = 0;
+        $intlCount        = 0;
 
         $devMode = self::isDevMode();
 
@@ -95,7 +99,8 @@ class SmsDispatcher
             // ── Production: route by number type ─────────────────────────
             if (! empty($split['local'])) {
                 $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
-                $localCount  = $localResult['sentCount'] ?? 0;
+                $localCount       = $localResult['sentCount'] ?? 0;
+                $localFailedCount = $localResult['failedCount'] ?? 0;
             }
 
             if (! empty($split['international'])) {
@@ -108,21 +113,32 @@ class SmsDispatcher
 
         $parts = [];
         if (! empty($split['local'])) {
-            $parts[] = "Local: " . ($localResult['success'] ? "{$localCount} sent" : "failed — " . $localResult['responseText']);
+            if ($localFailedCount > 0) {
+                $parts[] = "Local: {$localCount} sent, {$localFailedCount} queued for delivery";
+            } else {
+                $parts[] = "Local: " . ($localResult['success'] ? "{$localCount} sent" : "failed — " . $localResult['responseText']);
+            }
         }
         if (! empty($split['international'])) {
             $parts[] = "International: " . ($intlResult['success'] ? "{$intlCount} sent" : "failed — " . $intlResult['responseText']);
         }
 
-        $success = $localCount > 0 || $intlCount > 0;
+        $success = $localCount > 0 || $localFailedCount > 0 || $intlCount > 0;
+
+        $clientFacingMessage = null;
+        if ($localFailedCount > 0) {
+            $clientFacingMessage = SmsSendSettlement::QUEUED_CLIENT_MESSAGE;
+        }
 
         $result = [
-            'success'            => $success,
-            'responseText'       => implode(' | ', $parts) ?: 'No numbers to send.',
-            'statusCode'         => $localResult['statusCode'] ?: $intlResult['statusCode'],
-            'localCount'         => $localCount,
-            'internationalCount' => $intlCount,
-            'raw'                => ['local' => $localResult['raw'], 'international' => $intlResult['raw']],
+            'success'             => $success,
+            'responseText'        => implode(' | ', $parts) ?: 'No numbers to send.',
+            'statusCode'          => $localResult['statusCode'] ?: $intlResult['statusCode'],
+            'localCount'          => $localCount,
+            'localFailedCount'    => $localFailedCount,
+            'internationalCount'  => $intlCount,
+            'clientFacingMessage' => $clientFacingMessage,
+            'raw'                 => ['local' => $localResult['raw'], 'international' => $intlResult['raw']],
         ];
 
         if (! $success) {
@@ -162,8 +178,9 @@ class SmsDispatcher
             ];
         }
 
-        $batches      = array_chunk($numbers, self::ZAMTEL_CONTACT_BATCH_SIZE);
-        $successCount = 0;
+        $batches          = array_chunk($numbers, self::ZAMTEL_CONTACT_BATCH_SIZE);
+        $successCount     = 0;
+        $failedNumbers    = [];
         $lastResponseText = 'No response from network.';
         $lastStatusCode   = 500;
         $rawResponses     = [];
@@ -187,8 +204,11 @@ class SmsDispatcher
                 if ($batchSuccess) {
                     $successCount += count($batch);
                 } else {
+                    $failedNumbers = array_merge($failedNumbers, $batch);
+
                     Log::warning('Zamtel SMS batch send failed', [
                         'company_id'   => $companyId,
+                        'sender_id'    => $senderId,
                         'batch'        => $batchIndex + 1,
                         'batch_size'   => count($batch),
                         'http_status'  => $response->status(),
@@ -201,8 +221,11 @@ class SmsDispatcher
                 $lastStatusCode   = $response->status();
                 $rawResponses[]   = $responseData;
             } catch (\Throwable $e) {
+                $failedNumbers = array_merge($failedNumbers, $batch);
+
                 Log::error('Zamtel SMS batch error', [
                     'company_id' => $companyId,
+                    'sender_id'  => $senderId,
                     'batch'      => $batchIndex + 1,
                     'message'    => $e->getMessage(),
                 ]);
@@ -211,17 +234,38 @@ class SmsDispatcher
             }
         }
 
+        $failedCount = count($failedNumbers);
+        if ($failedCount > 0) {
+            SmsDeliveryQueue::create([
+                'company_id'         => $companyId,
+                'sender_id'          => $senderId,
+                'message'            => $message,
+                'contacts'           => array_values($failedNumbers),
+                'failed_count'       => $failedCount,
+                'provider_response'  => $lastResponseText,
+                'status'             => 'pending',
+            ]);
+
+            Log::warning('Zamtel SMS queued for retry', [
+                'company_id'         => $companyId,
+                'sender_id'          => $senderId,
+                'failed_count'       => $failedCount,
+                'provider_response'  => $lastResponseText,
+            ]);
+        }
+
         $total = count($numbers);
         $responseSummary = $successCount === $total
             ? ($lastResponseText ?: "{$successCount} sent")
             : "{$successCount} of {$total} sent. Last: {$lastResponseText}";
 
         return [
-            'success'      => $successCount > 0,
+            'success'      => $successCount > 0 || $failedCount > 0,
             'responseText' => $responseSummary,
             'statusCode'   => $lastStatusCode,
             'raw'          => $rawResponses,
             'sentCount'    => $successCount,
+            'failedCount'  => $failedCount,
         ];
     }
 
