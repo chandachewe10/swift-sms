@@ -7,6 +7,7 @@ use App\Models\Contact;
 use App\Models\Messages;
 // SenderId resolved inside SmsDispatcher
 use App\Services\SmsDispatcher;
+use App\Services\SmsSendSettlement;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -118,11 +119,11 @@ class CreateContactMessages extends CreateRecord
         $hasNamePlaceholder = str_contains($message, '{name}');
 
         if ($hasNamePlaceholder) {
-            $successCount = 0;
-            $failCount    = 0;
-            $lastResponse = '';
-            $totalLocal   = 0;
-            $totalIntl    = 0;
+            $totalLocal        = 0;
+            $totalLocalFailed  = 0;
+            $totalIntl         = 0;
+            $anySuccess        = false;
+            $lastResponse      = '';
 
             foreach ($contacts as $contact) {
                 $personalised = str_replace(
@@ -131,20 +132,20 @@ class CreateContactMessages extends CreateRecord
                     $message
                 );
                 $r = SmsDispatcher::send($user->user_id, [$contact->phone1], $personalised, $options);
+                $totalLocal       += $r['localCount'] ?? 0;
+                $totalLocalFailed += $r['localFailedCount'] ?? 0;
+                $totalIntl        += $r['internationalCount'] ?? 0;
                 if ($r['success']) {
-                    $successCount++;
-                    $totalLocal += $r['localCount'] ?? 0;
-                    $totalIntl  += $r['internationalCount'] ?? 0;
-                } else {
-                    $failCount++;
+                    $anySuccess = true;
                 }
                 $lastResponse = $r['responseText'];
             }
 
             $result = [
-                'success'            => $successCount > 0,
-                'responseText'       => "Personalised: {$successCount} sent, {$failCount} failed. Last: {$lastResponse}",
+                'success'            => $anySuccess,
+                'responseText'       => $lastResponse,
                 'localCount'         => $totalLocal,
+                'localFailedCount'   => $totalLocalFailed,
                 'internationalCount' => $totalIntl,
             ];
         } else {
@@ -157,35 +158,31 @@ class CreateContactMessages extends CreateRecord
             default                         => implode(',', $contactStrings),
         };
 
+        $settlement = SmsSendSettlement::settle($user, $result, $localCount, $intlCount);
+
         $messageRecord = Messages::create([
             'message'      => $message,
-            'responseText' => $result['responseText'],
+            'responseText' => $settlement['client_message'] ?: $result['responseText'],
             'contact'      => $contactLogValue,
-            'status'       => $result['success'] ? 200 : 400,
+            'status'       => $settlement['success'] ? 200 : 400,
             'company_id'   => $user->user_id,
         ]);
 
-        if ($result['success']) {
-            // Deduct local credits from wallet
-            if ($result['localCount'] > 0) {
-                $user->wallet->withdraw($result['localCount'], ['description' => 'Local SMS sent via Zamtel']);
-            }
-            // Deduct international credits from column
-            if ($result['internationalCount'] > 0) {
-                $user->decrement('international_sms_credits', $result['internationalCount']);
-            }
+        $suffix = (! empty($options['schedule'])) ? ' Scheduled for ' . $data['schedule_at'] . '.' : '';
 
+        if ($settlement['success']) {
+            $queued = ($result['localFailedCount'] ?? 0) > 0;
             $recipientText = match(true) {
                 ($data['send_to_all'] ?? false) => 'all contacts',
                 ! empty($data['tag_filter'])    => $contactCount . ' contacts with tag "' . $data['tag_filter'] . '"',
                 default                         => $contactCount . ' selected contacts',
             };
 
-            $suffix = (! empty($options['schedule'])) ? ' Scheduled for ' . $data['schedule_at'] . '.' : '';
-
             Notification::make()
-                ->title('Messages sent successfully')
-                ->body("Delivered to {$recipientText}.{$suffix}")
+                ->title($queued ? 'Messages queued' : 'Messages sent successfully')
+                ->body($queued
+                    ? ($settlement['client_message'] . $suffix)
+                    : ("Delivered to {$recipientText}.{$suffix}"))
                 ->success()->send();
         } else {
             Notification::make()

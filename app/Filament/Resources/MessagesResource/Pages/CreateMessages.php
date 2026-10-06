@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MessagesResource\Pages;
 use App\Filament\Resources\MessagesResource;
 use App\Models\Messages;
 use App\Services\SmsDispatcher;
+use App\Services\SmsSendSettlement;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -66,28 +67,23 @@ class CreateMessages extends CreateRecord
             $options
         );
 
+        $settlement = SmsSendSettlement::settle($user, $result, $localCount, $intlCount);
+
         $record = Messages::create([
             'message'      => $data['message'],
-            'responseText' => $result['responseText'],
+            'responseText' => $settlement['client_message'] ?: $result['responseText'],
             'contact'      => implode(',', $contactStrings),
-            'status'       => $result['success'] ? 200 : 400,
+            'status'       => $settlement['success'] ? 200 : 400,
             'company_id'   => $user->user_id,
         ]);
 
-        if ($result['success']) {
-            // Deduct local credits from wallet
-            if ($result['localCount'] > 0) {
-                $user->wallet->withdraw($result['localCount'], ['description' => 'Local SMS sent via Zamtel']);
-            }
-            // Deduct international credits from column
-            if ($result['internationalCount'] > 0) {
-                $user->decrement('international_sms_credits', $result['internationalCount']);
-            }
+        $suffix = (! empty($options['schedule'])) ? ' Scheduled for ' . $data['schedule_at'] . '.' : '';
 
-            $suffix = (! empty($options['schedule'])) ? ' Scheduled for ' . $data['schedule_at'] . '.' : '';
+        if ($settlement['success']) {
+            $queued = ($result['localFailedCount'] ?? 0) > 0;
             Notification::make()
-                ->title('Message(s) sent')
-                ->body($result['responseText'] . $suffix)
+                ->title($queued ? 'Messages queued' : 'Message(s) sent')
+                ->body($settlement['client_message'] . $suffix)
                 ->success()->send();
         } else {
             Notification::make()
