@@ -98,7 +98,7 @@ class SmsDispatcher
         } else {
             // ── Production: route by number type ─────────────────────────
             if (! empty($split['local'])) {
-                $localResult = self::sendViaZamtel($companyId, $split['local'], $message);
+                $localResult = self::deliverViaZamtel($companyId, $split['local'], $message);
                 $localCount       = $localResult['sentCount'] ?? 0;
                 $localFailedCount = $localResult['failedCount'] ?? 0;
             }
@@ -159,14 +159,23 @@ class SmsDispatcher
     // Zamtel (local)
     // ──────────────────────────────────────────────────────────────────────────
 
-    private static function sendViaZamtel(string $companyId, array $numbers, string $message): array
-    {
-        $senderId = SenderId::normalizeName(
-            SenderId::where('company_id', $companyId)
-                ->where('is_approved', 1)
-                ->first()
-                ?->getRawOriginal('name')
-        );
+    /**
+     * Deliver local SMS via Zamtel. Optionally attach failures to an existing queue row (retries).
+     */
+    public static function deliverViaZamtel(
+        string $companyId,
+        array $numbers,
+        string $message,
+        ?string $senderIdOverride = null,
+        ?SmsDeliveryQueue $queueRecord = null,
+    ): array {
+        $senderId = SenderId::normalizeName($senderIdOverride)
+            ?? SenderId::normalizeName(
+                SenderId::where('company_id', $companyId)
+                    ->where('is_approved', 1)
+                    ->first()
+                    ?->getRawOriginal('name')
+            );
 
         if (empty($senderId)) {
             return [
@@ -175,6 +184,7 @@ class SmsDispatcher
                 'statusCode'   => 422,
                 'raw'          => [],
                 'sentCount'    => 0,
+                'failedCount'  => 0,
             ];
         }
 
@@ -236,21 +246,38 @@ class SmsDispatcher
 
         $failedCount = count($failedNumbers);
         if ($failedCount > 0) {
-            SmsDeliveryQueue::create([
-                'company_id'         => $companyId,
-                'sender_id'          => $senderId,
-                'message'            => $message,
-                'contacts'           => array_values($failedNumbers),
-                'failed_count'       => $failedCount,
-                'provider_response'  => $lastResponseText,
-                'status'             => 'pending',
-            ]);
+            if ($queueRecord) {
+                $queueRecord->update([
+                    'contacts'          => array_values($failedNumbers),
+                    'failed_count'      => $failedCount,
+                    'provider_response' => $lastResponseText,
+                    'status'            => 'pending',
+                ]);
+            } else {
+                SmsDeliveryQueue::create([
+                    'company_id'         => $companyId,
+                    'sender_id'          => $senderId,
+                    'message'            => $message,
+                    'contacts'           => array_values($failedNumbers),
+                    'failed_count'       => $failedCount,
+                    'provider_response'  => $lastResponseText,
+                    'status'             => 'pending',
+                ]);
+            }
 
             Log::warning('Zamtel SMS queued for retry', [
                 'company_id'         => $companyId,
                 'sender_id'          => $senderId,
                 'failed_count'       => $failedCount,
                 'provider_response'  => $lastResponseText,
+                'queue_id'           => $queueRecord?->id,
+            ]);
+        } elseif ($queueRecord) {
+            $queueRecord->update([
+                'contacts'          => [],
+                'failed_count'      => 0,
+                'provider_response' => $lastResponseText,
+                'status'            => 'sent',
             ]);
         }
 

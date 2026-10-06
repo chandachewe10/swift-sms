@@ -1,19 +1,18 @@
 <?php
 
 namespace App\Filament\Imports;
-use Filament\Notifications\Notification;
-use Filament\Actions\CreateAction;
+
 use App\Models\Messages;
+use App\Services\SmsDispatcher;
+use App\Services\SmsSendSettlement;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
-use Filament\Notifications\Actions\Action;
-use Http;
+use Filament\Notifications\Notification;
 
 class MessagesImporter extends Importer
 {
     protected static ?string $model = Messages::class;
-    
 
     public static function getColumns(): array
     {
@@ -37,84 +36,50 @@ class MessagesImporter extends Importer
         ];
     }
 
-
-    protected function beforeSave(): void
-    {
-        // Runs before a record is saved to the database.
-    }
-
     public function resolveRecord(): ?Messages
     {
-        // return Messages::firstOrNew([
-        //     // Update existing records, matching them by `$this->data['column_name']`
-        //     'email' => $this->data['email'],
-        // ]);
-    
-
+        $user = auth()->user();
         $contacts = sprintf('0%d', $this->data['contact']);
-        $senderId = auth()->user()->sender_id;
-        $message = $this->data['message'];
-    
-       
-   
-        // Check if the user has enough balance
-        if (auth()->user()->wallet->balance < 1) {
+        $numbers  = [$contacts];
+        $message  = $this->data['message'];
 
+        $split = SmsDispatcher::splitByType($numbers);
+        $local = count($split['local']);
+        $intl  = count($split['international']);
+
+        if ($local > 0 && $user->wallet->balance < $local) {
             static $notificationSent = false;
-            if (!$notificationSent) {
-            
-            Notification::make()
-                ->title('Insufficient SMS Balance')
-                ->body('You have Insufficient SMS Balance to send the remaining SMS(es)')
-                ->warning()
-                ->send();
+            if (! $notificationSent) {
+                Notification::make()
+                    ->title('Insufficient SMS Balance')
+                    ->body('You have insufficient SMS balance to send the remaining SMS(es)')
+                    ->warning()
+                    ->send();
                 $notificationSent = true;
-                $action = new CreateAction('Insufficient');
-                $action->halt();
-
-            // Call halt() from CreateRecord class using composition
-           // return false;
             }
-       
+
+            return null;
         }
-    
-       
-    
-        // URL encode the components
-        $encodedContacts = urlencode($contacts );
-        $encodedSenderId = urlencode($senderId);
-        $encodedMessage = urlencode($message);
-    
-        // Construct the URL with properly encoded components
-        $url = env('BULK_SMS_BASE_URI') . '/api_key/' . urlencode(env('BULK_SMS_TOKEN')) . '/contacts/' . $encodedContacts . '/senderId/' . $encodedSenderId . '/message/' . $encodedMessage;
-        
-    
-        // Send the HTTP request
-        $response = Http::get($url);
-    
-        // Handle the response
-        $responseData = $response->json();
-        
-        if ($response->successful()) {
-            // Withdraw the amount from the user's wallet
-           // auth()->user()->wallet->withdraw(count($contactStrings), ['description' => 'Sending of SMS(s)']);
-    
-            // Create the message record
-           $data = Messages::create([
-                'message' => $message,
-                'responseText' => $responseData['responseText'] ?? '',
-                'contact' => $contacts ,
-                'status' => $response->status(),
-                'company_id' => auth()->user()->user_id,
-            ]);
 
-
-
-
-        return $data;
+        if ($intl > 0 && ($user->international_sms_credits ?? 0) < $intl) {
+            return null;
         }
+
+        $result = SmsDispatcher::send($user->user_id, $numbers, $message, []);
+        $settlement = SmsSendSettlement::settle($user, $result, $local, $intl);
+
+        if (! $settlement['success']) {
+            return null;
+        }
+
+        return Messages::create([
+            'message'      => $message,
+            'responseText' => $settlement['client_message'] ?: $result['responseText'],
+            'contact'      => $contacts,
+            'status'       => 200,
+            'company_id'   => $user->user_id,
+        ]);
     }
-    
 
     public static function getCompletedNotificationBody(Import $import): string
     {
