@@ -238,7 +238,7 @@
     <div class="header">
         <div>
             <div class="brand-name">⚡ SWIFT<span>-SMS</span></div>
-            <div class="brand-url">swiftsms.macroit.org</div>
+            <div class="brand-url">swift.macroit.org</div>
         </div>
         <div class="receipt-meta">
             <div class="receipt-label">Receipt</div>
@@ -339,7 +339,7 @@
     <div class="footer">
         <div class="footer-text">
             <p><strong>Thank you for choosing SWIFT-SMS.</strong></p>
-            <p>Questions? Email us at <a href="mailto:swiftsms@macroit.org" style="color:#6b7280;">swiftsms@macroit.org</a></p>
+            <p>Questions? Email us at <a href="mailto:swift@macroit.org" style="color:#6b7280;">swift@macroit.org</a></p>
         </div>
         <div class="no-print">
             <button class="print-btn" onclick="window.print()">
