@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationItems([
                 NavigationItem::make('Documentation')
-                    ->url('https://swiftsms.macroit.org/api_docs', shouldOpenInNewTab: true)
+                    ->url('https://swift.macroit.org/api_docs', shouldOpenInNewTab: true)
                     ->icon('heroicon-o-bookmark-square')
                     ->group('Developers')
                     ->sort(2)

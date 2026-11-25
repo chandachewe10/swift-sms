@@ -40,7 +40,7 @@ class ContactUsController extends Controller
 
         // Send the email
         Mail::send('emails.contact-us', ['data' => $validatedData], function ($message) {
-            $message->to('swiftsms@macroit.org', 'ADMIN')
+            $message->to('swift@macroit.org', 'ADMIN')
                 ->subject('CONTACT US FORM');
         });
 

@@ -36,7 +36,7 @@ class newsLetterSubscriptionController extends Controller
 
         // Send the email
         Mail::send('emails.newsletter', ['data' => $validatedData], function ($message) {
-            $message->to('swiftsms@macroit.org', 'ADMIN')
+            $message->to('swift@macroit.org', 'ADMIN')
                 ->subject('NEWSLETTER SUBSCRIPTION FORM');
         });
 

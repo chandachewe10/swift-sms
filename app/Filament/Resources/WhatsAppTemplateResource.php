@@ -77,7 +77,7 @@ class WhatsAppTemplateResource extends Resource
                 <div style="margin-bottom:14px;">
                     <div class="wa-notes-title-blue">Approval Period</div>
                     <p style="margin:0 0 6px;">After you submit a template, WhatsApp typically approves or rejects it within <strong>minutes</strong> through a machine-learning assisted process. Templates that cannot be triaged automatically are routed for human review and can take <strong>up to 48 hours</strong>.</p>
-                    <p style="margin:0;">If a template remains in the <em>Pending</em> state for more than 48 hours, contact SwiftSMS support at <a href="mailto:info@swiftsms.org">info@swiftsms.org</a> and include the template name.</p>
+                    <p style="margin:0;">If a template remains in the <em>Pending</em> state for more than 48 hours, contact SwiftSMS support at <a href="mailto:swift@macroit.org">swift@macroit.org</a> and include the template name.</p>
                 </div>
 
                 <div>

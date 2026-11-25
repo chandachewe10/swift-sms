@@ -38,7 +38,7 @@ class feedbackController extends Controller
 
         // Send the email
         Mail::send('emails.feedback', ['data' => $validatedData], function ($message) {
-            $message->to('swiftsms@macroit.org', 'ADMIN')
+            $message->to('swift@macroit.org', 'ADMIN')
                 ->subject('FEEDBACK FORM');
         });
 

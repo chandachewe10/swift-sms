@@ -49,7 +49,7 @@ class MessagesAPI extends Controller
       // Check if the sender Id is valid
              if(is_null($user)) {
 
-                return response()->json(['success'=>'false','message' => 'Invalid Sender ID. Please send us an email at swiftsms@macroit.org'], 422);
+                return response()->json(['success'=>'false','message' => 'Invalid Sender ID. Please send us an email at swift@macroit.org'], 422);
             }
 
 

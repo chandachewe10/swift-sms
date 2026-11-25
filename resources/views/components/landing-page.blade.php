@@ -772,7 +772,7 @@
                     <br>
                     <!-- Sunshare Buildings, Katima Mulilo road,Olympia, Lusaka<br> -->
                    <!-- <strong>Phone:</strong> +260..........<br>-->
-                    <strong>Email:</strong> swiftsms@macroit.org<br>
+                    <strong>Email:</strong> swift@macroit.org<br>
                   </p>
                 </div>
 
